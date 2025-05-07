@@ -1,0 +1,55 @@
+{
+  "name": "sazonarte_api",
+  "version": "1.0.0",
+  "description": "API para administración y contabilidad de restaurante Sazonarte. ",
+  "main": "/src/server.js",
+  "scripts": {
+    "start": "tsc && node --watch dist/server.js ",
+    "dev": "tsc && node --watch dist/server.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "eslint-check-only": "npx eslint .",
+    "eslint-fix": "npx eslint . --fix",
+    "prettier": "npx prettier --write ."
+  },
+  "keywords": [
+    "api",
+    "sazonarte",
+    "backend",
+    "management",
+    "restaurant"
+  ],
+  "author": "NgCraftz",
+  "license": "ISC",
+  "dependencies": {
+    "@prisma/client": "^6.7.0",
+    "bcrypt": "^5.1.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0",
+    "helmet": "^8.1.0",
+    "morgan": "^1.10.0",
+    "winston": "^3.17.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.26.0",
+    "@eslint/json": "^0.12.0",
+    "@eslint/markdown": "^6.4.0",
+    "@types/bcrypt": "^5.0.2",
+    "@types/cors": "^2.8.17",
+    "@types/dotenv": "^6.1.1",
+    "@types/express": "^5.0.1",
+    "@types/morgan": "^1.9.9",
+    "@types/node": "^22.15.3",
+    "@typescript-eslint/eslint-plugin": "^8.32.0",
+    "@typescript-eslint/parser": "^8.32.0",
+    "eslint": "^9.26.0",
+    "eslint-config-prettier": "^10.1.2",
+    "eslint-plugin-prettier": "^5.4.0",
+    "globals": "^16.0.0",
+    "prettier": "^3.5.3",
+    "prisma": "^6.7.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.32.0"
+  }
+}

@@ -1,0 +1,323 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ENUMS
+enum RoleName {
+  ADMIN
+  CASHIER
+  WAITER
+  KITCHER_MANAGER
+}
+
+enum TableStatus {
+  AVAILABLE
+  OCCUPIED
+  NEEDS_CLEANING
+}
+
+enum OrderStatus {
+  PENDING
+  SENT_TO_CASHIER
+  PAID
+  CANCELLED
+  IN_KITCHEN
+  READY
+  DELIVERED
+}
+
+enum OrderType {
+  DINE_IN
+  TAKE_OUT
+  DELIVERY
+  WHATSAPP
+}
+
+enum PaymentMethod {
+  CASH
+  NEQUI
+  TICKET_BOOK
+}
+
+// DATA-MODELS
+
+model Role {
+  id          Int      @id @default(autoincrement())
+  name        RoleName @unique
+  description String?
+
+  users       User[]
+  permissions RolePermission[]
+
+  @@map("roles")
+}
+
+model Permission {
+  id          Int     @id @default(autoincrement())
+  name        String  @unique
+  description String?
+
+  roles RolePermission[]
+
+  @@map("permissions")
+}
+
+model RolePermission {
+  roleId Int
+  role   Role @relation(fields: [roleId], references: [id])
+
+  permissionId Int
+  permission   Permission @relation(fields: [permissionId], references: [id])
+
+  assignedAt DateTime @default(now())
+
+  @@id([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+model User {
+  id       Int     @id @default(autoincrement())
+  email    String  @unique
+  phone    String? @unique
+  password String
+  name     String
+
+  roleId Int
+  role   Role @relation(fields: [roleId], references: [id])
+
+  profile Profile?
+
+  ordersTaken        Order[]   @relation("OrdersTakenByWaiter")
+  registeredExpenses Expense[] @relation("ExpensesRecordedBy")
+
+  @@map("users")
+}
+
+model Profile {
+  id     Int  @id @default(autoincrement())
+  userId Int  @unique
+  user   User @relation(fields: [userId], references: [id])
+
+  address String?
+
+  @@map("profiles")
+}
+
+model Table {
+  id       Int         @id @default(autoincrement())
+  number   String      @unique
+  status   TableStatus @default(AVAILABLE)
+  location String?
+
+  orders Order[]
+
+  @@map("tables")
+}
+
+model MenuCategory {
+  id          Int     @id @default(autoincrement())
+  name        String  @unique
+  description String?
+  order       Int     @default(0)
+
+  items MenuItem[]
+
+  @@map("menu_categories")
+}
+
+model MenuItem {
+  id         Int          @id @default(autoincrement())
+  categoryId Int
+  category   MenuCategory @relation(fields: [categoryId], references: [id])
+
+  name        String
+  description String?
+  price       Decimal @db.Decimal(10, 2)
+  isExtra     Boolean @default(false)
+  isAvailable Boolean @default(true)
+  imageUrl    String?
+
+  // Relaciones inversas para saber dónde se usa este items
+  dailyMenuOptions DailyMenuOption[]
+  orderItems       OrderItem[]
+
+  @@unique([categoryId, name])
+  @@map("menu_items")
+}
+
+model DailyMenuOption {
+  id   Int      @id @default(autoincrement())
+  date DateTime @db.Date
+
+  menuItemId Int
+  menuItem   MenuItem @relation(fields: [menuItemId], references: [id])
+
+  optionType String
+
+  @@unique([date, optionType])
+  @@map("daily_menu_options")
+}
+
+model Order {
+  id      Int    @id @default(autoincrement())
+  tableId Int?
+  table   Table? @relation(fields: [tableId], references: [id])
+
+  waiterId Int
+  waiter   User @relation("OrdersTakenByWaiter", fields: [waiterId], references: [id])
+
+  costumerId Int?
+  costumer   Costumer? @relation(fields: [costumerId], references: [id])
+
+  status OrderStatus @default(PENDING)
+  type   OrderType   @default(DINE_IN)
+
+  totalAmount Decimal @default(0.00) @db.Decimal(10, 2)
+  notes       String?
+
+  whatsappOrderId String? @unique
+
+  items    OrderItem[]
+  payments Payment[]
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id      Int   @id @default(autoincrement())
+  orderId Int
+  order   Order @relation(fields: [orderId], references: [id])
+
+  menuItemId Int?
+  menuItem   MenuItem? @relation(fields: [menuItemId], references: [id])
+
+  quantity     Int
+  priceAtOrder Decimal @db.Decimal(10, 2)
+  notes        String?
+
+  isFreeSubstitution Boolean @default(false)
+
+  @@map("order_items")
+}
+
+model Costumer {
+  id    Int     @id @default(autoincrement())
+  name  String
+  phone String  @unique
+  email String?
+
+  orders      Order[]
+  ticketBooks TicketBook[]
+  dailyCodes  DailyTicketBookCode[]
+
+  @@map("costumers")
+}
+
+model TicketBook {
+  id Int @id @default(autoincrement())
+
+  costumerId Int?
+  costumer   Costumer? @relation(fields: [costumerId], references: [id])
+
+  purchaseDate     DateTime @default(now())
+  expiryDate       DateTime
+  totalPortions    Int
+  consumedPortions Int      @default(0)
+
+  status String @default("active")
+
+  usages TicketBookUsage[]
+
+  @@map("ticket_books")
+}
+
+model TicketBookUsage {
+  id           Int        @id @default(autoincrement())
+  ticketBookId Int
+  ticketBook   TicketBook @relation(fields: [ticketBookId], references: [id])
+
+  paymentId Int
+  payments  Payment @relation("TicketUsages", fields: [paymentId], references: [id])
+
+  dailyCodeId Int
+  dailyCode   DailyTicketBookCode @relation(fields: [dailyCodeId], references: [id])
+
+  portionCount Int @default(1)
+
+  @@map("ticket_book_usages")
+}
+
+model Payment {
+  id Int @id @default(autoincrement())
+
+  orderId Int?
+  order   Order? @relation(fields: [orderId], references: [id])
+
+  method PaymentMethod @default(CASH)
+  amount Decimal       @db.Decimal(10, 2)
+
+  transactionRef String?
+
+  ticketUsages          TicketBookUsage[]    @relation("TicketUsages")
+  dailyTicketBookCodeId Int?                 @unique
+  dailyTicketBookCode   DailyTicketBookCode? @relation("CodeUsedInPayment", fields: [dailyTicketBookCodeId], references: [id])
+
+  @@map("payments")
+}
+
+model ExpenseCategory {
+  id          Int     @id @default(autoincrement())
+  name        String
+  description String?
+
+  expenses Expense[]
+
+  @@map("expense_categories")
+}
+
+model Expense {
+  id Int @id @default(autoincrement())
+
+  recordedById Int
+  recordedBy   User @relation("ExpensesRecordedBy", fields: [recordedById], references: [id])
+
+  categoryId Int
+  category   ExpenseCategory @relation(fields: [categoryId], references: [id])
+
+  date        DateTime
+  amount      Decimal  @db.Decimal(10, 2)
+  description String?
+
+  @@map("expenses")
+}
+
+model DailyTicketBookCode {
+  id Int @id @default(autoincrement())
+
+  costumerId Int?
+  costumer   Costumer? @relation(fields: [costumerId], references: [id])
+
+  code String   @unique
+  date DateTime @db.Date
+
+  isUsed Boolean @default(false)
+
+  usedAtPaymentId Int?              @unique
+  usedAtPayment   Payment?          @relation("CodeUsedInPayment")
+  ticketBookUsage TicketBookUsage[]
+
+  @@unique([costumerId, date])
+  @@map("daily_ticket_book_codes")
+}
