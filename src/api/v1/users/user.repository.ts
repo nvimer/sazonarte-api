@@ -13,7 +13,24 @@ class UserRepository implements UserRepositoryInterface {
   }
 
   async create(data: CreateUserInput) {
-    return await prisma.user.create({ data: { ...data } });
+    const { roleIds, ...userData } = data;
+
+    return await prisma.user.create({
+      data: {
+        ...userData,
+        roles: {
+          create:
+            roleIds.map((roleId) => ({
+              role: { connect: { id: roleId } },
+            })) || [],
+        },
+      },
+      include: {
+        roles: {
+          include: { role: true },
+        },
+      },
+    });
   }
 }
 

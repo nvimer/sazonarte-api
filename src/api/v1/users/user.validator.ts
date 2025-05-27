@@ -8,7 +8,9 @@ export const createUserSchema = z.object({
     .regex(/^\d{10}$/, "Phone number must be a 10 digits")
     .optional(),
   password: z.string().min(8, "Password must be at least 8 characters long"),
-  roleId: z.number().int().positive("Role ID must be a positive integer"),
+  roleIds: z.array(
+    z.number().int().positive("Role ID must be a positive integer").optional(),
+  ),
 });
 
 export type CreateUserInput = z.infer<typeof createUserSchema>;

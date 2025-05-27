@@ -57,8 +57,8 @@ model Role {
   name        RoleName @unique
   description String?
 
-  users       User[]
   permissions RolePermission[]
+  users       UserRole[]
 
   @@map("roles")
 }
@@ -93,8 +93,7 @@ model User {
   phone    String? @unique
   password String
 
-  roleId Int
-  role   Role @relation(fields: [roleId], references: [id])
+  roles UserRole[]
 
   profile Profile?
 
@@ -102,6 +101,19 @@ model User {
   registeredExpenses Expense[] @relation("ExpensesRecordedBy")
 
   @@map("users")
+}
+
+model UserRole {
+  roleId Int
+  role   Role @relation(fields: [roleId], references: [id])
+
+  userId Int
+  user   User @relation(fields: [userId], references: [id])
+
+  assignedAt DateTime @default(now())
+
+  @@id([roleId, userId])
+  @@map("user_roles")
 }
 
 model Profile {
