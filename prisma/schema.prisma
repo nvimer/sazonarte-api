@@ -6,7 +6,6 @@
 
 generator client {
   provider = "prisma-client-js"
-  output   = "../generated/prisma"
 }
 
 datasource db {
@@ -89,10 +88,10 @@ model RolePermission {
 
 model User {
   id       Int     @id @default(autoincrement())
+  name     String
   email    String  @unique
   phone    String? @unique
   password String
-  name     String
 
   roleId Int
   role   Role @relation(fields: [roleId], references: [id])

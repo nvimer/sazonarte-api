@@ -1,48 +1,31 @@
-import express, { Request, Response, Application } from "express";
-import config from "./config/config";
-import helmet from "helmet";
-import cors, { CorsOptions } from "cors";
+import app from "./app";
+import { config } from "./config";
 import { logger } from "./config/logger";
-import { requestLogger } from "./middlewares/morgan.middleware";
+import prisma from "./database/prisma";
 
-const app: Application = express();
+async function startServer() {
+  try {
+    await prisma.$connect();
+    logger.info("✅ Connected to the database successfully.");
 
-const whitelist = ["http://localhost:3000"];
-
-const corsOptions: CorsOptions = {
-  origin: function (
-    origin: string | undefined,
-    callback: (err: Error | null, origin?: boolean) => void,
-  ) {
-    if (!origin || whitelist.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error("Not allowed by CORS"));
-    }
-  },
-  methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-  credentials: true,
-};
-
-if (process.env.NODE_ENV === "production") {
-  app.use(cors(corsOptions));
-  app.use(
-    helmet({
-      contentSecurityPolicy: false,
-      xPermittedCrossDomainPolicies: false,
-    }),
-  );
-} else {
-  app.use(cors());
+    app.listen(config.port, () =>
+      logger.info(
+        `🚀 Server running on port ${config.port} in ${config.nodeEnv} mode.`,
+      ),
+    );
+  } catch (error) {
+    logger.error("❌ Failed to start server:", error);
+    process.exit(1);
+  }
 }
 
-requestLogger(app);
-app.get("/api/v1", (_: Request, res: Response) => {
-  logger.info("GET / request received");
-  res.send("Restaurant SazonArte API");
+process.on("unhandledRejection", (reason, promise) => {
+  logger.error("Unhandler Rejection at: ", promise, "reason: ", reason);
 });
 
-app.listen(config.port, () =>
-  logger.info(`Server is running on port: http://localhost:${config.port}`),
-);
+process.on("uncaughtException", (error) => {
+  logger.error("Uncaught Exception:", error);
+  process.exit(1); // Uncaught exceptions suelen requerir un reinicio del proceso
+});
+
+startServer();
