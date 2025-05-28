@@ -2,9 +2,14 @@ import { Request, Response, NextFunction } from "express";
 import { ZodError } from "zod";
 import { logger } from "../config/logger";
 import { CustomError } from "../types/custom-errors";
+import {
+  PrismaClientKnownRequestError,
+  PrismaClientValidationError,
+} from "@prisma/client/runtime/library";
+import { HttpStatus } from "../utils/httpStatus.enum";
 
 export const errorHandler = (
-  err: Error | ZodError,
+  err: Error | ZodError | PrismaClientKnownRequestError,
   req: Request,
   res: Response,
   next: NextFunction,
@@ -18,6 +23,42 @@ export const errorHandler = (
         path: e.path.join("."),
         message: e.message,
       })),
+    });
+  }
+
+  if (err instanceof PrismaClientKnownRequestError) {
+    switch (err.code) {
+      case "P2002": // Violación de restricción única (ej. email ya existe)
+        return res.status(HttpStatus.CONFLICT).json({
+          success: false,
+          message: "Resource with this unique identifier already exists.",
+          errorCode: "DUPLICATE_ENTRY",
+          meta: err.meta, // Puede contener información del campo duplicado
+        });
+      case "P2025": // Registro no encontrado para operaciones como update o delete (con rejectOnNotFound)
+        return res.status(HttpStatus.NOT_FOUND).json({
+          success: false,
+          message: "Record not found.",
+          errorCode: "RECORD_NOT_FOUND",
+        });
+      default:
+        // Para otros errores conocidos de Prisma que no necesiten un manejo específico al cliente
+        logger.error("Unhandled Prisma Client Known Request Error:", err);
+        return res.status(HttpStatus.BAD_REQUEST).json({
+          success: false,
+          message: "Database operation failed due to invalid data or request.",
+          errorCode: "DATABASE_REQUEST_ERROR",
+        });
+    }
+  }
+
+  // 3. Manejo de errores de validación de Prisma (argumentos incorrectos a Prisma Client)
+  if (err instanceof PrismaClientValidationError) {
+    logger.error("Prisma Client Validation Error:", err.message);
+    return res.status(HttpStatus.BAD_REQUEST).json({
+      success: false,
+      message: "Invalid data provided for database operation.",
+      errorCode: "PRISMA_VALIDATION_ERROR",
     });
   }
 
