@@ -1,69 +1,70 @@
-import { Request, Response, NextFunction } from "express";
+import { Request, Response } from "express";
 import permissionService from "./permission.service";
+import { HttpStatus } from "../../../utils/httpStatus.enum";
+import { asyncHandler } from "../../../utils/asyncHandler";
 import {
   CreatePermissionInput,
-  createPermissionSchema,
-  permissionIdSchema,
   UpdatePermissionInput,
-  updatePermissionSchema,
 } from "./permission.validator";
-import { HttpStatus } from "../../../utils/httpStatus.enum";
+import { PermissionServiceInterface } from "./interfaces/permission.service.interface";
 
 class PermissionController {
-  // async getPermission(){
-  //
-  // }
+  constructor(private permissionService: PermissionServiceInterface) {}
 
-  async postPermission(req: Request, res: Response, next: NextFunction) {
-    try {
-      const data: CreatePermissionInput = createPermissionSchema.parse(
-        req.body,
-      );
-      const newPermission = await permissionService.createPermission(data);
-      res.status(HttpStatus.CREATED).json({
-        success: true,
-        message: "Permission created succesfully",
-        data: newPermission,
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+  getPermissions = asyncHandler(async (_req: Request, res: Response) => {
+    const permissions = await this.permissionService.findAllPermissions();
+    res.status(HttpStatus.OK).json({
+      success: true,
+      message: "All permissions",
+      data: permissions,
+    });
+  });
 
-  async patchPermission(req: Request, res: Response, next: NextFunction) {
-    try {
-      const { id } = permissionIdSchema.parse(req.params);
-      const data: UpdatePermissionInput = updatePermissionSchema.parse(
-        req.body,
-      );
+  getPermissionById = asyncHandler(async (req: Request, res: Response) => {
+    const id = parseInt(req.params.id, 10);
+    const permission = await this.permissionService.findPermissionById(id);
+    res.status(HttpStatus.OK).json({
+      success: true,
+      message: "Permission fetched successfully",
+      data: permission,
+    });
+  });
 
-      const updatedPermission = await permissionService.updatePermission(
-        id,
-        data,
-      );
-      res.status(HttpStatus.OK).json({
-        success: true,
-        message: "Permission updated successfully",
-        data: updatedPermission,
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+  postPermission = asyncHandler(async (req: Request, res: Response) => {
+    const data: CreatePermissionInput = req.body;
 
-  async deletePermission(req: Request, res: Response, next: NextFunction) {
-    try {
-      const { id } = permissionIdSchema.parse(req.params);
+    const newPermission = await this.permissionService.createPermission(data);
+    res.status(HttpStatus.CREATED).json({
+      success: true,
+      message: "Permission created succesfully",
+      data: newPermission,
+    });
+  });
 
-      await permissionService.deletePermission(id);
-      res.status(HttpStatus.OK).json({
-        success: true,
-        message: "Permission deleted successfully",
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+  patchPermission = asyncHandler(async (req: Request, res: Response) => {
+    const id = parseInt(req.params.id, 10);
+    const data: UpdatePermissionInput = req.body;
+
+    const updatedPermission = await this.permissionService.updatePermission(
+      id,
+      data,
+    );
+    res.status(HttpStatus.OK).json({
+      success: true,
+      message: "Permission updated successfully",
+      data: updatedPermission,
+    });
+  });
+
+  deletePermission = asyncHandler(async (req: Request, res: Response) => {
+    const id = parseInt(req.params.id, 10);
+
+    await this.permissionService.deletePermission(id);
+    res.status(HttpStatus.OK).json({
+      success: true,
+      message: "Permission deleted successfully",
+    });
+  });
 }
 
-export default new PermissionController();
+export default new PermissionController(permissionService);

@@ -26,7 +26,7 @@ class UserServices implements UserServiceInterface {
         ...data,
         password: hashedPass,
       });
-      const { password, ...dataWithOutPassword } = newUser;
+      const { password: _password, ...dataWithOutPassword } = newUser;
       return dataWithOutPassword as User;
     }
   }

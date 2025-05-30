@@ -12,7 +12,7 @@ export const errorHandler = (
   err: Error | ZodError | PrismaClientKnownRequestError,
   req: Request,
   res: Response,
-  next: NextFunction,
+  _next: NextFunction,
 ) => {
   // Error Handler of Zod (validation)
   if (err instanceof ZodError) {
