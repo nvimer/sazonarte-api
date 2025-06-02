@@ -15,13 +15,12 @@ class PermissionService implements PermissionServiceInterface {
 
   private async findPermissionByIdOrFail(id: number): Promise<Permission> {
     const permission = await this.permissionRepository.findById(id);
-    if (!permission) {
+    if (!permission)
       throw new CustomError(
         `Permission with ID ${id} not found`,
         HttpStatus.NOT_FOUND,
         "ID_NOT_FOUND",
       );
-    }
     return permission;
   }
 

@@ -1,7 +1,9 @@
 import { Role } from "@prisma/client";
-import { CreateRoleInput } from "../role.validator";
+import { CreateRoleInput, UpdateRoleInput } from "../role.validator";
 
 export interface RoleServiceInterface {
   findAllRoles(): Promise<Role[]>;
+  findRoleById(id: number): Promise<Role>;
   createRole(data: CreateRoleInput): Promise<Role>;
+  updateRole(id: number, data: UpdateRoleInput): Promise<Role>;
 }

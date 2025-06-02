@@ -1,10 +1,14 @@
-import { CreateRoleInput } from "./role.validator";
+import { CreateRoleInput, UpdateRoleInput } from "./role.validator";
 import prisma from "../../../database/prisma";
 import { RoleRepositoryInterface } from "./interfaces/role.repository.interface";
 
 class RoleRepository implements RoleRepositoryInterface {
   async findAll() {
     return await prisma.role.findMany();
+  }
+
+  async findById(id: number) {
+    return prisma.role.findUnique({ where: { id } });
   }
 
   async create(data: CreateRoleInput) {
@@ -26,6 +30,10 @@ class RoleRepository implements RoleRepositoryInterface {
         },
       },
     });
+  }
+
+  async update(id: number, data: UpdateRoleInput) {
+    return await prisma.role.update({ where: { id }, data });
   }
 }
 

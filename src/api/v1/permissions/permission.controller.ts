@@ -36,7 +36,7 @@ class PermissionController {
     const newPermission = await this.permissionService.createPermission(data);
     res.status(HttpStatus.CREATED).json({
       success: true,
-      message: "Permission created succesfully",
+      message: `New permission with ID ${newPermission.id} has been created successfully`,
       data: newPermission,
     });
   });
@@ -51,7 +51,7 @@ class PermissionController {
     );
     res.status(HttpStatus.OK).json({
       success: true,
-      message: "Permission updated successfully",
+      message: `New permission with ID ${updatedPermission.id} has been updated successfully`,
       data: updatedPermission,
     });
   });
@@ -62,7 +62,7 @@ class PermissionController {
     await this.permissionService.deletePermission(id);
     res.status(HttpStatus.OK).json({
       success: true,
-      message: "Permission deleted successfully",
+      message: `Permission with ID ${id} has been deleted successfully`,
     });
   });
 }

@@ -1,9 +1,18 @@
 import { Router } from "express";
 import roleController from "./role.controller";
 import { validate } from "../../../middlewares/validation.middleware";
+import {
+  createRoleSchema,
+  roleIdSchema,
+  updateRoleSchema,
+} from "./role.validator";
 
 const router = Router();
 
 router.get("/", roleController.getRoles);
-router.post("/", roleController.postRole);
+router.post("/", validate(createRoleSchema), roleController.postRole);
+
+router.get("/:id", validate(roleIdSchema), roleController.getRoleById);
+router.patch("/:id", validate(updateRoleSchema), roleController.patchRole);
+
 export default router;
