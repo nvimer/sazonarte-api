@@ -1,13 +1,13 @@
-import { Role } from "@prisma/client";
 import { CreateRoleInput } from "./role.validator";
 import prisma from "../../../database/prisma";
-
-export interface RoleRepositoryInterface {
-  create(data: CreateRoleInput): Promise<Role>;
-}
+import { RoleRepositoryInterface } from "./interfaces/role.repository.interface";
 
 class RoleRepository implements RoleRepositoryInterface {
-  async create(data: CreateRoleInput): Promise<Role> {
+  async findAll() {
+    return await prisma.role.findMany();
+  }
+
+  async create(data: CreateRoleInput) {
     const { permissionIds, ...roleData } = data;
 
     return await prisma.role.create({

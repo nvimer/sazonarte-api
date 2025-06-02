@@ -1,15 +1,16 @@
-import { Role } from "@prisma/client";
+import { RoleServiceInterface } from "./interfaces/role.service.interface";
 import { CreateRoleInput } from "./role.validator";
-import roleRepository, { RoleRepositoryInterface } from "./role.repository";
-
-export interface RoleServiceInterface {
-  createRole(data: CreateRoleInput): Promise<Role>;
-}
+import { RoleRepositoryInterface } from "./interfaces/role.repository.interface";
+import roleRepository from "./role.repository";
 
 class RoleService implements RoleServiceInterface {
   constructor(private roleRepository: RoleRepositoryInterface) {}
 
-  async createRole(data: CreateRoleInput): Promise<Role> {
+  async findAllRoles() {
+    return await this.roleRepository.findAll();
+  }
+
+  async createRole(data: CreateRoleInput) {
     return await this.roleRepository.create(data);
   }
 }

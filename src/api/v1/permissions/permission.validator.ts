@@ -1,8 +1,5 @@
 import { z } from "zod";
-
-export const idParamsSchema = z.object({
-  id: z.coerce.number().int("Invalid permission ID format"),
-});
+import { idParamsSchema } from "../../../utils/params.schema";
 
 export const createPermissionSchema = z.object({
   body: z.object({

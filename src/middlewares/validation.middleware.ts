@@ -8,6 +8,7 @@ export const validate = (schema: AnyZodObject) =>
       body: req.body,
       query: req.query,
       params: req.params,
+      // file: req.file,
     });
     next();
   });
