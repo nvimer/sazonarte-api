@@ -35,6 +35,10 @@ class RoleRepository implements RoleRepositoryInterface {
   async update(id: number, data: UpdateRoleInput) {
     return await prisma.role.update({ where: { id }, data });
   }
+
+  async delete(id: number) {
+    return await prisma.role.delete({ where: { id } });
+  }
 }
 
 export default new RoleRepository();

@@ -4,12 +4,11 @@ import { RoleRepositoryInterface } from "./interfaces/role.repository.interface"
 import roleRepository from "./role.repository";
 import { CustomError } from "../../../types/custom-errors";
 import { HttpStatus } from "../../../utils/httpStatus.enum";
-import { Role } from "@prisma/client";
 
 class RoleService implements RoleServiceInterface {
   constructor(private roleRepository: RoleRepositoryInterface) {}
 
-  private async findRoleByIdOrFail(id: number): Promise<Role> {
+  private async findRoleByIdOrFail(id: number) {
     const role = await this.roleRepository.findById(id);
     if (!role)
       throw new CustomError(
@@ -35,6 +34,11 @@ class RoleService implements RoleServiceInterface {
   async updateRole(id: number, data: UpdateRoleInput) {
     await this.findRoleByIdOrFail(id);
     return await this.roleRepository.update(id, data);
+  }
+
+  async deleteRole(id: number) {
+    await this.findRoleByIdOrFail(id);
+    return await this.roleRepository.delete(id);
   }
 }
 

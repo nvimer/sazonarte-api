@@ -4,6 +4,7 @@ import { HttpStatus } from "../../../utils/httpStatus.enum";
 import { asyncHandler } from "../../../utils/asyncHandler";
 import { RoleServiceInterface } from "./interfaces/role.service.interface";
 import roleService from "./role.service";
+import { Http } from "winston/lib/winston/transports";
 
 class RoleController {
   constructor(private roleService: RoleServiceInterface) {}
@@ -47,6 +48,16 @@ class RoleController {
       success: true,
       message: `Role with ID ${id} has been updated successfully`,
       data: updatedRole,
+    });
+  });
+
+  deleteRole = asyncHandler(async (req: Request, res: Response) => {
+    const id = parseInt(req.params.id, 10);
+
+    await this.roleService.deleteRole(id);
+    res.status(HttpStatus.OK).json({
+      success: true,
+      message: `Role with ID ${id} has been deleted successfully`,
     });
   });
 }

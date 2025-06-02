@@ -14,5 +14,6 @@ router.post("/", validate(createRoleSchema), roleController.postRole);
 
 router.get("/:id", validate(roleIdSchema), roleController.getRoleById);
 router.patch("/:id", validate(updateRoleSchema), roleController.patchRole);
+router.delete("/:id", validate(roleIdSchema), roleController.deleteRole);
 
 export default router;
