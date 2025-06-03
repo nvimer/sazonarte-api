@@ -1,14 +1,44 @@
-import { Role } from "@prisma/client";
-import { CreateRoleInput } from "./role.validator";
+import { CreateRoleInput, UpdateRoleInput } from "./role.validator";
 import prisma from "../../../database/prisma";
-
-export interface RoleRepositoryInterface {
-  create(data: CreateRoleInput): Promise<Role>;
-}
+import { RoleRepositoryInterface } from "./interfaces/role.repository.interface";
+import { Role } from "@prisma/client";
 
 class RoleRepository implements RoleRepositoryInterface {
+  async findAll(): Promise<Role[]> {
+    return await prisma.role.findMany();
+  }
+
+  async findById(id: number): Promise<Role | null> {
+    return prisma.role.findUnique({ where: { id } });
+  }
+
   async create(data: CreateRoleInput): Promise<Role> {
-    return await prisma.role.create({ data });
+    const { permissionIds, ...roleData } = data;
+
+    return await prisma.role.create({
+      data: {
+        ...roleData,
+        permissions: {
+          create:
+            permissionIds?.map((permissionId) => ({
+              permission: { connect: { id: permissionId } },
+            })) || [],
+        },
+      },
+      include: {
+        permissions: {
+          include: { permission: true },
+        },
+      },
+    });
+  }
+
+  async update(id: number, data: UpdateRoleInput): Promise<Role> {
+    return await prisma.role.update({ where: { id }, data });
+  }
+
+  async delete(id: number): Promise<Role> {
+    return await prisma.role.delete({ where: { id } });
   }
 }
 

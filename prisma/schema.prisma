@@ -57,8 +57,14 @@ model Role {
   name        RoleName @unique
   description String?
 
-  users       User[]
   permissions RolePermission[]
+  users       UserRole[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  deleted   Boolean   @default(false)
+  deletedAt DateTime? @map("deleted_at")
 
   @@map("roles")
 }
@@ -70,46 +76,82 @@ model Permission {
 
   roles RolePermission[]
 
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  deleted   Boolean   @default(false)
+  deletedAt DateTime? @map("deleted_at")
+
   @@map("permissions")
 }
 
 model RolePermission {
-  roleId Int
+  roleId Int  @map("role_id")
   role   Role @relation(fields: [roleId], references: [id])
 
-  permissionId Int
+  permissionId Int        @map("permission_id")
   permission   Permission @relation(fields: [permissionId], references: [id])
 
-  assignedAt DateTime @default(now())
+  assignedAt DateTime @default(now()) @map("assigned_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@id([roleId, permissionId])
   @@map("role_permissions")
 }
 
 model User {
-  id       Int     @id @default(autoincrement())
+  id       String  @id @default(uuid())
   name     String
   email    String  @unique
   phone    String? @unique
   password String
 
-  roleId Int
-  role   Role @relation(fields: [roleId], references: [id])
+  roles UserRole[]
 
   profile Profile?
 
   ordersTaken        Order[]   @relation("OrdersTakenByWaiter")
   registeredExpenses Expense[] @relation("ExpensesRecordedBy")
 
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  deleted   Boolean   @default(false)
+  deletedAt DateTime? @map("deleted_at")
+
   @@map("users")
 }
 
+model UserRole {
+  roleId Int  @map("role_id")
+  role   Role @relation(fields: [roleId], references: [id])
+
+  userId String @map("user_id")
+  user   User   @relation(fields: [userId], references: [id])
+
+  assignedAt DateTime @default(now()) @map("assigned_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@id([roleId, userId])
+  @@map("user_roles")
+}
+
 model Profile {
-  id     Int  @id @default(autoincrement())
-  userId Int  @unique
-  user   User @relation(fields: [userId], references: [id])
+  id     String @id @default(uuid())
+  userId String @unique @map("user_id")
+  user   User   @relation(fields: [userId], references: [id])
 
   address String?
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  deleted   Boolean   @default(false)
+  deletedAt DateTime? @map("deleted_at")
 
   @@map("profiles")
 }
@@ -122,6 +164,12 @@ model Table {
 
   orders Order[]
 
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  deleted   Boolean   @default(false)
+  deletedAt DateTime? @map("deleted_at")
+
   @@map("tables")
 }
 
@@ -133,24 +181,33 @@ model MenuCategory {
 
   items MenuItem[]
 
+  deleted   Boolean   @default(false)
+  deletedAt DateTime? @map("deleted_at")
+
   @@map("menu_categories")
 }
 
 model MenuItem {
   id         Int          @id @default(autoincrement())
-  categoryId Int
+  categoryId Int          @map("category_id")
   category   MenuCategory @relation(fields: [categoryId], references: [id])
 
   name        String
   description String?
   price       Decimal @db.Decimal(10, 2)
-  isExtra     Boolean @default(false)
-  isAvailable Boolean @default(true)
-  imageUrl    String?
+  isExtra     Boolean @default(false) @map("is_extra")
+  isAvailable Boolean @default(true) @map("is_available")
+  imageUrl    String? @map("image_url")
 
   // Relaciones inversas para saber dónde se usa este items
   dailyMenuOptions DailyMenuOption[]
   orderItems       OrderItem[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  deleted   Boolean   @default(false)
+  deletedAt DateTime? @map("deleted_at")
 
   @@unique([categoryId, name])
   @@map("menu_items")
@@ -160,59 +217,68 @@ model DailyMenuOption {
   id   Int      @id @default(autoincrement())
   date DateTime @db.Date
 
-  menuItemId Int
+  menuItemId Int      @map("menu_item_id")
   menuItem   MenuItem @relation(fields: [menuItemId], references: [id])
 
-  optionType String
+  optionType String @map("option_type")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@unique([date, optionType])
   @@map("daily_menu_options")
 }
 
 model Order {
-  id      Int    @id @default(autoincrement())
-  tableId Int?
+  id      String @id @default(uuid())
+  tableId Int?   @map("table_id")
   table   Table? @relation(fields: [tableId], references: [id])
 
-  waiterId Int
-  waiter   User @relation("OrdersTakenByWaiter", fields: [waiterId], references: [id])
+  waiterId String @map("waiter_id")
+  waiter   User   @relation("OrdersTakenByWaiter", fields: [waiterId], references: [id])
 
-  costumerId Int?
+  costumerId String?   @map("costumer_id")
   costumer   Costumer? @relation(fields: [costumerId], references: [id])
 
   status OrderStatus @default(PENDING)
   type   OrderType   @default(DINE_IN)
 
-  totalAmount Decimal @default(0.00) @db.Decimal(10, 2)
+  totalAmount Decimal @default(0.00) @map("total_amount") @db.Decimal(10, 2)
   notes       String?
 
-  whatsappOrderId String? @unique
+  whatsappOrderId String? @unique @map("whatsapp_order_id")
 
   items    OrderItem[]
   payments Payment[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("orders")
 }
 
 model OrderItem {
-  id      Int   @id @default(autoincrement())
-  orderId Int
-  order   Order @relation(fields: [orderId], references: [id])
+  id      Int    @id @default(autoincrement())
+  orderId String @map("order_id")
+  order   Order  @relation(fields: [orderId], references: [id])
 
-  menuItemId Int?
+  menuItemId Int?      @map("menu_item_id")
   menuItem   MenuItem? @relation(fields: [menuItemId], references: [id])
 
   quantity     Int
-  priceAtOrder Decimal @db.Decimal(10, 2)
+  priceAtOrder Decimal @map("price_at_order") @db.Decimal(10, 2)
   notes        String?
 
-  isFreeSubstitution Boolean @default(false)
+  isFreeSubstitution Boolean @default(false) @map("is_free_substitution")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("order_items")
 }
 
 model Costumer {
-  id    Int     @id @default(autoincrement())
+  id    String  @id @default(uuid())
   name  String
   phone String  @unique
   email String?
@@ -221,57 +287,71 @@ model Costumer {
   ticketBooks TicketBook[]
   dailyCodes  DailyTicketBookCode[]
 
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  deleted   Boolean   @default(false)
+  deletedAt DateTime? @map("deleted_at")
+
   @@map("costumers")
 }
 
 model TicketBook {
-  id Int @id @default(autoincrement())
+  id String @id @default(uuid())
 
-  costumerId Int?
+  costumerId String?   @map("costumer_id")
   costumer   Costumer? @relation(fields: [costumerId], references: [id])
 
-  purchaseDate     DateTime @default(now())
-  expiryDate       DateTime
-  totalPortions    Int
-  consumedPortions Int      @default(0)
+  purchaseDate     DateTime @default(now()) @map("purchase_date")
+  expiryDate       DateTime @map("expiry_date")
+  totalPortions    Int      @map("total_portions")
+  consumedPortions Int      @default(0) @map("consumed_portions")
 
   status String @default("active")
 
   usages TicketBookUsage[]
 
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
   @@map("ticket_books")
 }
 
 model TicketBookUsage {
-  id           Int        @id @default(autoincrement())
-  ticketBookId Int
+  id           String     @id @default(uuid())
+  ticketBookId String     @map("ticket_book_id")
   ticketBook   TicketBook @relation(fields: [ticketBookId], references: [id])
 
-  paymentId Int
+  paymentId String  @map("payment_id")
   payments  Payment @relation("TicketUsages", fields: [paymentId], references: [id])
 
-  dailyCodeId Int
+  dailyCodeId String              @map("daily_code_id")
   dailyCode   DailyTicketBookCode @relation(fields: [dailyCodeId], references: [id])
 
-  portionCount Int @default(1)
+  portionCount Int @default(1) @map("portion_count")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("ticket_book_usages")
 }
 
 model Payment {
-  id Int @id @default(autoincrement())
+  id String @id @default(uuid())
 
-  orderId Int?
-  order   Order? @relation(fields: [orderId], references: [id])
+  orderId String? @map("order_id")
+  order   Order?  @relation(fields: [orderId], references: [id])
 
   method PaymentMethod @default(CASH)
   amount Decimal       @db.Decimal(10, 2)
 
-  transactionRef String?
+  transactionRef String? @map("transaction_ref")
 
   ticketUsages          TicketBookUsage[]    @relation("TicketUsages")
-  dailyTicketBookCodeId Int?                 @unique
+  dailyTicketBookCodeId String?              @unique @map("daily_ticket_book_code_id")
   dailyTicketBookCode   DailyTicketBookCode? @relation("CodeUsedInPayment", fields: [dailyTicketBookCodeId], references: [id])
+
+  createdAt DateTime @default(now()) @map("created_at")
 
   @@map("payments")
 }
@@ -289,33 +369,41 @@ model ExpenseCategory {
 model Expense {
   id Int @id @default(autoincrement())
 
-  recordedById Int
-  recordedBy   User @relation("ExpensesRecordedBy", fields: [recordedById], references: [id])
+  recordedById String @map("recorded_by_id")
+  recordedBy   User   @relation("ExpensesRecordedBy", fields: [recordedById], references: [id])
 
-  categoryId Int
+  categoryId Int             @map("category_id")
   category   ExpenseCategory @relation(fields: [categoryId], references: [id])
 
   date        DateTime
   amount      Decimal  @db.Decimal(10, 2)
   description String?
 
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  deleted   Boolean   @default(false)
+  deletedAt DateTime? @map("deleted_at")
+
   @@map("expenses")
 }
 
 model DailyTicketBookCode {
-  id Int @id @default(autoincrement())
+  id String @id @default(uuid())
 
-  costumerId Int?
+  costumerId String?   @map("costumer_id")
   costumer   Costumer? @relation(fields: [costumerId], references: [id])
 
   code String   @unique
   date DateTime @db.Date
 
-  isUsed Boolean @default(false)
+  isUsed Boolean @default(false) @map("is_used")
 
-  usedAtPaymentId Int?              @unique
+  usedAtPaymentId Int?              @unique @map("used_at_payment_id")
   usedAtPayment   Payment?          @relation("CodeUsedInPayment")
   ticketBookUsage TicketBookUsage[]
+
+  createdAt DateTime @default(now()) @map("created_at")
 
   @@unique([costumerId, date])
   @@map("daily_ticket_book_codes")

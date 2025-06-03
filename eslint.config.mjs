@@ -48,7 +48,14 @@ export default [
       // Aquí defines reglas adicionales o sobrescribes las de "recommended".
 
       // Regla del plugin de TypeScript: advierte sobre variables no usadas.
-      "@typescript-eslint/no-unused-vars": "warn",
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        {
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+          caughtErrorsIgnorePattern: "^_",
+        },
+      ],
 
       // Regla base de ESLint: advierte sobre el uso de console.log (a menudo no deseado en producción).
       "no-console": "warn",
