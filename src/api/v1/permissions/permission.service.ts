@@ -24,15 +24,15 @@ class PermissionService implements PermissionServiceInterface {
     return permission;
   }
 
-  async findAllPermissions() {
+  async findAllPermissions(): Promise<Permission[]> {
     return this.permissionRepository.findAll();
   }
 
-  async findPermissionById(id: number) {
+  async findPermissionById(id: number): Promise<Permission> {
     return this.findPermissionByIdOrFail(id);
   }
 
-  async createPermission(data: CreatePermissionInput) {
+  async createPermission(data: CreatePermissionInput): Promise<Permission> {
     const permission = await this.permissionRepository.findByName(data.name);
 
     if (permission)
@@ -44,12 +44,15 @@ class PermissionService implements PermissionServiceInterface {
     return await this.permissionRepository.create(data);
   }
 
-  async updatePermission(id: number, data: UpdatePermissionInput) {
+  async updatePermission(
+    id: number,
+    data: UpdatePermissionInput,
+  ): Promise<Permission> {
     await this.findPermissionByIdOrFail(id);
     return await this.permissionRepository.update(id, data);
   }
 
-  async deletePermission(id: number) {
+  async deletePermission(id: number): Promise<Permission> {
     await this.findPermissionByIdOrFail(id);
     return await this.permissionRepository.delete(id);
   }

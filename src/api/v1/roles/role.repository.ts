@@ -1,17 +1,18 @@
 import { CreateRoleInput, UpdateRoleInput } from "./role.validator";
 import prisma from "../../../database/prisma";
 import { RoleRepositoryInterface } from "./interfaces/role.repository.interface";
+import { Role } from "@prisma/client";
 
 class RoleRepository implements RoleRepositoryInterface {
-  async findAll() {
+  async findAll(): Promise<Role[]> {
     return await prisma.role.findMany();
   }
 
-  async findById(id: number) {
+  async findById(id: number): Promise<Role | null> {
     return prisma.role.findUnique({ where: { id } });
   }
 
-  async create(data: CreateRoleInput) {
+  async create(data: CreateRoleInput): Promise<Role> {
     const { permissionIds, ...roleData } = data;
 
     return await prisma.role.create({
@@ -32,11 +33,11 @@ class RoleRepository implements RoleRepositoryInterface {
     });
   }
 
-  async update(id: number, data: UpdateRoleInput) {
+  async update(id: number, data: UpdateRoleInput): Promise<Role> {
     return await prisma.role.update({ where: { id }, data });
   }
 
-  async delete(id: number) {
+  async delete(id: number): Promise<Role> {
     return await prisma.role.delete({ where: { id } });
   }
 }
