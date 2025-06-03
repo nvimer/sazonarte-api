@@ -21,7 +21,7 @@ class UserServices implements UserServiceInterface {
     return true;
   }
 
-  private async findByIdOrFail(id: string) {
+  private async findByIdOrFail(id: string): Promise<User> {
     const user = await this.userRepository.findById(id);
 
     if (!user)
@@ -33,11 +33,15 @@ class UserServices implements UserServiceInterface {
     return user;
   }
 
-  async findById(id: string) {
+  async findAll(): Promise<User[]> {
+    return this.userRepository.findAll();
+  }
+
+  async findById(id: string): Promise<User> {
     return this.findByIdOrFail(id);
   }
 
-  async createUser(data: CreateUserInput) {
+  async createUser(data: CreateUserInput): Promise<User> {
     await this.findByEmailOrFail(data.email);
 
     const hashedPass = hasherUtils.hash(data.password);
