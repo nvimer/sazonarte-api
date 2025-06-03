@@ -1,7 +1,7 @@
 import { User } from "@prisma/client";
 import prisma from "../../../database/prisma";
 import { UserRepositoryInterface } from "./interfaces/user.repository.interface";
-import { CreateUserInput } from "./user.validator";
+import { CreateUserInput, UpdateUserInput } from "./user.validator";
 
 class UserRepository implements UserRepositoryInterface {
   async findAll(): Promise<User[]> {
@@ -32,6 +32,22 @@ class UserRepository implements UserRepositoryInterface {
       include: {
         roles: {
           include: { role: true },
+        },
+      },
+    });
+  }
+
+  async update(id: string, data: UpdateUserInput): Promise<User> {
+    const { roleIds, ...userData } = data;
+
+    return await prisma.user.update({
+      where: { id },
+      data: {
+        ...userData,
+        roles: {
+          create: roleIds?.map((roleId) => ({
+            role: { connect: { id: roleId } },
+          })),
         },
       },
     });

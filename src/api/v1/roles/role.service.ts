@@ -9,7 +9,7 @@ import { Role } from "@prisma/client";
 class RoleService implements RoleServiceInterface {
   constructor(private roleRepository: RoleRepositoryInterface) {}
 
-  private async findRoleByIdOrFail(id: number) {
+  private async findRoleByIdOrFail(id: number): Promise<Role | null> {
     const role = await this.roleRepository.findById(id);
     if (!role)
       throw new CustomError(
@@ -24,7 +24,7 @@ class RoleService implements RoleServiceInterface {
     return await this.roleRepository.findAll();
   }
 
-  async findRoleById(id: number): Promise<Role> {
+  async findRoleById(id: number): Promise<Role | null> {
     return this.findRoleByIdOrFail(id);
   }
 
