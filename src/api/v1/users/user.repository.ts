@@ -16,6 +16,7 @@ class UserRepository implements UserRepositoryInterface {
     return await prisma.user.findUnique({ where: { id } });
   }
 
+  // This operation create a user with data sended for user. Additionally create a relation between user-roles and user-profile.
   async create(data: CreateUserInput): Promise<User> {
     const { roleIds, ...userData } = data;
 
@@ -28,6 +29,9 @@ class UserRepository implements UserRepositoryInterface {
               role: { connect: { id: roleId } },
             })) || [],
         },
+        profile: {
+          create: {},
+        },
       },
       include: {
         roles: {
@@ -38,18 +42,9 @@ class UserRepository implements UserRepositoryInterface {
   }
 
   async update(id: string, data: UpdateUserInput): Promise<User> {
-    const { roleIds, ...userData } = data;
-
     return await prisma.user.update({
       where: { id },
-      data: {
-        ...userData,
-        roles: {
-          create: roleIds?.map((roleId) => ({
-            role: { connect: { id: roleId } },
-          })),
-        },
-      },
+      data,
     });
   }
 }
