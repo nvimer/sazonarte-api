@@ -4,7 +4,6 @@ import { HttpStatus } from "../../../utils/httpStatus.enum";
 import { asyncHandler } from "../../../utils/asyncHandler";
 import { RoleServiceInterface } from "./interfaces/role.service.interface";
 import roleService from "./role.service";
-import { Http } from "winston/lib/winston/transports";
 
 class RoleController {
   constructor(private roleService: RoleServiceInterface) {}

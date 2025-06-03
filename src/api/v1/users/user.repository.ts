@@ -1,15 +1,14 @@
-import { User } from "@prisma/client";
 import prisma from "../../../database/prisma";
+import { UserRepositoryInterface } from "./interfaces/user.repository.interface";
 import { CreateUserInput } from "./user.validator";
-
-export interface UserRepositoryInterface {
-  findByEmail(email: string): Promise<User | null>;
-  create(data: CreateUserInput): Promise<User>;
-}
 
 class UserRepository implements UserRepositoryInterface {
   async findByEmail(email: string) {
     return await prisma.user.findUnique({ where: { email } });
+  }
+
+  async findById(id: string) {
+    return await prisma.user.findUnique({ where: { id } });
   }
 
   async create(data: CreateUserInput) {

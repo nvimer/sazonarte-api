@@ -1,34 +1,52 @@
 import { User } from "@prisma/client";
 import { CreateUserInput } from "./user.validator";
-import userRepository, { UserRepositoryInterface } from "./user.repository";
+import userRepository from "./user.repository";
 import { CustomError } from "../../../types/custom-errors";
 import { HttpStatus } from "../../../utils/httpStatus.enum";
 import hasherUtils from "../../../utils/hasher.utils";
-
-export interface UserServiceInterface {
-  createUser(data: CreateUserInput): Promise<User | undefined>;
-}
+import { UserServiceInterface } from "./interfaces/user.service.interface";
+import { UserRepositoryInterface } from "./interfaces/user.repository.interface";
 
 class UserServices implements UserServiceInterface {
   constructor(private userRepository: UserRepositoryInterface) {}
 
+  private async findByEmailOrFail(email: string): Promise<boolean> {
+    const user = await this.userRepository.findByEmail(email);
+    if (user)
+      throw new CustomError(
+        `Email ${email} has already taken. Please another email.`,
+        HttpStatus.CONFLICT,
+        "EMAIL_CONFLICT",
+      );
+    return true;
+  }
+
+  private async findByIdOrFail(id: string) {
+    const user = await this.userRepository.findById(id);
+
+    if (!user)
+      throw new CustomError(
+        `User wih ID ${id} not found .`,
+        HttpStatus.NOT_FOUND,
+        "ID_NOT_FOUND",
+      );
+    return user;
+  }
+
+  async findById(id: string) {
+    return this.findByIdOrFail(id);
+  }
+
   async createUser(data: CreateUserInput) {
-    if (data.email) {
-      const existingEmail = await this.userRepository.findByEmail(data.email);
-      if (existingEmail)
-        throw new CustomError(
-          "Email already in use",
-          HttpStatus.CONFLICT,
-          "EMAIL_CONFLICT",
-        );
-      const hashedPass = hasherUtils.hash(data.password);
-      const newUser = await this.userRepository.create({
-        ...data,
-        password: hashedPass,
-      });
-      const { password: _password, ...dataWithOutPassword } = newUser;
-      return dataWithOutPassword as User;
-    }
+    await this.findByEmailOrFail(data.email);
+
+    const hashedPass = hasherUtils.hash(data.password);
+    const newUser = await this.userRepository.create({
+      ...data,
+      password: hashedPass,
+    });
+    const { password: _password, ...dataWithOutPassword } = newUser;
+    return dataWithOutPassword as User;
   }
 }
 
