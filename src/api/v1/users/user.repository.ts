@@ -1,7 +1,9 @@
 import { User } from "@prisma/client";
 import prisma from "../../../database/prisma";
 import { UserRepositoryInterface } from "./interfaces/user.repository.interface";
-import { CreateUserInput, UpdateUserInput } from "./user.validator";
+import { UpdateUserInput } from "./user.validator";
+import { RegisterInput } from "../auth/auth.validator";
+import { AutheticatedUser } from "../../../types/express";
 
 class UserRepository implements UserRepositoryInterface {
   async findAll(): Promise<User[]> {
@@ -16,7 +18,8 @@ class UserRepository implements UserRepositoryInterface {
     return await prisma.user.findUnique({ where: { id } });
   }
 
-  async create(data: CreateUserInput): Promise<User> {
+  // This operation create a user with data sended for user. Additionally create a relation between user-roles and user-profile.
+  async create(data: RegisterInput): Promise<User> {
     const { roleIds, ...userData } = data;
 
     return await prisma.user.create({
@@ -28,6 +31,9 @@ class UserRepository implements UserRepositoryInterface {
               role: { connect: { id: roleId } },
             })) || [],
         },
+        profile: {
+          create: {},
+        },
       },
       include: {
         roles: {
@@ -38,19 +44,47 @@ class UserRepository implements UserRepositoryInterface {
   }
 
   async update(id: string, data: UpdateUserInput): Promise<User> {
-    const { roleIds, ...userData } = data;
-
     return await prisma.user.update({
       where: { id },
-      data: {
-        ...userData,
+      data,
+    });
+  }
+
+  async findUserWithPermissions(id: string): Promise<AutheticatedUser | null> {
+    const user = await prisma.user.findUnique({
+      where: {
+        id,
+      },
+      select: {
+        id: true,
+        email: true,
         roles: {
-          create: roleIds?.map((roleId) => ({
-            role: { connect: { id: roleId } },
-          })),
+          select: {
+            role: {
+              select: {
+                id: true,
+                name: true,
+                permissions: {
+                  select: {
+                    permission: {
+                      select: {
+                        id: true,
+                        name: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
         },
       },
     });
+
+    if (!user) {
+      return null;
+    }
+    return user as AutheticatedUser;
   }
 }
 
