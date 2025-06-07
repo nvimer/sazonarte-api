@@ -1,7 +1,9 @@
 import { User } from "@prisma/client";
 import prisma from "../../../database/prisma";
 import { UserRepositoryInterface } from "./interfaces/user.repository.interface";
-import { CreateUserInput, UpdateUserInput } from "./user.validator";
+import { UpdateUserInput } from "./user.validator";
+import { RegisterInput } from "../auth/auth.validator";
+import { AutheticatedUser } from "../../../types/express";
 
 class UserRepository implements UserRepositoryInterface {
   async findAll(): Promise<User[]> {
@@ -17,7 +19,7 @@ class UserRepository implements UserRepositoryInterface {
   }
 
   // This operation create a user with data sended for user. Additionally create a relation between user-roles and user-profile.
-  async create(data: CreateUserInput): Promise<User> {
+  async create(data: RegisterInput): Promise<User> {
     const { roleIds, ...userData } = data;
 
     return await prisma.user.create({
@@ -46,6 +48,43 @@ class UserRepository implements UserRepositoryInterface {
       where: { id },
       data,
     });
+  }
+
+  async findUserWithPermissions(id: string): Promise<AutheticatedUser | null> {
+    const user = await prisma.user.findUnique({
+      where: {
+        id,
+      },
+      select: {
+        id: true,
+        email: true,
+        roles: {
+          select: {
+            role: {
+              select: {
+                id: true,
+                name: true,
+                permissions: {
+                  select: {
+                    permission: {
+                      select: {
+                        id: true,
+                        name: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!user) {
+      return null;
+    }
+    return user as AutheticatedUser;
   }
 }
 

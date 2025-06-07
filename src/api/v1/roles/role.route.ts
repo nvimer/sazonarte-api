@@ -6,10 +6,11 @@ import {
   roleIdSchema,
   updateRoleSchema,
 } from "./role.validator";
+import { authJwt } from "../../../middlewares/auth.middleware";
 
 const router = Router();
 
-router.get("/", roleController.getRoles);
+router.get("/", authJwt, roleController.getRoles);
 router.post("/", validate(createRoleSchema), roleController.postRole);
 
 router.get("/:id", validate(roleIdSchema), roleController.getRoleById);

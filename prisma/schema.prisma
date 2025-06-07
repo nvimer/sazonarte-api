@@ -14,6 +14,15 @@ datasource db {
 }
 
 // ENUMS
+
+enum TokenType {
+  ACCESS
+  REFRESH
+  RESET_PASSWORD
+  VERIFY_EMAIL
+  IS_USER_UPDATE_DATA
+}
+
 enum RoleName {
   ADMIN
   CASHIER
@@ -51,6 +60,17 @@ enum PaymentMethod {
 }
 
 // DATA-MODELS
+
+model Token {
+  id          String    @id @default(uuid())
+  token       String
+  type        TokenType
+  expires     DateTime
+  blacklisted Boolean
+  createdAt   DateTime  @default(now())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id])
+}
 
 model Role {
   id          Int      @id @default(autoincrement())
@@ -111,6 +131,8 @@ model User {
   roles UserRole[]
 
   profile Profile?
+
+  token Token[]
 
   ordersTaken        Order[]   @relation("OrdersTakenByWaiter")
   registeredExpenses Expense[] @relation("ExpensesRecordedBy")

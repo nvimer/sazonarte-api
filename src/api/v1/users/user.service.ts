@@ -1,5 +1,5 @@
 import { User } from "@prisma/client";
-import { CreateUserInput, UpdateUserInput } from "./user.validator";
+import { UpdateUserInput } from "./user.validator";
 import userRepository from "./user.repository";
 import { CustomError } from "../../../types/custom-errors";
 import { HttpStatus } from "../../../utils/httpStatus.enum";
@@ -8,6 +8,7 @@ import { UserServiceInterface } from "./interfaces/user.service.interface";
 import { UserRepositoryInterface } from "./interfaces/user.repository.interface";
 import { RoleServiceInterface } from "../roles/interfaces/role.service.interface";
 import roleService from "../roles/role.service";
+import { RegisterInput } from "../auth/auth.validator";
 
 class UserServices implements UserServiceInterface {
   constructor(
@@ -76,8 +77,20 @@ class UserServices implements UserServiceInterface {
     return this.findByIdOrFail(id);
   }
 
+  //This function find a user by email. Is different functionality of findByEmailOrFail because this operation return a user, the other returns a boolean
+  async findByEmail(email: string): Promise<User> {
+    const user = await this.userRepository.findByEmail(email);
+    if (!user)
+      throw new CustomError(
+        `User with email ${email} not found. Please retry.`,
+        HttpStatus.CONFLICT,
+        "NOT_FOUND",
+      );
+    return user;
+  }
+
   // This function can create a user, additionally pass the hash functionality for hashing and give more security to password. The underline is because the eslint mark as a alert for value not used
-  async createUser(data: CreateUserInput): Promise<User> {
+  async register(data: RegisterInput): Promise<User> {
     // 1. We use private findByEmailOrFail function for verify if email exists and is used for other user, or is valide and continue.
     await this.findByEmailOrFail(data.email);
 
@@ -107,6 +120,10 @@ class UserServices implements UserServiceInterface {
 
     // 3. Finally, all data send to repository and return a user updated with new information
     return this.userRepository.update(id, data);
+  }
+
+  async findUserWithRolesAndPermissions(id: string): Promise<User> {
+    return this.findUserWithRolesAndPermissions(id);
   }
 }
 

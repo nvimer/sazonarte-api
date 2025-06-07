@@ -11,6 +11,8 @@ import { requestLogger } from "./middlewares/morgan.middleware";
 import { errorHandler } from "./middlewares/error.middleware";
 import apiV1Router from "./api/v1/routes";
 import { notFoundHandler } from "./middlewares/notFound.middleware";
+import passport from "passport";
+import { jwtStrategy } from "./strategies/passport-jwt.strategy";
 
 const app: Application = express();
 
@@ -49,11 +51,14 @@ if (process.env.NODE_ENV === "production") {
 } else {
   app.use(cors());
 }
-
+// Logger for capting errors
 requestLogger(app);
 
-// API Routes
+// Strategies for auth users
+passport.use(jwtStrategy);
+app.use(passport.initialize());
 
+// API Routes
 app.use("/api/v1", apiV1Router);
 
 app.get("/api/v1", (_: Request, res: Response) => {
@@ -61,6 +66,7 @@ app.get("/api/v1", (_: Request, res: Response) => {
   res.send("Restaurant SazonArte API");
 });
 
+// middlewares for handler Error and NotFound routes
 app.use(notFoundHandler);
 app.use(errorHandler as ErrorRequestHandler);
 
