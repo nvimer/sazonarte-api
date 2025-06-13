@@ -1,5 +1,4 @@
-import { Permission, Role, User } from "@prisma/client";
-import { Pick } from "@prisma/client/runtime/library";
+import { Permission, Role } from "@prisma/client";
 
 // configure values for req.user types
 
@@ -11,12 +10,18 @@ export type RoleWithPermissions = Role & {
   permissions: PermissionWithRelations[];
 };
 
-export type AutheticatedUser = Pick<User, "id", "email"> & {
-  roles: RoleWithPermissions[];
+export type AutheticatedUser = {
+  id: string;
+  email: string;
+  roles: {
+    role: RoleWithPermissions;
+  }[];
 };
 
-declare namespace Express {
-  export interface Request {
-    user: AutheticatedUser;
+declare global {
+  namespace Express {
+    interface Request {
+      user: AutheticatedUser;
+    }
   }
 }

@@ -1,60 +1,50 @@
 import { Permission } from "@prisma/client";
+import { PermissionServiceInterface } from "./interfaces/permission.service.interface";
+import { PermissionRepositoryInterface } from "./interfaces/permission.repository.interface";
 import {
   CreatePermissionInput,
   UpdatePermissionInput,
 } from "./permission.validator";
+import {
+  PaginationParams,
+  PaginatedResponse,
+} from "../../../interfaces/pagination.interfaces";
 import permissionRepository from "./permission.repository";
-import { PermissionServiceInterface } from "./interfaces/permission.service.interface";
-import { PermissionRepositoryInterface } from "./interfaces/permission.repository.interface";
-
-import { CustomError } from "../../../types/custom-errors";
-import { HttpStatus } from "../../../utils/httpStatus.enum";
 
 class PermissionService implements PermissionServiceInterface {
-  constructor(private permissionRepository: PermissionRepositoryInterface) {}
+  constructor(
+    private readonly permissionRepository: PermissionRepositoryInterface,
+  ) {}
 
-  private async findPermissionByIdOrFail(id: number): Promise<Permission> {
-    const permission = await this.permissionRepository.findById(id);
-    if (!permission)
-      throw new CustomError(
-        `Permission with ID ${id} not found`,
-        HttpStatus.NOT_FOUND,
-        "ID_NOT_FOUND",
-      );
-    return permission;
-  }
-
-  async findAllPermissions(): Promise<Permission[]> {
-    return this.permissionRepository.findAll();
+  async findAllPermissions(
+    params: PaginationParams,
+  ): Promise<PaginatedResponse<Permission>> {
+    return this.permissionRepository.findAll(params);
   }
 
   async findPermissionById(id: number): Promise<Permission> {
-    return this.findPermissionByIdOrFail(id);
+    const permission = await this.permissionRepository.findById(id);
+    if (!permission) {
+      throw new Error("Permission not found");
+    }
+    return permission;
   }
 
   async createPermission(data: CreatePermissionInput): Promise<Permission> {
-    const permission = await this.permissionRepository.findByName(data.name);
-
-    if (permission)
-      throw new CustomError(
-        `Permission name ${permission.name} exists. Try again`,
-        HttpStatus.CONFLICT,
-        "NAME_CONFLICT",
-      );
-    return await this.permissionRepository.create(data);
+    return this.permissionRepository.create(data);
   }
 
   async updatePermission(
     id: number,
     data: UpdatePermissionInput,
   ): Promise<Permission> {
-    await this.findPermissionByIdOrFail(id);
-    return await this.permissionRepository.update(id, data);
+    await this.findPermissionById(id);
+    return this.permissionRepository.update(id, data);
   }
 
   async deletePermission(id: number): Promise<Permission> {
-    await this.findPermissionByIdOrFail(id);
-    return await this.permissionRepository.delete(id);
+    await this.findPermissionById(id);
+    return this.permissionRepository.delete(id);
   }
 }
 
