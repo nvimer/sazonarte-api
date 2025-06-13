@@ -7,13 +7,13 @@ import {
   updateRoleSchema,
 } from "./role.validator";
 import { authJwt } from "../../../middlewares/auth.middleware";
+import { paginationQuerySchema } from "../../../utils/pagination.schema";
 
 const router = Router();
 
-router.get("/", authJwt, roleController.getRoles);
-router.post("/", validate(createRoleSchema), roleController.postRole);
-
+router.get("/", validate(paginationQuerySchema), roleController.getRoles);
 router.get("/:id", validate(roleIdSchema), roleController.getRoleById);
+router.post("/", validate(createRoleSchema), roleController.postRole);
 router.patch("/:id", validate(updateRoleSchema), roleController.patchRole);
 router.delete("/:id", validate(roleIdSchema), roleController.deleteRole);
 

@@ -5,6 +5,10 @@ import roleRepository from "./role.repository";
 import { CustomError } from "../../../types/custom-errors";
 import { HttpStatus } from "../../../utils/httpStatus.enum";
 import { Role } from "@prisma/client";
+import {
+  PaginationParams,
+  PaginatedResponse,
+} from "../../../interfaces/pagination.interfaces";
 
 class RoleService implements RoleServiceInterface {
   constructor(private roleRepository: RoleRepositoryInterface) {}
@@ -20,8 +24,10 @@ class RoleService implements RoleServiceInterface {
     return role;
   }
 
-  async findAllRoles(): Promise<Role[]> {
-    return await this.roleRepository.findAll();
+  async findAllRoles(
+    params: PaginationParams,
+  ): Promise<PaginatedResponse<Role>> {
+    return await this.roleRepository.findAll(params);
   }
 
   async findRoleById(id: number): Promise<Role | null> {
