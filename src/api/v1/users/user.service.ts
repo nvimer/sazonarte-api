@@ -9,6 +9,7 @@ import { UserRepositoryInterface } from "./interfaces/user.repository.interface"
 import { RoleServiceInterface } from "../roles/interfaces/role.service.interface";
 import roleService from "../roles/role.service";
 import { RegisterInput } from "../auth/auth.validator";
+import { PaginationParams, PaginatedResponse } from "../../../interfaces/pagination.interfaces";
 
 class UserServices implements UserServiceInterface {
   constructor(
@@ -67,8 +68,8 @@ class UserServices implements UserServiceInterface {
   }
 
   // This operation can be get all users of repository.
-  async findAll(): Promise<User[]> {
-    return this.userRepository.findAll();
+  async findAll(params: PaginationParams): Promise<PaginatedResponse<User>> {
+    return this.userRepository.findAll(params);
   }
 
   // This operation can be get a user if the Id is valid.
@@ -123,7 +124,15 @@ class UserServices implements UserServiceInterface {
   }
 
   async findUserWithRolesAndPermissions(id: string): Promise<User> {
-    return this.findUserWithRolesAndPermissions(id);
+    const user = await this.userRepository.findUserWithPermissions(id);
+    if (!user) {
+      throw new CustomError(
+        `User with ID ${id} not found`,
+        HttpStatus.NOT_FOUND,
+        "ID_NOT_FOUND"
+      );
+    }
+    return user;
   }
 }
 

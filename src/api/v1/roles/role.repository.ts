@@ -2,10 +2,30 @@ import { CreateRoleInput, UpdateRoleInput } from "./role.validator";
 import prisma from "../../../database/prisma";
 import { RoleRepositoryInterface } from "./interfaces/role.repository.interface";
 import { Role } from "@prisma/client";
+import {
+  PaginationParams,
+  PaginatedResponse,
+} from "../../../interfaces/pagination.interfaces";
+import { createPaginatedResponse } from "../../../utils/pagination.helper";
 
 class RoleRepository implements RoleRepositoryInterface {
-  async findAll(): Promise<Role[]> {
-    return await prisma.role.findMany();
+  async findAll(params: PaginationParams): Promise<PaginatedResponse<Role>> {
+    const { page, limit } = params;
+    const skip = (page - 1) * limit;
+
+    const [roles, total] = await Promise.all([
+      prisma.role.findMany({
+        where: { deleted: false },
+        orderBy: { name: "asc" },
+        skip,
+        take: limit,
+      }),
+      prisma.role.count({
+        where: { deleted: false },
+      }),
+    ]);
+
+    return createPaginatedResponse(roles, total, params);
   }
 
   async findById(id: number): Promise<Role | null> {

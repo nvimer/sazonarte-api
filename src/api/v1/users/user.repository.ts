@@ -4,18 +4,35 @@ import { UserRepositoryInterface } from "./interfaces/user.repository.interface"
 import { UpdateUserInput } from "./user.validator";
 import { RegisterInput } from "../auth/auth.validator";
 import { AutheticatedUser } from "../../../types/express";
+import { PaginationParams, PaginatedResponse } from "../../../interfaces/pagination.interfaces";
+import { createPaginatedResponse } from "../../../utils/pagination.helper";
 
 class UserRepository implements UserRepositoryInterface {
-  async findAll(): Promise<User[]> {
-    return prisma.user.findMany();
+  async findAll(params: PaginationParams): Promise<PaginatedResponse<User>> {
+    const { page, limit } = params;
+    const skip = (page - 1) * limit;
+
+    const [users, total] = await Promise.all([
+      prisma.user.findMany({
+        where: { deleted: false },
+        orderBy: { name: "asc" },
+        skip,
+        take: limit,
+      }),
+      prisma.user.count({
+        where: { deleted: false },
+      }),
+    ]);
+
+    return createPaginatedResponse(users, total, params);
   }
 
   async findByEmail(email: string): Promise<User | null> {
-    return await prisma.user.findUnique({ where: { email } });
+    return prisma.user.findUnique({ where: { email } });
   }
 
   async findById(id: string): Promise<User | null> {
-    return await prisma.user.findUnique({ where: { id } });
+    return prisma.user.findUnique({ where: { id } });
   }
 
   // This operation create a user with data sended for user. Additionally create a relation between user-roles and user-profile.
@@ -44,34 +61,23 @@ class UserRepository implements UserRepositoryInterface {
   }
 
   async update(id: string, data: UpdateUserInput): Promise<User> {
-    return await prisma.user.update({
+    return prisma.user.update({
       where: { id },
       data,
     });
   }
 
   async findUserWithPermissions(id: string): Promise<AutheticatedUser | null> {
-    const user = await prisma.user.findUnique({
-      where: {
-        id,
-      },
-      select: {
-        id: true,
-        email: true,
+    return prisma.user.findUnique({
+      where: { id },
+      include: {
         roles: {
-          select: {
+          include: {
             role: {
-              select: {
-                id: true,
-                name: true,
+              include: {
                 permissions: {
-                  select: {
-                    permission: {
-                      select: {
-                        id: true,
-                        name: true,
-                      },
-                    },
+                  include: {
+                    permission: true,
                   },
                 },
               },
@@ -80,11 +86,6 @@ class UserRepository implements UserRepositoryInterface {
         },
       },
     });
-
-    if (!user) {
-      return null;
-    }
-    return user as AutheticatedUser;
   }
 }
 
