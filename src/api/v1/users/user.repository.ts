@@ -4,7 +4,10 @@ import { UserRepositoryInterface } from "./interfaces/user.repository.interface"
 import { UpdateUserInput } from "./user.validator";
 import { RegisterInput } from "../auth/auth.validator";
 import { AutheticatedUser } from "../../../types/express";
-import { PaginationParams, PaginatedResponse } from "../../../interfaces/pagination.interfaces";
+import {
+  PaginationParams,
+  PaginatedResponse,
+} from "../../../interfaces/pagination.interfaces";
 import { createPaginatedResponse } from "../../../utils/pagination.helper";
 
 class UserRepository implements UserRepositoryInterface {

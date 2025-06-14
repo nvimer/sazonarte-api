@@ -1,5 +1,5 @@
 import { Router } from "express";
-import permissionsRouter from "../v1/permissions/permission.route";
+import permissionsRouter from "../v1/permissions/permission.routes";
 import rolesRouter from "../v1/roles/role.route";
 import authRouter from "../v1/auth/auth.route";
 import usersRouter from "../v1/users/user.route";

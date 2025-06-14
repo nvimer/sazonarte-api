@@ -9,7 +9,11 @@ import { UserRepositoryInterface } from "./interfaces/user.repository.interface"
 import { RoleServiceInterface } from "../roles/interfaces/role.service.interface";
 import roleService from "../roles/role.service";
 import { RegisterInput } from "../auth/auth.validator";
-import { PaginationParams, PaginatedResponse } from "../../../interfaces/pagination.interfaces";
+import {
+  PaginationParams,
+  PaginatedResponse,
+} from "../../../interfaces/pagination.interfaces";
+import { AutheticatedUser } from "../../../types/express";
 
 class UserServices implements UserServiceInterface {
   constructor(
@@ -123,13 +127,13 @@ class UserServices implements UserServiceInterface {
     return this.userRepository.update(id, data);
   }
 
-  async findUserWithRolesAndPermissions(id: string): Promise<User> {
+  async findUserWithRolesAndPermissions(id: string): Promise<AutheticatedUser> {
     const user = await this.userRepository.findUserWithPermissions(id);
     if (!user) {
       throw new CustomError(
         `User with ID ${id} not found`,
         HttpStatus.NOT_FOUND,
-        "ID_NOT_FOUND"
+        "ID_NOT_FOUND",
       );
     }
     return user;

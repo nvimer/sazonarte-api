@@ -7,12 +7,22 @@ import {
   UpdatePermissionInput,
 } from "./permission.validator";
 import { PermissionServiceInterface } from "./interfaces/permission.service.interface";
+import {
+  DEFAULT_LIMIT,
+  DEFAULT_PAGE,
+  PaginationParams,
+} from "../../../interfaces/pagination.interfaces";
 
 class PermissionController {
   constructor(private permissionService: PermissionServiceInterface) {}
 
-  getPermissions = asyncHandler(async (_req: Request, res: Response) => {
-    const permissions = await this.permissionService.findAllPermissions();
+  getPermissions = asyncHandler(async (req: Request, res: Response) => {
+    const page = parseInt(req.query.page as string) || DEFAULT_PAGE;
+    const limit = parseInt(req.query.limit as string) || DEFAULT_LIMIT;
+
+    const params: PaginationParams = { page, limit };
+
+    const permissions = await this.permissionService.findAllPermissions(params);
     res.status(HttpStatus.OK).json({
       success: true,
       message: "All permissions",
