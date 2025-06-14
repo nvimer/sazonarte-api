@@ -13,6 +13,9 @@ import apiV1Router from "./api/v1/routes";
 import { notFoundHandler } from "./middlewares/notFound.middleware";
 import passport from "passport";
 import { jwtStrategy } from "./strategies/passport-jwt.strategy";
+import swaggerDocs from "./config/swagger";
+
+const port = Number(process.env.PORT);
 
 const app: Application = express();
 
@@ -23,7 +26,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // cors config
-const whitelist = ["http://localhost:3000"];
+const whitelist = [`http://localhost:${port}`];
 const corsOptions: CorsOptions = {
   origin: function (
     origin: string | undefined,
@@ -51,6 +54,9 @@ if (process.env.NODE_ENV === "production") {
 } else {
   app.use(cors());
 }
+
+// Swagger Documentation
+swaggerDocs(app, port);
 // Logger for capting errors
 requestLogger(app);
 

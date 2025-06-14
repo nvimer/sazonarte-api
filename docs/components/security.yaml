@@ -1,0 +1,52 @@
+# components:
+#   securitySchemes:
+#     bearerAuth:
+#       type: http
+#       scheme: bearer
+#       bearerFormat: JWT
+#       description: JWT token for authentication
+#
+#   responses:
+#     UnauthorizedError:
+#       description: Access token is missing or invalid
+#       content:
+#         application/json:
+#           schema:
+#             $ref: '#/components/schemas/Error'
+#           example:
+#             message: "Invalid or missing token"
+#             code: "UNAUTHORIZED"
+#             status: 401
+#
+#     ForbiddenError:
+#       description: User doesn't have permission to access this resource
+#       content:
+#         application/json:
+#           schema:
+#             $ref: '#/components/schemas/Error'
+#           example:
+#             message: "Insufficient permissions"
+#             code: "FORBIDDEN"
+#             status: 403
+#
+#     NotFoundError:
+#       description: The specified resource was not found
+#       content:
+#         application/json:
+#           schema:
+#             $ref: '#/components/schemas/Error'
+#           example:
+#             message: "Resource not found"
+#             code: "NOT_FOUND"
+#             status: 404
+#
+#     ValidationError:
+#       description: The request contains invalid data
+#       content:
+#         application/json:
+#           schema:
+#             $ref: '#/components/schemas/Error'
+#           example:
+#             message: "Invalid request data"
+#             code: "VALIDATION_ERROR"
+#             status: 400
