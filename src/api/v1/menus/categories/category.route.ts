@@ -2,8 +2,15 @@ import { Router } from "express";
 import categoryController from "./category.controller";
 import { validate } from "../../../../middlewares/validation.middleware";
 import { createMenuCategorySchema } from "./category.validator";
+import { paginationQuerySchema } from "../../../../utils/pagination.schema";
 
 const router = Router();
+
+router.get(
+  "/",
+  validate(paginationQuerySchema),
+  categoryController.getCategories,
+);
 
 router.post(
   "/",

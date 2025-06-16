@@ -3,12 +3,20 @@ import { CreateMenuCategoryInput } from "./category.validator";
 import { CategoryServiceInterface } from "./interfaces/category.service.interface";
 import { CategoryRepositoryInterface } from "./interfaces/category.repository.interface";
 import categoryRepository from "./category.repository";
+import {
+  PaginatedResponse,
+  PaginationParams,
+} from "../../../../interfaces/pagination.interfaces";
 
 class CategoryService implements CategoryServiceInterface {
-  constructor(private categoryServiceRepository: CategoryRepositoryInterface) {}
-
+  constructor(private categoryRepository: CategoryRepositoryInterface) {}
+  async findCategories(
+    params: PaginationParams,
+  ): Promise<PaginatedResponse<MenuCategory>> {
+    return await this.categoryRepository.findAll(params);
+  }
   async createCategory(data: CreateMenuCategoryInput): Promise<MenuCategory> {
-    return await this.categoryServiceRepository.create(data);
+    return await this.categoryRepository.create(data);
   }
 }
 
