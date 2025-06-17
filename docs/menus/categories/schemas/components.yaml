@@ -1,0 +1,97 @@
+openapi: 3.0.0
+components:
+  schemas:
+    CreateMenuCategoryRequest:
+      type: object
+      required:
+        - name
+        - description
+        - order
+      properties:
+        name:
+          type: string
+          minLength: 3
+          description: Category's name
+          example: "Main Dishes"
+        description:
+          type: string
+          description: Category's description
+          example: "Main course dishes"
+        order:
+          type: integer
+          description: Display order of the category
+          example: 1
+
+    MenuCategoryListResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Indicates if the request was successful
+          example: true
+        message:
+          type: string
+          description: Response message
+          example: "Menu Categories fetched successfully"
+        data:
+          type: object
+          properties:
+            items:
+              type: array
+              items:
+                $ref: "#/components/schemas/MenuCategory"
+            total:
+              type: integer
+              description: Total number of categories
+              example: 100
+            page:
+              type: integer
+              description: Current page number
+              example: 1
+            limit:
+              type: integer
+              description: Number of items per page
+              example: 10
+            totalPages:
+              type: integer
+              description: Total number of pages
+              example: 10
+
+    MenuCategoryResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Indicates if the request was successful
+          example: true
+        message:
+          type: string
+          description: Response message
+          example: "Menu Category created successfully"
+        data:
+          $ref: "#/components/schemas/MenuCategory"
+
+    ErrorResponse:
+      type: object
+      properties:
+        status:
+          type: integer
+          description: HTTP status code
+          example: 400
+        message:
+          type: string
+          description: Error message
+          example: "Invalid request parameters"
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+                description: Field that caused the error
+                example: "name"
+              message:
+                type: string
+                description: Error message for the field
+                example: "Name must be at least 3 characters long"

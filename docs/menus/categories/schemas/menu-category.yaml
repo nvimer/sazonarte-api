@@ -1,0 +1,34 @@
+components:
+  schemas:
+    MenuCategory:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique identifier for the menu category
+          example: 1
+        name:
+          type: string
+          description: Category's name
+          example: "Main Dishes"
+        description:
+          type: string
+          description: Category's description
+          example: "Main course dishes"
+        order:
+          type: integer
+          description: Display order of the category
+          example: 1
+        deleted:
+          type: boolean
+          description: Soft delete flag
+          example: false
+        deletedAt:
+          type: string
+          format: date-time
+          description: Timestamp when the category was deleted
+          nullable: true
+      required:
+        - id
+        - name
+        - order

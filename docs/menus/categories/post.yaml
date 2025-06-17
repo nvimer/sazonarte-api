@@ -1,0 +1,44 @@
+openapi: 3.0.0
+paths:
+  /menus/categories:
+    post:
+      tags:
+        - Menu Categories
+      summary: Create a new menu category
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateMenuCategoryRequest"
+      responses:
+        201:
+          description: Menu category created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MenuCategoryResponse"
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        403:
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        409:
+          description: Conflict - Category with this name already exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse" 

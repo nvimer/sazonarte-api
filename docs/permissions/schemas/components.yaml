@@ -1,0 +1,107 @@
+openapi: 3.0.0
+components:
+  schemas:
+    CreatePermissionRequest:
+      type: object
+      required:
+        - name
+        - description
+      properties:
+        name:
+          type: string
+          maxLength: 50
+          description: Permission's name
+          example: "CREATE_USER"
+        description:
+          type: string
+          maxLength: 50
+          description: Permission's description
+          example: "Can create new users"
+
+    PermissionListResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Indicates if the request was successful
+          example: true
+        message:
+          type: string
+          description: Response message
+          example: "All permissions"
+        data:
+          type: object
+          properties:
+            items:
+              type: array
+              items:
+                $ref: "#/components/schemas/Permission"
+            total:
+              type: integer
+              description: Total number of permissions
+              example: 100
+            page:
+              type: integer
+              description: Current page number
+              example: 1
+            limit:
+              type: integer
+              description: Number of items per page
+              example: 10
+            totalPages:
+              type: integer
+              description: Total number of pages
+              example: 10
+
+    PermissionResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Indicates if the request was successful
+          example: true
+        message:
+          type: string
+          description: Response message
+          example: "Permission fetched successfully"
+        data:
+          $ref: "#/components/schemas/Permission"
+
+    UpdatePermissionRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 50
+          description: Permission's name
+          example: "CREATE_USER"
+        description:
+          type: string
+          maxLength: 50
+          description: Permission's description
+          example: "Can create new users"
+
+    ErrorResponse:
+      type: object
+      properties:
+        status:
+          type: integer
+          description: HTTP status code
+          example: 400
+        message:
+          type: string
+          description: Error message
+          example: "Invalid request parameters"
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+                description: Field that caused the error
+                example: "name"
+              message:
+                type: string
+                description: Error message for the field
+                example: "Invalid name format"
