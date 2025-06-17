@@ -1,0 +1,29 @@
+components:
+  schemas:
+    Role:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique identifier for the role
+        name:
+          type: string
+          description: Role's name
+        description:
+          type: string
+          description: Role's type description
+        createdAt:
+          type: string
+          format: date-time
+          description: Timestamp when the user was created
+        updatedAt:
+          type: string
+          format: date-time
+          description: Timestamp when the user was last updated
+        deleted:
+          type: boolean
+          description: Soft delete flag
+      required:
+        - id
+        - name
+        - description

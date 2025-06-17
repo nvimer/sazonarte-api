@@ -1,0 +1,51 @@
+openapi: 3.0.0
+paths:
+  /roles/{id}:
+    patch:
+      tags:
+        - Roles
+      summary: Update a role by ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Role ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateRoleRequest"
+      responses:
+        200:
+          description: Role updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RoleResponse"
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        403:
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        404:
+          description: Role not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse" 

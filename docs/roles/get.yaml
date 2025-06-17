@@ -1,0 +1,102 @@
+openapi: 3.0.0
+paths:
+  /roles:
+    get:
+      tags:
+        - Roles
+      summary: Get all roles with pagination
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+          description: Page number for pagination
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 10
+          description: Number of items per page
+      responses:
+        200:
+          description: Roles fetched successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RoleListResponse"
+          headers:
+            ETag:
+              schema:
+                type: string
+              description: ETag for caching
+        304:
+          description: Not Modified - The roles haven't changed since the last request
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        403:
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        404:
+          description: Role not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /roles/{id}:
+    get:
+      tags:
+        - Roles
+      summary: Get a role by ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Role ID
+      responses:
+        200:
+          description: Role fetched successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RoleResponse"
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        403:
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        404:
+          description: Role not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
