@@ -3,7 +3,7 @@ services:
     name: sazonarte-api
     env: node
     buildCommand: npm install && npm run build
-    startCommand: npm start
+    startCommand: node dist/server.js
     envVars:
       - key: NODE_ENV
         value: production
@@ -16,4 +16,4 @@ services:
       - key: CORS_ORIGIN
         value: "*"
       - key: LOG_LEVEL
-        value: info 
+        value: info
