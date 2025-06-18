@@ -2,8 +2,10 @@ services:
   - type: web
     name: sazonarte-api
     env: node
-    buildCommand: npm install && npm run build
-    startCommand: node dist/server.js
+    region: oregon
+    plan: free
+    buildCommand: npm install && npm run build && npm run prisma:generate
+    startCommand: cd dist && node server.js
     envVars:
       - key: NODE_ENV
         value: production
@@ -17,3 +19,5 @@ services:
         value: "*"
       - key: LOG_LEVEL
         value: info
+    healthCheckPath: /api/health
+    autoDeploy: true
