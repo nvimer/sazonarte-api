@@ -19,6 +19,10 @@ router.post(
   categoryController.postCategory,
 );
 
-// router.get("/id", validate(idPermissionSchema), categoryController.getCategory);
+router.get(
+  "/:id",
+  validate(idPermissionSchema),
+  categoryController.getCategory,
+);
 
 export default router;

@@ -9,6 +9,7 @@ import {
   DEFAULT_PAGE,
   PaginationParams,
 } from "../../../../interfaces/pagination.interfaces";
+import { logger } from "../../../../config/logger";
 
 class CategoryController {
   constructor(private categoryService: CategoryServiceInterface) {}
@@ -28,8 +29,13 @@ class CategoryController {
 
   getCategory = asyncHandler(async (req: Request, res: Response) => {
     const id = Number(req.params.id);
-
-    await this.categoryService.findCategory(id);
+    logger.info(`here is id ${id}`);
+    const menuCategory = await this.categoryService.findCategoryById(id);
+    res.status(HttpStatus.OK).json({
+      success: true,
+      message: "Menu Category fetched successfully",
+      data: menuCategory,
+    });
   });
 
   postCategory = asyncHandler(async (req: Request, res: Response) => {
