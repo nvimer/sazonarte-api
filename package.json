@@ -2,7 +2,7 @@
   "name": "sazonarte_api",
   "version": "1.0.0",
   "description": "API para administración y contabilidad de restaurante Sazonarte. ",
-  "main": "dist/server.js",
+  "main": "/src/server.ts",
   "scripts": {
     "start": "node dist/server.js",
     "build": "tsc",
