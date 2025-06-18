@@ -14,8 +14,9 @@ import { notFoundHandler } from "./middlewares/notFound.middleware";
 import passport from "passport";
 import { jwtStrategy } from "./strategies/passport-jwt.strategy";
 import swaggerDocs from "./config/swagger";
+import { config } from "./config";
 
-const port = Number(process.env.PORT);
+const port = config.port;
 
 const app: Application = express();
 
@@ -26,7 +27,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // cors config
-const whitelist = [`http://localhost:${port}`];
+const whitelist = [`http://localhost:${port}`, config.appUrl];
 const corsOptions: CorsOptions = {
   origin: function (
     origin: string | undefined,

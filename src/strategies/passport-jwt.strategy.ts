@@ -6,12 +6,13 @@ import {
 } from "passport-jwt";
 import userService from "../api/v1/users/user.service";
 import { PayloadInput } from "../api/v1/auth/tokens/token.validation";
+import { config } from "../config";
 
 // define the options for strategy jwt
 // extract the jwt form header
 const options: StrategyOptions = {
   jwtFromRequest: ExtractJwt.fromAuthHeaderWithScheme("jwt"),
-  secretOrKey: String(process.env.JWT_SECRET),
+  secretOrKey: config.jwtSecret,
   // can user issuer and audience ofr major security
   // issuer:
   // audience:
