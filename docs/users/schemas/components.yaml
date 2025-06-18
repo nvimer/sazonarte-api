@@ -1,0 +1,101 @@
+openapi: 3.0.0
+components:
+  schemas:
+    UserListResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Indicates if the request was successful
+          example: true
+        message:
+          type: string
+          description: Response message
+          example: "Users fetched successfully"
+        data:
+          type: object
+          properties:
+            items:
+              type: array
+              items:
+                $ref: "#/components/schemas/User"
+            total:
+              type: integer
+              description: Total number of users
+              example: 100
+            page:
+              type: integer
+              description: Current page number
+              example: 1
+            limit:
+              type: integer
+              description: Number of items per page
+              example: 10
+            totalPages:
+              type: integer
+              description: Total number of pages
+              example: 10
+
+    UserResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Indicates if the request was successful
+          example: true
+        message:
+          type: string
+          description: Response message
+          example: "User fetched successfully"
+        data:
+          $ref: "#/components/schemas/User"
+
+    UpdateUserRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          description: User's full name
+          example: "John Doe"
+        email:
+          type: string
+          format: email
+          description: User's email address
+          example: "john.doe@example.com"
+        password:
+          type: string
+          format: password
+          description: User's password
+          example: "StrongP@ssw0rd"
+        roleIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: Array of role IDs to assign to the user
+          example: ["123e4567-e89b-12d3-a456-426614174000"]
+
+    ErrorResponse:
+      type: object
+      properties:
+        status:
+          type: integer
+          description: HTTP status code
+          example: 400
+        message:
+          type: string
+          description: Error message
+          example: "Invalid request parameters"
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+                description: Field that caused the error
+                example: "email"
+              message:
+                type: string
+                description: Error message for the field
+                example: "Invalid email format" 

@@ -1,4 +1,4 @@
-import { Permission, PrismaClient, Prisma } from "@prisma/client";
+import { Permission } from "@prisma/client";
 import { PermissionRepositoryInterface } from "./interfaces/permission.repository.interface";
 import {
   CreatePermissionInput,

@@ -1,0 +1,56 @@
+openapi: 3.0.0
+paths:
+  /users/{id}:
+    delete:
+      tags:
+        - Users
+      summary: Soft delete a user by ID
+      description: This endpoint performs a soft delete by setting the deleted flag to true. The user record remains in the database but is excluded from queries.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: User ID
+      responses:
+        200:
+          description: User deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    description: Indicates if the request was successful
+                    example: true
+                  message:
+                    type: string
+                    description: Success message
+                    example: "User with ID 123e4567-e89b-12d3-a456-426614174000 has been deleted successfully"
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        403:
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        404:
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse" 

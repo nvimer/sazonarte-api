@@ -1,0 +1,33 @@
+components:
+  schemas:
+    Permission:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique identifier for the permission
+          example: 1
+        name:
+          type: string
+          description: Permission's name
+          example: "CREATE_USER"
+        description:
+          type: string
+          description: Permission's description
+          example: "Can create new users"
+        createdAt:
+          type: string
+          format: date-time
+          description: Timestamp when the permission was created
+        updatedAt:
+          type: string
+          format: date-time
+          description: Timestamp when the permission was last updated
+        deleted:
+          type: boolean
+          description: Soft delete flag
+          example: false
+      required:
+        - id
+        - name
+        - description

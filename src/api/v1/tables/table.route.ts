@@ -7,7 +7,6 @@ import {
   tableIdSchema,
   updateTableStatusSchema,
 } from "./table.validator";
-import { authJwt } from "../../../middlewares/auth.middleware";
 import { paginationQuerySchema } from "../../../utils/pagination.schema";
 
 const router = Router();
@@ -34,7 +33,7 @@ router.delete("/:id", validate(tableIdSchema), tableController.deleteTable);
 router.patch(
   "/:id/status",
   validate(updateTableStatusSchema),
-  tableController.updateTableStatus
+  tableController.updateTableStatus,
 );
 
 export default router;

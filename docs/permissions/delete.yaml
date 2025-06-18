@@ -1,0 +1,52 @@
+openapi: 3.0.0
+paths:
+  /permissions/{id}:
+    delete:
+      tags:
+        - Permissions
+      summary: Delete a permission by ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Permission ID
+      responses:
+        200:
+          description: Permission deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Permission with ID {id} has been deleted successfully"
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        403:
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        404:
+          description: Permission not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse" 

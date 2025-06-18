@@ -1,0 +1,59 @@
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the user
+        name:
+          type: string
+          description: User's full name
+        email:
+          type: string
+          format: email
+          description: User's email address
+        createdAt:
+          type: string
+          format: date-time
+          description: Timestamp when the user was created
+        updatedAt:
+          type: string
+          format: date-time
+          description: Timestamp when the user was last updated
+        deleted:
+          type: boolean
+          description: Soft delete flag
+        roles:
+          type: array
+          items:
+            type: object
+            properties:
+              role:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  name:
+                    type: string
+                  permissions:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        permission:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            description:
+                              type: string
+      required:
+        - id
+        - name
+        - email
+        - createdAt
+        - updatedAt
+        - deleted 

@@ -1,0 +1,146 @@
+openapi: 3.0.0
+components:
+  schemas:
+    Role:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique identifier for the role
+          example: 1
+        name:
+          type: string
+          description: Role's name
+          example: ADMIN
+        description:
+          type: string
+          description: Role's type description
+          example: Administrator role
+        createdAt:
+          type: string
+          format: date-time
+          description: Timestamp when the role was created
+        updatedAt:
+          type: string
+          format: date-time
+          description: Timestamp when the role was last updated
+        deleted:
+          type: boolean
+          description: Soft delete flag
+          example: false
+      required:
+        - id
+        - name
+        - description
+
+    CreateRoleRequest:
+      type: object
+      required:
+        - name
+        - description
+      properties:
+        name:
+          type: string
+          description: Role's name
+          example: ADMIN
+        description:
+          type: string
+          description: Role's type description
+        permissionIds:
+          type: array
+          items:
+            type: integer
+          description: Array of permission IDs to assign to the role
+          example: [1, 2, 3]
+
+    RoleListResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Indicates if the request was successful
+          example: true
+        message:
+          type: string
+          description: Response message
+          example: "Roles fetched successfully"
+        data:
+          type: object
+          properties:
+            items:
+              type: array
+              items:
+                $ref: "#/components/schemas/Role"
+            total:
+              type: integer
+              description: Total number of roles
+              example: 100
+            page:
+              type: integer
+              description: Current page number
+              example: 1
+            limit:
+              type: integer
+              description: Number of items per page
+              example: 10
+            totalPages:
+              type: integer
+              description: Total number of pages
+              example: 10
+
+    RoleResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Indicates if the request was successful
+          example: true
+        message:
+          type: string
+          description: Response message
+          example: "Role fetched successfully"
+        data:
+          $ref: "#/components/schemas/Role"
+
+    UpdateRoleRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Role's name
+          example: ADMIN
+        description:
+          type: string
+          description: Role's type description
+          example: Administrator role
+        permissionIds:
+          type: array
+          items:
+            type: integer
+          description: Array of permission IDs to assign to the role
+          example: [1, 2, 3]
+
+    ErrorResponse:
+      type: object
+      properties:
+        status:
+          type: integer
+          description: HTTP status code
+          example: 400
+        message:
+          type: string
+          description: Error message
+          example: "Invalid request parameters"
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+                description: Field that caused the error
+                example: "email"
+              message:
+                type: string
+                description: Error message for the field
+                example: "Invalid email format"
