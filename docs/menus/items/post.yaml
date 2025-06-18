@@ -1,0 +1,44 @@
+openapi: 3.0.0
+paths:
+  /menus/items:
+    post:
+      tags:
+        - Menu Items
+      summary: Create a new menu item
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "./schemas/components.yaml#/components/schemas/CreateItemRequest"
+      responses:
+        201:
+          description: Item created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "./schemas/components.yaml#/components/schemas/MenuItemResponse"
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "./schemas/components.yaml#/components/schemas/ErrorResponse"
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "./schemas/components.yaml#/components/schemas/ErrorResponse"
+        403:
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "./schemas/components.yaml#/components/schemas/ErrorResponse"
+        409:
+          description: Conflict - Item with this name already exists in the category
+          content:
+            application/json:
+              schema:
+                $ref: "./schemas/components.yaml#/components/schemas/ErrorResponse"
