@@ -10,7 +10,9 @@ services:
       - key: NODE_ENV
         value: production
       - key: DATABASE_URL
-        sync: false
+        fromDatabase:
+          name: sazonarte-db
+          property: connectionString
       - key: JWT_SECRET
         sync: false
       - key: PORT
@@ -21,3 +23,9 @@ services:
         value: info
     healthCheckPath: /api/health
     autoDeploy: true
+
+databases:
+  - name: sazonarte-db
+    databaseName: sazonarte-db
+    user: sazonarte
+    plan: free
