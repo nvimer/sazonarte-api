@@ -29,9 +29,8 @@ app.use(express.urlencoded({ extended: true }));
 // cors config
 const whitelist = [
   `http://localhost:${port}`,
-  config.appUrl,
-  "http://localhost:3000",
-  "http://localhost:5173",
+  "https://sazonarte-api.onrender.com",
+  "https://sazonarte-api.onrender.com/api/v1",
 ];
 
 const corsOptions: CorsOptions = {
