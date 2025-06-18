@@ -8,9 +8,9 @@
     "build": "tsc",
     "dev": "nodemon --watch 'src/**/*.ts' --exec ts-node src/server.ts",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "prisma:generate": "npx prisma generate",
-    "prisma:migrate": "npx prisma migrate deploy",
-    "postinstall": "npm run prisma:generate",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate deploy",
+    "postinstall": "prisma generate",
     "eslint-check-only": "npx eslint .",
     "eslint-fix": "npx eslint . --fix",
     "prettier": "npx prettier --write ."
