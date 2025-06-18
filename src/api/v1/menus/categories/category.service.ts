@@ -15,6 +15,11 @@ class CategoryService implements CategoryServiceInterface {
   ): Promise<PaginatedResponse<MenuCategory>> {
     return await this.categoryRepository.findAll(params);
   }
+
+  async findCategory(id: number): Promise<MenuCategory | null> {
+    return await this.categoryRepository.findById(id);
+  }
+
   async createCategory(data: CreateMenuCategoryInput): Promise<MenuCategory> {
     return await this.categoryRepository.create(data);
   }

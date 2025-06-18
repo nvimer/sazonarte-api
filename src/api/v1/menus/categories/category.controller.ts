@@ -26,6 +26,12 @@ class CategoryController {
     });
   });
 
+  getCategory = asyncHandler(async (req: Request, res: Response) => {
+    const id = Number(req.params.id);
+
+    await this.categoryService.findCategory(id);
+  });
+
   postCategory = asyncHandler(async (req: Request, res: Response) => {
     const data: CreateMenuCategoryInput = req.body;
     const menuCategory = await this.categoryService.createCategory(data);

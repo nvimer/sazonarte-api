@@ -9,5 +9,6 @@ export interface CategoryServiceInterface {
   findCategories(
     params: PaginationParams,
   ): Promise<PaginatedResponse<MenuCategory>>;
+  findCategory(id: number): Promise<MenuCategory | null>;
   createCategory(data: CreateMenuCategoryInput): Promise<MenuCategory>;
 }

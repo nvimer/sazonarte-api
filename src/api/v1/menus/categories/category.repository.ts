@@ -30,6 +30,10 @@ class CategoryRepository implements CategoryRepositoryInterface {
     return createPaginatedResponse(menuCategories, total, params);
   }
 
+  async findById(id: number): Promise<MenuCategory | null> {
+    return await prisma.menuCategory.findUnique({ where: { id } });
+  }
+
   async create(data: CreateMenuCategoryInput): Promise<MenuCategory> {
     return await prisma.menuCategory.create({ data });
   }

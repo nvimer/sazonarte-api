@@ -3,6 +3,7 @@ import categoryController from "./category.controller";
 import { validate } from "../../../../middlewares/validation.middleware";
 import { createMenuCategorySchema } from "./category.validator";
 import { paginationQuerySchema } from "../../../../utils/pagination.schema";
+import { idPermissionSchema } from "../../permissions/permission.validator";
 
 const router = Router();
 
@@ -17,5 +18,7 @@ router.post(
   validate(createMenuCategorySchema),
   categoryController.postCategory,
 );
+
+// router.get("/id", validate(idPermissionSchema), categoryController.getCategory);
 
 export default router;
