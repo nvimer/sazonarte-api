@@ -27,7 +27,13 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // cors config
-const whitelist = [`http://localhost:${port}`, config.appUrl];
+const whitelist = [
+  `http://localhost:${port}`,
+  config.appUrl,
+  "http://localhost:3000",
+  "http://localhost:5173",
+];
+
 const corsOptions: CorsOptions = {
   origin: function (
     origin: string | undefined,
@@ -36,12 +42,15 @@ const corsOptions: CorsOptions = {
     if (!origin || whitelist.includes(origin)) {
       callback(null, true);
     } else {
+      logger.warn(`CORS blocked request from origin: ${origin}`);
       callback(new Error("Not allowed by CORS"));
     }
   },
-  methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
-  allowedHeaders: ["Content-Type", "Authorization"],
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
   credentials: true,
+  preflightContinue: false,
+  optionsSuccessStatus: 204,
 };
 
 if (process.env.NODE_ENV === "production") {
@@ -50,6 +59,8 @@ if (process.env.NODE_ENV === "production") {
     helmet({
       contentSecurityPolicy: false,
       xPermittedCrossDomainPolicies: false,
+      crossOriginResourcePolicy: { policy: "cross-origin" },
+      crossOriginOpenerPolicy: { policy: "unsafe-none" },
     }),
   );
 } else {
@@ -71,6 +82,19 @@ app.use("/api/v1", apiV1Router);
 app.get("/api/v1", (_: Request, res: Response) => {
   logger.info("GET / request received");
   res.send("Restaurant SazonArte API");
+});
+
+// Health check endpoint
+app.get("/api/health", (_: Request, res: Response) => {
+  res.status(200).json({
+    status: "ok",
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV,
+    cors: {
+      whitelist,
+      origin: process.env.CORS_ORIGIN,
+    },
+  });
 });
 
 // middlewares for handler Error and NotFound routes
