@@ -1,7 +1,11 @@
 import { Router } from "express";
 import categoryController from "./category.controller";
 import { validate } from "../../../../middlewares/validation.middleware";
-import { createMenuCategorySchema } from "./category.validator";
+import {
+  categoryIdSchema,
+  createMenuCategorySchema,
+  updateMenuCategorySchema,
+} from "./category.validator";
 import { paginationQuerySchema } from "../../../../utils/pagination.schema";
 import { idPermissionSchema } from "../../permissions/permission.validator";
 
@@ -23,6 +27,13 @@ router.get(
   "/:id",
   validate(idPermissionSchema),
   categoryController.getCategory,
+);
+
+router.patch(
+  "/:id",
+  validate(categoryIdSchema),
+  validate(updateMenuCategorySchema),
+  categoryController.patchCategory,
 );
 
 export default router;

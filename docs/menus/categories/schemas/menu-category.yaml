@@ -28,6 +28,7 @@ components:
           format: date-time
           description: Timestamp when the category was deleted
           nullable: true
+          example: null
       required:
         - id
         - name

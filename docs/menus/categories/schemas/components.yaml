@@ -71,6 +71,23 @@ components:
         data:
           $ref: "#/components/schemas/MenuCategory"
 
+    UpdateMenuCategoryRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 3
+          description: Category's name
+          example: "Main Dishes"
+        description:
+          type: string
+          description: Category's description
+          example: "Main course dishes"
+        order:
+          type: integer
+          description: Display order of the category
+          example: 1
+
     ErrorResponse:
       type: object
       properties:

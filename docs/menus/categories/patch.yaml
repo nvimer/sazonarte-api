@@ -1,0 +1,56 @@
+openapi: 3.0.0
+paths:
+  /menus/categories/{id}:
+    patch:
+      tags:
+        - Menu Categories
+      summary: Update a category by ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: number
+          description: Menu Category ID
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateMenuCategoryRequest"
+      responses:
+        202:
+          description: Menu Category updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MenuCategoryResponse"
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        403:
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        404:
+          description: Menu Category not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        409:
+          description: Conflict (e.g., email already in use)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
