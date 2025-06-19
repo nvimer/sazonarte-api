@@ -5,19 +5,30 @@ paths:
       tags:
         - Roles
       summary: Update a role by ID
+      description: |
+        Update an existing role with new information.
+        Only provided fields will be updated.
+        The role name must remain unique if changed.
+        Permissions can be updated by providing a new array of permission IDs.
       parameters:
         - in: path
           name: id
           required: true
           schema:
             type: integer
+            minimum: 1
           description: Role ID
+          example: 1
       requestBody:
         required: true
         content:
           application/json:
             schema:
               $ref: "#/components/schemas/UpdateRoleRequest"
+            example:
+              name: "SUPER_ADMIN"
+              description: "Super administrator role with enhanced privileges"
+              permissionIds: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
       responses:
         200:
           description: Role updated successfully
@@ -25,12 +36,28 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/RoleResponse"
+              example:
+                success: true
+                message: "Role updated successfully"
+                data:
+                  id: 1
+                  name: "SUPER_ADMIN"
+                  description: "Super administrator role with enhanced privileges"
+                  createdAt: "2024-01-15T10:30:00Z"
+                  updatedAt: "2024-01-15T12:30:00Z"
+                  deleted: false
         400:
-          description: Bad Request
+          description: Bad Request - Invalid update data
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: 400
+                message: "Invalid update data"
+                errors:
+                  - field: "name"
+                    message: "Role name must be at least 2 characters"
         401:
           description: Unauthorized
           content:
@@ -48,4 +75,22 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ErrorResponse" 
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: 404
+                message: "Role not found"
+                errors:
+                  - field: "id"
+                    message: "Role with ID 999 does not exist"
+        409:
+          description: Conflict - Role name already exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: 409
+                message: "Role name already exists"
+                errors:
+                  - field: "name"
+                    message: "A role with this name already exists" 

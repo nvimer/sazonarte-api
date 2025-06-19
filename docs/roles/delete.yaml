@@ -5,13 +5,19 @@ paths:
       tags:
         - Roles
       summary: Delete a role by ID
+      description: |
+        Soft delete a role by its ID.
+        This operation marks the role as deleted but preserves it in the database.
+        The role will no longer appear in regular queries but can be recovered if needed.
       parameters:
         - in: path
           name: id
           required: true
           schema:
             type: integer
+            minimum: 1
           description: Role ID
+          example: 1
       responses:
         200:
           description: Role deleted successfully
@@ -25,13 +31,36 @@ paths:
                     example: true
                   message:
                     type: string
-                    example: "Role with ID {id} has been deleted successfully"
+                    example: "Role with ID 1 has been deleted successfully"
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        description: ID of the deleted role
+                        example: 1
+                      name:
+                        type: string
+                        description: Name of the deleted role
+                        example: "ADMIN"
+              example:
+                success: true
+                message: "Role with ID 1 has been deleted successfully"
+                data:
+                  id: 1
+                  name: "ADMIN"
         400:
-          description: Bad Request
+          description: Bad Request - Invalid role ID
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: 400
+                message: "Invalid role ID"
+                errors:
+                  - field: "id"
+                    message: "Role ID must be a positive integer"
         401:
           description: Unauthorized
           content:
@@ -50,3 +79,9 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: 404
+                message: "Role not found"
+                errors:
+                  - field: "id"
+                    message: "Role with ID 999 does not exist"

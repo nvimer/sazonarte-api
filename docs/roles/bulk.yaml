@@ -1,0 +1,99 @@
+openapi: 3.0.0
+paths:
+  /roles/bulk:
+    delete:
+      tags:
+        - Roles
+      summary: Delete multiple roles by IDs
+      description: |
+        Soft delete multiple roles by providing an array of role IDs.
+        This operation marks roles as deleted but preserves them in the database.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - ids
+              properties:
+                ids:
+                  type: array
+                  items:
+                    type: integer
+                    minimum: 1
+                  minItems: 1
+                  maxItems: 100
+                  description: Array of role IDs to delete
+                  example: [1, 2, 3]
+            example:
+              ids: [1, 2, 3]
+      responses:
+        200:
+          description: Roles deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "3 roles have been deleted successfully"
+                  data:
+                    type: object
+                    properties:
+                      deletedCount:
+                        type: integer
+                        description: Number of roles that were deleted
+                        example: 3
+                      ids:
+                        type: array
+                        items:
+                          type: integer
+                        description: Array of deleted role IDs
+                        example: [1, 2, 3]
+              example:
+                success: true
+                message: "3 roles have been deleted successfully"
+                data:
+                  deletedCount: 3
+                  ids: [1, 2, 3]
+        400:
+          description: Bad Request - Invalid role IDs
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: 400
+                message: "Invalid role IDs provided"
+                errors:
+                  - field: "ids"
+                    message: "Role IDs must be an array of positive integers"
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        403:
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        404:
+          description: One or more roles not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: 404
+                message: "One or more roles not found"
+                errors:
+                  - field: "ids"
+                    message: "Role with ID 999 does not exist" 
