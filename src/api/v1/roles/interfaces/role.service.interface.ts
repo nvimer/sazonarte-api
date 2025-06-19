@@ -1,5 +1,10 @@
 import { Role } from "@prisma/client";
-import { CreateRoleInput, UpdateRoleInput } from "../role.validator";
+import {
+  CreateRoleInput,
+  UpdateRoleInput,
+  RoleSearchParams,
+  BulkRoleInput,
+} from "../role.validator";
 import {
   PaginationParams,
   PaginatedResponse,
@@ -7,8 +12,12 @@ import {
 
 export interface RoleServiceInterface {
   findAllRoles(params: PaginationParams): Promise<PaginatedResponse<Role>>;
-  findRoleById(id: number): Promise<Role | null>;
+  findRoleById(id: number): Promise<Role>;
   createRole(data: CreateRoleInput): Promise<Role>;
   updateRole(id: number, data: UpdateRoleInput): Promise<Role>;
   deleteRole(id: number): Promise<Role>;
+  bulkDeleteRoles(data: BulkRoleInput): Promise<number>;
+  searchRoles(
+    params: PaginationParams & RoleSearchParams,
+  ): Promise<PaginatedResponse<Role>>;
 }
