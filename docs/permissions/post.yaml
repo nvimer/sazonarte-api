@@ -5,12 +5,18 @@ paths:
       tags:
         - Permissions
       summary: Create a new permission
+      description: |
+        Create a new permission with the specified name and description.
+        The permission name must be unique across all permissions.
       requestBody:
         required: true
         content:
           application/json:
             schema:
               $ref: "#/components/schemas/CreatePermissionRequest"
+            example:
+              name: "DELETE_USERS"
+              description: "Permission to delete user accounts"
       responses:
         201:
           description: Permission created successfully
@@ -18,12 +24,30 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/PermissionResponse"
+              example:
+                success: true
+                message: "Permission created successfully"
+                data:
+                  id: 3
+                  name: "DELETE_USERS"
+                  description: "Permission to delete user accounts"
+                  createdAt: "2024-01-15T12:00:00Z"
+                  updatedAt: "2024-01-15T12:00:00Z"
+                  deleted: false
         400:
-          description: Bad Request
+          description: Bad Request - Invalid permission data
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: 400
+                message: "Invalid permission data"
+                errors:
+                  - field: "name"
+                    message: "Permission name is required"
+                  - field: "description"
+                    message: "Permission description is required"
         401:
           description: Unauthorized
           content:
@@ -37,8 +61,14 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
         409:
-          description: Conflict - Permission with this name already exists
+          description: Conflict - Permission name already exists
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ErrorResponse" 
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: 409
+                message: "Permission name already exists"
+                errors:
+                  - field: "name"
+                    message: "A permission with this name already exists" 

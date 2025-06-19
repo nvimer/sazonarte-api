@@ -2,6 +2,8 @@ import { Permission } from "@prisma/client";
 import {
   CreatePermissionInput,
   UpdatePermissionInput,
+  PermissionSearchParams,
+  BulkPermissionInput,
 } from "../permission.validator";
 import {
   PaginationParams,
@@ -19,4 +21,8 @@ export interface PermissionServiceInterface {
     data: UpdatePermissionInput,
   ): Promise<Permission>;
   deletePermission(id: number): Promise<Permission>;
+  bulkDeletePermissions(data: BulkPermissionInput): Promise<number>;
+  searchPermissions(
+    params: PaginationParams & PermissionSearchParams,
+  ): Promise<PaginatedResponse<Permission>>;
 }

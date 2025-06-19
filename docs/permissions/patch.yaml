@@ -5,19 +5,28 @@ paths:
       tags:
         - Permissions
       summary: Update a permission by ID
+      description: |
+        Update an existing permission with new information.
+        Only provided fields will be updated.
+        The permission name must remain unique if changed.
       parameters:
         - in: path
           name: id
           required: true
           schema:
             type: integer
+            minimum: 1
           description: Permission ID
+          example: 1
       requestBody:
         required: true
         content:
           application/json:
             schema:
               $ref: "#/components/schemas/UpdatePermissionRequest"
+            example:
+              name: "MANAGE_USERS"
+              description: "Permission to manage user accounts with full access"
       responses:
         200:
           description: Permission updated successfully
@@ -25,12 +34,28 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/PermissionResponse"
+              example:
+                success: true
+                message: "Permission updated successfully"
+                data:
+                  id: 1
+                  name: "MANAGE_USERS"
+                  description: "Permission to manage user accounts with full access"
+                  createdAt: "2024-01-15T10:30:00Z"
+                  updatedAt: "2024-01-15T12:30:00Z"
+                  deleted: false
         400:
-          description: Bad Request
+          description: Bad Request - Invalid update data
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: 400
+                message: "Invalid update data"
+                errors:
+                  - field: "name"
+                    message: "Permission name must be at least 2 characters"
         401:
           description: Unauthorized
           content:
@@ -49,9 +74,21 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: 404
+                message: "Permission not found"
+                errors:
+                  - field: "id"
+                    message: "Permission with ID 999 does not exist"
         409:
-          description: Conflict - Permission with this name already exists
+          description: Conflict - Permission name already exists
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ErrorResponse" 
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: 409
+                message: "Permission name already exists"
+                errors:
+                  - field: "name"
+                    message: "A permission with this name already exists" 

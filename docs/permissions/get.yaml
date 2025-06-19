@@ -5,19 +5,28 @@ paths:
       tags:
         - Permissions
       summary: Get all permissions with pagination
+      description: |
+        Retrieve all permissions with pagination support.
+        Returns only active (non-deleted) permissions by default.
+        Supports pagination with customizable page size.
       parameters:
         - in: query
           name: page
           schema:
             type: integer
+            minimum: 1
             default: 1
           description: Page number for pagination
+          example: 1
         - in: query
           name: limit
           schema:
             type: integer
+            minimum: 1
+            maximum: 100
             default: 10
           description: Number of items per page
+          example: 20
       responses:
         200:
           description: Permissions fetched successfully
@@ -25,12 +34,46 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/PermissionListResponse"
+              example:
+                success: true
+                message: "Permissions fetched successfully"
+                data:
+                  items:
+                    - id: 1
+                      name: "READ_USERS"
+                      description: "Permission to read user data"
+                      createdAt: "2024-01-15T10:30:00Z"
+                      updatedAt: "2024-01-15T10:30:00Z"
+                      deleted: false
+                    - id: 2
+                      name: "WRITE_USERS"
+                      description: "Permission to write user data"
+                      createdAt: "2024-01-15T10:35:00Z"
+                      updatedAt: "2024-01-15T10:35:00Z"
+                      deleted: false
+                  total: 2
+                  page: 1
+                  limit: 20
+                  totalPages: 1
+          headers:
+            ETag:
+              schema:
+                type: string
+              description: ETag for caching
+        304:
+          description: Not Modified - The permissions haven't changed since the last request
         400:
-          description: Bad Request
+          description: Bad Request - Invalid pagination parameters
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: 400
+                message: "Invalid pagination parameters"
+                errors:
+                  - field: "page"
+                    message: "Page must be a positive integer"
         401:
           description: Unauthorized
           content:
@@ -39,12 +82,6 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
         403:
           description: Forbidden
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        404:
-          description: Permission not found
           content:
             application/json:
               schema:
@@ -55,13 +92,18 @@ paths:
       tags:
         - Permissions
       summary: Get a permission by ID
+      description: |
+        Retrieve a specific permission by its unique identifier.
+        Returns detailed information about the permission.
       parameters:
         - in: path
           name: id
           required: true
           schema:
             type: integer
+            minimum: 1
           description: Permission ID
+          example: 1
       responses:
         200:
           description: Permission fetched successfully
@@ -69,12 +111,28 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/PermissionResponse"
+              example:
+                success: true
+                message: "Permission fetched successfully"
+                data:
+                  id: 1
+                  name: "READ_USERS"
+                  description: "Permission to read user data"
+                  createdAt: "2024-01-15T10:30:00Z"
+                  updatedAt: "2024-01-15T10:30:00Z"
+                  deleted: false
         400:
-          description: Bad Request
+          description: Bad Request - Invalid permission ID
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: 400
+                message: "Invalid permission ID"
+                errors:
+                  - field: "id"
+                    message: "Permission ID must be a positive integer"
         401:
           description: Unauthorized
           content:
@@ -93,3 +151,9 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: 404
+                message: "Permission not found"
+                errors:
+                  - field: "id"
+                    message: "Permission with ID 999 does not exist"

@@ -1,0 +1,95 @@
+openapi: 3.0.0
+paths:
+  /permissions/search:
+    get:
+      tags:
+        - Permissions
+      summary: Search permissions with filtering and pagination
+      description: |
+        Search for permissions by name and filter by active status.
+        Supports pagination and case-insensitive name search.
+      parameters:
+        - in: query
+          name: search
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 100
+          description: Search term for filtering permissions by name (case-insensitive)
+          example: "read"
+        - in: query
+          name: active
+          schema:
+            type: string
+            enum: ["true", "false"]
+          description: Filter permissions by active status
+          example: "true"
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          description: Page number for pagination
+          example: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+          description: Number of items per page
+          example: 20
+      responses:
+        200:
+          description: Permissions search completed successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PermissionListResponse"
+              example:
+                success: true
+                message: "Permissions search completed successfully"
+                data:
+                  items:
+                    - id: 1
+                      name: "READ_USERS"
+                      description: "Permission to read user data"
+                      createdAt: "2024-01-15T10:30:00Z"
+                      updatedAt: "2024-01-15T10:30:00Z"
+                      deleted: false
+                    - id: 3
+                      name: "READ_ROLES"
+                      description: "Permission to read role data"
+                      createdAt: "2024-01-15T11:00:00Z"
+                      updatedAt: "2024-01-15T11:00:00Z"
+                      deleted: false
+                  total: 2
+                  page: 1
+                  limit: 20
+                  totalPages: 1
+        400:
+          description: Bad Request - Invalid search parameters
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: 400
+                message: "Invalid search parameters"
+                errors:
+                  - field: "search"
+                    message: "Search term must be at least 1 character"
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        403:
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse" 
