@@ -5,12 +5,20 @@ paths:
       tags:
         - Menu Categories
       summary: Create a new menu category
+      description: |
+        Creates a new menu category with the provided data.
+        Validates for duplicate names and ensures all required fields are provided.
+        The description field is optional and will default to an empty string if not provided.
       requestBody:
         required: true
         content:
           application/json:
             schema:
               $ref: "#/components/schemas/CreateMenuCategoryRequest"
+            example:
+              name: "Desserts"
+              description: "Sweet treats and desserts"
+              order: 4
       responses:
         201:
           description: Menu category created successfully
@@ -18,12 +26,30 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MenuCategoryResponse"
+              example:
+                success: true
+                message: "Menu Category created successfully"
+                data:
+                  id: 4
+                  name: "Desserts"
+                  description: "Sweet treats and desserts"
+                  order: 4
+                  deleted: false
+                  deletedAt: null
         400:
-          description: Bad Request
+          description: Bad Request - Invalid request body
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: 400
+                message: "Invalid request body"
+                errors:
+                  - field: "name"
+                    message: "Name must be at least 3 characters long"
+                  - field: "order"
+                    message: "Order must be between 0 and 999"
         401:
           description: Unauthorized
           content:
@@ -41,4 +67,10 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ErrorResponse" 
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: 409
+                message: "Category with name \"Desserts\" already exists"
+                errors:
+                  - field: "name"
+                    message: "Category name already exists" 

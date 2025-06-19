@@ -1,0 +1,73 @@
+openapi: 3.0.0
+paths:
+  /menus/categories/{id}:
+    delete:
+      tags:
+        - Menu Categories
+      summary: Soft delete a menu category by ID
+      description: |
+        Soft deletes a menu category by setting the deleted flag to true.
+        The category is not physically removed from the database but marked as deleted
+        for data preservation and potential recovery.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+          description: Menu Category ID to delete
+          example: 123
+      responses:
+        200:
+          description: Menu category soft deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MenuCategoryResponse"
+              example:
+                success: true
+                message: "Menu Category deleted successfully"
+                data:
+                  id: 123
+                  name: "Main Dishes"
+                  description: "Primary meal options"
+                  order: 1
+                  deleted: true
+                  deletedAt: "2024-01-15T10:30:00Z"
+        400:
+          description: Bad Request - Invalid ID format or category already deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: 400
+                message: "Menu Category ID 123 is already deleted"
+                errors:
+                  - field: "id"
+                    message: "Category is already deleted"
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        403:
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        404:
+          description: Menu Category not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: 404
+                message: "Menu Category ID 999 not found"
+                errors:
+                  - field: "id"
+                    message: "Category not found" 

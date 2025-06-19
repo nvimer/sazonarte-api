@@ -5,19 +5,27 @@ paths:
       tags:
         - Menu Categories
       summary: Get all menu categories with pagination
+      description: |
+        Retrieves a paginated list of all non-deleted menu categories.
+        Results are ordered alphabetically by name and exclude soft-deleted categories.
       parameters:
         - in: query
           name: page
           schema:
             type: integer
+            minimum: 1
             default: 1
           description: Page number for pagination
+          example: 1
         - in: query
           name: limit
           schema:
             type: integer
+            minimum: 1
+            maximum: 100
             default: 10
           description: Number of items per page
+          example: 20
       responses:
         200:
           description: Menu categories fetched successfully
@@ -25,12 +33,45 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MenuCategoryListResponse"
+              example:
+                success: true
+                message: "Menu Categories fetched successfully"
+                data:
+                  items:
+                    - id: 1
+                      name: "Appetizers"
+                      description: "Light starters and snacks"
+                      order: 1
+                      deleted: false
+                      deletedAt: null
+                    - id: 2
+                      name: "Beverages"
+                      description: "Drinks and refreshments"
+                      order: 2
+                      deleted: false
+                      deletedAt: null
+                    - id: 3
+                      name: "Main Dishes"
+                      description: "Primary meal options"
+                      order: 3
+                      deleted: false
+                      deletedAt: null
+                  total: 3
+                  page: 1
+                  limit: 20
+                  totalPages: 1
         400:
-          description: Bad Request
+          description: Bad Request - Invalid pagination parameters
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: 400
+                message: "Invalid pagination parameters"
+                errors:
+                  - field: "limit"
+                    message: "Limit must be between 1 and 100"
         401:
           description: Unauthorized
           content:
@@ -48,14 +89,19 @@ paths:
     get:
       tags:
         - Menu Categories
-      summary: Get a menu categories by ID
+      summary: Get a menu category by ID
+      description: |
+        Retrieves a specific menu category by its unique identifier.
+        Returns the category regardless of its deleted status.
       parameters:
         - in: path
           name: id
           required: true
           schema:
             type: integer
-          description: Role ID
+            minimum: 1
+          description: Menu Category ID
+          example: 123
       responses:
         200:
           description: Menu category fetched successfully
@@ -63,12 +109,28 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MenuCategoryResponse"
+              example:
+                success: true
+                message: "Menu Category fetched successfully"
+                data:
+                  id: 123
+                  name: "Main Dishes"
+                  description: "Primary meal options including entrees and main courses"
+                  order: 3
+                  deleted: false
+                  deletedAt: null
         400:
-          description: Bad Request
+          description: Bad Request - Invalid ID format
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: 400
+                message: "Invalid category ID format"
+                errors:
+                  - field: "id"
+                    message: "ID must be a positive integer"
         401:
           description: Unauthorized
           content:
@@ -87,3 +149,9 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: 404
+                message: "Menu Category ID 999 not found"
+                errors:
+                  - field: "id"
+                    message: "Category not found"

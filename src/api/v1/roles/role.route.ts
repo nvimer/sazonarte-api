@@ -6,7 +6,6 @@ import {
   roleIdSchema,
   updateRoleSchema,
 } from "./role.validator";
-import { authJwt } from "../../../middlewares/auth.middleware";
 import { paginationQuerySchema } from "../../../utils/pagination.schema";
 
 const router = Router();

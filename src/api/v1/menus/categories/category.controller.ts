@@ -4,6 +4,8 @@ import { CategoryServiceInterface } from "./interfaces/category.service.interfac
 import {
   CreateMenuCategoryInput,
   UpdateMenuCategoryInput,
+  CategorySearchParams,
+  BulkCategoryInput,
 } from "./category.validator";
 import { HttpStatus } from "../../../../utils/httpStatus.enum";
 import categoryService from "./category.service";
@@ -12,7 +14,6 @@ import {
   DEFAULT_PAGE,
   PaginationParams,
 } from "../../../../interfaces/pagination.interfaces";
-import { logger } from "../../../../config/logger";
 
 /**
  * Controller class responsible for handling HTTP requests related to menu categories.
@@ -55,6 +56,53 @@ class CategoryController {
   });
 
   /**
+   * GET /categories/search - Searches for menu categories with optional filtering
+   *
+   * @param req - Express request object containing search and pagination parameters
+   * @param res - Express response object to send the response
+   *
+   * Query Parameters:
+   * - page: Page number for pagination (default: DEFAULT_PAGE)
+   * - limit: Number of items per page (default: DEFAULT_LIMIT)
+   * - search: Search term for name-based filtering (optional)
+   * - active: Filter by active status (true/false, optional)
+   *
+   * Returns:
+   * - HTTP 200 with paginated search results
+   * - Success message and filtered categories array
+   */
+  searchCategories = asyncHandler(async (req: Request, res: Response) => {
+    // Extract pagination and search parameters
+    const page = Number(req.query.page) || DEFAULT_PAGE;
+    const limit = Number(req.query.limit) || DEFAULT_LIMIT;
+    const search = req.query.search as string;
+    const active =
+      req.query.active === "true"
+        ? true
+        : req.query.active === "false"
+          ? false
+          : undefined;
+
+    // Create combined parameters object
+    const params: PaginationParams & CategorySearchParams = {
+      page,
+      limit,
+      search,
+      active,
+    };
+
+    // Search categories from service layer
+    const categories = await this.categoryService.searchCategories(params);
+
+    // Return successful response with search results
+    res.status(HttpStatus.OK).json({
+      success: true,
+      message: "Menu Categories search completed successfully",
+      data: categories,
+    });
+  });
+
+  /**
    * GET /categories/:id - Retrieves a specific menu category by its ID
    *
    * @param req - Express request object containing the category ID in params
@@ -73,7 +121,6 @@ class CategoryController {
   getCategory = asyncHandler(async (req: Request, res: Response) => {
     // Extract and convert category ID from URL parameters
     const id = Number(req.params.id);
-    logger.info(`here is id ${id}`);
 
     // Fetch specific category from service layer
     const menuCategory = await this.categoryService.findCategoryById(id);
@@ -154,6 +201,69 @@ class CategoryController {
       success: true,
       message: "Menu Category updated successfully",
       data: updatedCategory,
+    });
+  });
+
+  /**
+   * DELETE /categories/:id - Soft deletes a menu category
+   *
+   * @param req - Express request object containing the category ID in params
+   * @param res - Express response object to send the response
+   *
+   * URL Parameters:
+   * - id: The unique identifier of the category to delete
+   *
+   * Returns:
+   * - HTTP 200 with the soft-deleted category data
+   * - Success message and deleted category object
+   *
+   * Throws:
+   * - 404 if category is not found (handled by service layer)
+   * - 400 if category is already deleted (handled by service layer)
+   */
+  deleteCategory = asyncHandler(async (req: Request, res: Response) => {
+    // Extract and convert category ID from URL parameters
+    const id = Number(req.params.id);
+
+    // Soft delete category through service layer
+    const deletedCategory = await this.categoryService.deleteCategory(id);
+
+    // Return successful response with deleted category
+    res.status(HttpStatus.OK).json({
+      success: true,
+      message: "Menu Category deleted successfully",
+      data: deletedCategory,
+    });
+  });
+
+  /**
+   * DELETE /categories/bulk - Soft deletes multiple menu categories in bulk
+   *
+   * @param req - Express request object containing array of category IDs in body
+   * @param res - Express response object to send the response
+   *
+   * Request Body:
+   * - BulkCategoryInput: Object containing array of category IDs to delete
+   *
+   * Returns:
+   * - HTTP 200 with count of successfully deleted categories
+   * - Success message and deletion count
+   *
+   * Throws:
+   * - 400 if no valid IDs provided (handled by service layer)
+   */
+  bulkDeleteCategories = asyncHandler(async (req: Request, res: Response) => {
+    // Extract validate bulk delete data from request body
+    const data: BulkCategoryInput = req.body;
+
+    // Perform bulk delete through service layer
+    const deletedCount = await this.categoryService.bulkDeleteCategories(data);
+
+    // Return successful response with deletion count
+    res.status(HttpStatus.OK).json({
+      success: true,
+      message: `${deletedCount} Menu Categories deleted successfully`,
+      data: { deletedCount },
     });
   });
 }

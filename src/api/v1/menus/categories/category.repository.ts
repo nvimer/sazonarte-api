@@ -2,6 +2,7 @@ import { MenuCategory } from "@prisma/client";
 import {
   CreateMenuCategoryInput,
   UpdateMenuCategoryInput,
+  CategorySearchParams,
 } from "./category.validator";
 import { CategoryRepositoryInterface } from "./interfaces/category.repository.interface";
 import prisma from "../../../../database/prisma";
@@ -87,6 +88,33 @@ class CategoryRepository implements CategoryRepositoryInterface {
   }
 
   /**
+   * Retrieves a menu category by its name.
+   * This method is used for duplicate name checking during creation and updates.
+   *
+   * @param name - The name of the category to find
+   * @returns Promise<MenuCategory | null> - The found category or null if not found
+   *
+   * Database Operations:
+   * - Uses Prisma's findFirst for name-based lookup
+   * - Filters out deleted categories to avoid conflicts with soft-deleted records
+   * - Case-insensitive search using contains
+   *
+   * Note: This method only searches non-deleted categories to prevent
+   * conflicts when creating categories with names that were previously deleted.
+   */
+  async findByName(name: string): Promise<MenuCategory | null> {
+    return await prisma.menuCategory.findFirst({
+      where: {
+        name: {
+          equals: name,
+          mode: "insensitive", // Case-insensitive search
+        },
+        deleted: false, // Only search non-deleted categories
+      },
+    });
+  }
+
+  /**
    * Creates a new menu category in the database.
    * This method accepts validated input data and creates a new record.
    *
@@ -137,6 +165,125 @@ class CategoryRepository implements CategoryRepositoryInterface {
   ): Promise<MenuCategory> {
     // Update category record using Prisma's update method
     return await prisma.menuCategory.update({ where: { id }, data });
+  }
+
+  /**
+   * Soft deletes a menu category by setting the deleted flag to true.
+   * This method implements soft delete to preserve data integrity and allow recovery.
+   *
+   * @param id - The unique identifier of the category to delete
+   * @returns Promise<MenuCategory> - The soft-deleted category object
+   *
+   * Database Operations:
+   * - Uses Prisma's update method to set deleted flag to true
+   * - Updates the updatedAt timestamp automatically
+   * - Returns the updated category object
+   *
+   * Error Handling:
+   * - Prisma will throw errors if category with given ID doesn't exist
+   * - These errors are typically handled at the service layer
+   *
+   * Note: This implements soft delete pattern. The category is not physically
+   * removed from the database but marked as deleted for data preservation.
+   */
+  async delete(id: number): Promise<MenuCategory> {
+    return await prisma.menuCategory.update({
+      where: { id },
+      data: {
+        deleted: true,
+      },
+    });
+  }
+
+  /**
+   * Soft deletes multiple menu categories by their IDs.
+   * This method implements bulk soft delete for efficient batch operations.
+   *
+   * @param ids - Array of category IDs to delete
+   * @returns Promise<number> - Number of categories successfully deleted
+   *
+   * Database Operations:
+   * - Uses Prisma's updateMany for bulk update
+   * - Sets deleted flag to true for all specified IDs
+   * - Updates the updatedAt timestamp for all affected records
+   *
+   * Performance Considerations:
+   * - Uses updateMany for efficient bulk operations
+   * - Single database transaction for all updates
+   *
+   * Note: This method will not throw errors for non-existent IDs,
+   * it will simply not update those records.
+   */
+  async bulkDelete(ids: number[]): Promise<number> {
+    const result = await prisma.menuCategory.updateMany({
+      where: {
+        id: { in: ids },
+        deleted: false, // Only delete non-deleted categories
+      },
+      data: {
+        deleted: true,
+      },
+    });
+
+    return result.count;
+  }
+
+  /**
+   * Searches for menu categories with optional filtering and pagination.
+   * This method provides flexible search capabilities for finding categories.
+   *
+   * @param params - Combined pagination and search parameters
+   * @returns Promise<PaginatedResponse<MenuCategory>> - Paginated search results
+   *
+   * Search Features:
+   * - Name-based search using case-insensitive contains
+   * - Active/inactive filtering
+   * - Pagination support
+   * - Alphabetical ordering
+   *
+   * Database Operations:
+   * - Uses Prisma's findMany with complex where conditions
+   * - Implements efficient search with proper indexing
+   * - Parallel execution of data and count queries
+   */
+  async search(
+    params: PaginationParams & CategorySearchParams,
+  ): Promise<PaginatedResponse<MenuCategory>> {
+    const { page, limit, search, active } = params;
+    const skip = (page - 1) * limit;
+
+    // Build search conditions
+    const whereConditions: any = {
+      deleted: false, // Always exclude deleted categories
+    };
+
+    // Add search term if provided
+    if (search) {
+      whereConditions.name = {
+        contains: search,
+        mode: "insensitive", // Case-insensitive search
+      };
+    }
+
+    // Add active filter if provided
+    if (active !== undefined) {
+      whereConditions.active = active;
+    }
+
+    // Execute search and count in parallel
+    const [menuCategories, total] = await Promise.all([
+      prisma.menuCategory.findMany({
+        where: whereConditions,
+        orderBy: { name: "asc" },
+        skip,
+        take: limit,
+      }),
+      prisma.menuCategory.count({
+        where: whereConditions,
+      }),
+    ]);
+
+    return createPaginatedResponse(menuCategories, total, { page, limit });
   }
 }
 

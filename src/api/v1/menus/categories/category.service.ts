@@ -2,6 +2,8 @@ import { MenuCategory } from "@prisma/client";
 import {
   CreateMenuCategoryInput,
   UpdateMenuCategoryInput,
+  CategorySearchParams,
+  BulkCategoryInput,
 } from "./category.validator";
 import { CategoryServiceInterface } from "./interfaces/category.service.interface";
 import { CategoryRepositoryInterface } from "./interfaces/category.repository.interface";
@@ -52,6 +54,29 @@ class CategoryService implements CategoryServiceInterface {
   }
 
   /**
+   * Private helper method to check for duplicate category names.
+   * This method ensures unique category names across the system.
+   *
+   * @param name - The category name to check
+   * @param excludeId - Optional category ID to exclude from duplicate check (for updates)
+   * @throws CustomError with HTTP 409 status if duplicate name found
+   */
+  private async checkDuplicateName(
+    name: string,
+    excludeId?: number,
+  ): Promise<void> {
+    const existingCategory = await this.categoryRepository.findByName(name);
+
+    if (existingCategory && existingCategory.id !== excludeId) {
+      throw new CustomError(
+        `Category with name "${name}" already exists`,
+        HttpStatus.CONFLICT,
+        "DUPLICATE_NAME",
+      );
+    }
+  }
+
+  /**
    * Retrieves a paginated list of all menu categories.
    * This method handles the business logic for fetching categories with pagination support.
    *
@@ -97,12 +122,16 @@ class CategoryService implements CategoryServiceInterface {
    * @returns Promise<MenuCategory> - The newly created category object
    *
    * @throws CustomError with HTTP 409 status if category with same name already exists
-   * (This error is typically thrown by the repository layer)
    *
-   * The input data is already validated by the controller layer through
-   * the category validator, so this method can safely delegate to the repository.
+   * Business Logic:
+   * 1. Check for duplicate category names
+   * 2. Create the category if name is unique
+   * 3. Return the created category
    */
   async createCategory(data: CreateMenuCategoryInput): Promise<MenuCategory> {
+    // Check for duplicate category names before creation
+    await this.checkDuplicateName(data.name);
+
     // Delegate to repository layer for category creation
     return await this.categoryRepository.create(data);
   }
@@ -120,8 +149,9 @@ class CategoryService implements CategoryServiceInterface {
    *
    * Business Logic:
    * 1. First verifies the category exists using findCategoryByIdOrFail
-   * 2. If category exists, proceeds with the update
-   * 3. Returns the updated category data
+   * 2. Check for duplicate names if name is being updated
+   * 3. If category exists and no conflicts, proceeds with the update
+   * 4. Returns the updated category data
    *
    * This two-step process ensures we don't attempt updates on non-existent categories
    * and provides clear error messages to the client.
@@ -133,8 +163,96 @@ class CategoryService implements CategoryServiceInterface {
     // First, verify the category exists (this will throw if not found)
     await this.findCategoryByIdOrFail(id);
 
-    // If category exists, proceed with the update
+    // Check for duplicate names if name is being updated
+    if (data.name) {
+      await this.checkDuplicateName(data.name, id);
+    }
+
+    // If category exists and no conflicts, proceed with the update
     return this.categoryRepository.update(id, data);
+  }
+
+  /**
+   * Soft deletes a menu category.
+   * This method implements soft delete to preserve data integrity.
+   *
+   * @param id - The unique identifier of the category to delete
+   * @returns Promise<MenuCategory> - The soft-deleted category object
+   *
+   * @throws CustomError with HTTP 404 status if category is not found
+   *
+   * Business Logic:
+   * 1. Verify the category exists
+   * 2. Check if category is already deleted
+   * 3. Perform soft delete operation
+   * 4. Return the deleted category
+   */
+  async deleteCategory(id: number): Promise<MenuCategory> {
+    // Verify the category exists
+    const category = await this.findCategoryByIdOrFail(id);
+
+    // Check if category is already deleted
+    if (category.deleted) {
+      throw new CustomError(
+        `Menu Category ID ${id} is already deleted`,
+        HttpStatus.BAD_REQUEST,
+        "ALREADY_DELETED",
+      );
+    }
+
+    // Perform soft delete
+    return await this.categoryRepository.delete(id);
+  }
+
+  /**
+   * Soft deletes multiple menu categories in bulk.
+   * This method provides efficient batch deletion capabilities.
+   *
+   * @param data - Object containing array of category IDs to delete
+   * @returns Promise<number> - Number of categories successfully deleted
+   *
+   * @throws CustomError with HTTP 400 status if no valid IDs provided
+   *
+   * Business Logic:
+   * 1. Validate that at least one ID is provided
+   * 2. Perform bulk soft delete operation
+   * 3. Return count of successfully deleted categories
+   */
+  async bulkDeleteCategories(data: BulkCategoryInput): Promise<number> {
+    // Validate that at least one ID is provided
+    if (!data.ids || data.ids.length === 0) {
+      throw new CustomError(
+        "At least one category ID must be provided for bulk deletion",
+        HttpStatus.BAD_REQUEST,
+        "INVALID_INPUT",
+      );
+    }
+
+    // Perform bulk soft delete
+    return await this.categoryRepository.bulkDelete(data.ids);
+  }
+
+  /**
+   * Searches for menu categories with optional filtering and pagination.
+   * This method provides flexible search capabilities for finding categories.
+   *
+   * @param params - Combined pagination and search parameters
+   * @returns Promise<PaginatedResponse<MenuCategory>> - Paginated search results
+   *
+   * Search Features:
+   * - Name-based search using case-insensitive contains
+   * - Active/inactive filtering
+   * - Pagination support
+   * - Alphabetical ordering
+   *
+   * This method delegates to the repository layer while providing
+   * a clean interface for the controller.
+   */
+  async searchCategories(
+    params: PaginationParams & CategorySearchParams,
+  ): Promise<PaginatedResponse<MenuCategory>> {
+    // Delegate to repository layer for search functionality
+    return await this.categoryRepository.search(params);
   }
 }
 

@@ -1,0 +1,55 @@
+openapi: 3.0.0
+paths:
+  /menus/categories/bulk:
+    delete:
+      tags:
+        - Menu Categories
+      summary: Bulk soft delete multiple menu categories
+      description: |
+        Soft deletes multiple menu categories by their IDs in a single operation.
+        This is more efficient than deleting categories one by one.
+        Only non-deleted categories will be processed.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BulkDeleteMenuCategoryRequest"
+            example:
+              ids: [1, 2, 3, 4, 5]
+      responses:
+        200:
+          description: Categories bulk deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BulkDeleteMenuCategoryResponse"
+              example:
+                success: true
+                message: "3 Menu Categories deleted successfully"
+                data:
+                  deletedCount: 3
+        400:
+          description: Bad Request - Invalid request body or no valid IDs provided
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: 400
+                message: "At least one category ID must be provided for bulk deletion"
+                errors:
+                  - field: "ids"
+                    message: "Array cannot be empty"
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        403:
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse" 

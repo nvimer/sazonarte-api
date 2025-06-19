@@ -4,19 +4,30 @@ paths:
     patch:
       tags:
         - Menu Categories
-      summary: Update a category by ID
+      summary: Update a menu category by ID
+      description: |
+        Updates an existing menu category with partial data.
+        Only the fields provided in the request body will be updated.
+        At least one field must be provided for the update to proceed.
+        Validates for duplicate names if the name field is being updated.
       parameters:
         - in: path
           name: id
           required: true
           schema:
-            type: number
+            type: integer
+            minimum: 1
           description: Menu Category ID
+          example: 123
       requestBody:
+        required: true
         content:
           application/json:
             schema:
               $ref: "#/components/schemas/UpdateMenuCategoryRequest"
+            example:
+              name: "Updated Main Dishes"
+              order: 2
       responses:
         202:
           description: Menu Category updated successfully
@@ -24,12 +35,30 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MenuCategoryResponse"
+              example:
+                success: true
+                message: "Menu Category updated successfully"
+                data:
+                  id: 123
+                  name: "Updated Main Dishes"
+                  description: "Primary meal options"
+                  order: 2
+                  deleted: false
+                  deletedAt: null
         400:
-          description: Bad Request
+          description: Bad Request - Invalid request body or ID format
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: 400
+                message: "Invalid request body"
+                errors:
+                  - field: "name"
+                    message: "Name must be at least 3 characters long"
+                  - field: "order"
+                    message: "Order must be between 0 and 999"
         401:
           description: Unauthorized
           content:
@@ -48,9 +77,21 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: 404
+                message: "Menu Category ID 999 not found"
+                errors:
+                  - field: "id"
+                    message: "Category not found"
         409:
-          description: Conflict (e.g., email already in use)
+          description: Conflict - Update would create duplicate name
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: 409
+                message: "Category with name \"Updated Main Dishes\" already exists"
+                errors:
+                  - field: "name"
+                    message: "Category name already exists"
