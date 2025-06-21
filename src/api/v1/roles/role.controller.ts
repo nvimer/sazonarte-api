@@ -1,56 +1,57 @@
 import { Request, Response } from "express";
-import {
-  CreateRoleInput,
-  UpdateRoleInput,
-  RoleSearchParams,
-  BulkRoleInput,
-} from "./role.validator";
-import { HttpStatus } from "../../../utils/httpStatus.enum";
 import { asyncHandler } from "../../../utils/asyncHandler";
-import { RoleServiceInterface } from "./interfaces/role.service.interface";
 import roleService from "./role.service";
+import { HttpStatus } from "../../../utils/httpStatus.enum";
+import { CreateRoleInput, UpdateRoleInput } from "./role.validator";
 import { PaginationParams } from "../../../interfaces/pagination.interfaces";
-import {
-  DEFAULT_LIMIT,
-  DEFAULT_PAGE,
-} from "../../../interfaces/pagination.interfaces";
 
 /**
- * Controller class responsible for handling HTTP requests related to roles.
- * Provides CRUD operations for roles through RESTful endpoints.
+ * Role Controller
  *
- * This controller implements proper error handling, validation, and
- * consistent response formatting across all endpoints.
+ * Handles HTTP requests for role management operations.
+ * This controller is responsible for:
+ * - Processing incoming HTTP requests for role CRUD operations
+ * - Extracting and validating request data
+ * - Delegating business logic to the role service
+ * - Formatting and returning HTTP responses
+ *
+ * All methods use asyncHandler for consistent error handling
+ * and are designed to work with the role service layer.
+ *
+ * Role management includes:
+ * - Basic CRUD operations (Create, Read, Update, Delete)
+ * - Search and filtering capabilities
+ * - Bulk operations for efficiency
+ * - Pagination support for large datasets
  */
 class RoleController {
-  constructor(private roleService: RoleServiceInterface) {}
-
   /**
-   * GET /roles - Retrieves a paginated list of all roles
+   * GET /roles
    *
-   * @param req - Express request object containing query parameters for pagination
-   * @param res - Express response object to send the response
+   * Retrieves a paginated list of all roles in the system.
+   * This endpoint is typically used for role management interfaces
+   * and administrative purposes.
+   *
+   * @param req - Express request object containing pagination query parameters
+   * @param res - Express response object
    *
    * Query Parameters:
-   * - page: Page number for pagination (default: DEFAULT_PAGE)
-   * - limit: Number of items per page (default: DEFAULT_LIMIT)
+   * - page: Page number for pagination (defaults to 1)
+   * - limit: Number of items per page (defaults to 10)
    *
-   * Returns:
-   * - HTTP 200 with paginated roles data
-   * - Success message and roles array with permissions
+   * Response:
+   * - 200: Success with paginated roles data
+   * - 400: Invalid pagination parameters
+   *
+   * The response includes pagination metadata and role data.
    */
   getRoles = asyncHandler(async (req: Request, res: Response) => {
-    // Extract pagination parameters from query string with fallback to defaults
-    const page = parseInt(req.query.page as string) || DEFAULT_PAGE;
-    const limit = parseInt(req.query.limit as string) || DEFAULT_LIMIT;
+    const page = parseInt(req.query.page as string);
+    const limit = parseInt(req.query.limit as string);
 
-    // Create pagination parameters object
     const params: PaginationParams = { page, limit };
 
-    // Fetch roles from service layer with pagination
-    const roles = await this.roleService.findAllRoles(params);
-
-    // Return successful response with roles data
+    const roles = await roleService.findAll(params);
     res.status(HttpStatus.OK).json({
       success: true,
       message: "Roles fetched successfully",
@@ -59,25 +60,33 @@ class RoleController {
   });
 
   /**
-   * GET /roles/search - Searches for roles with optional filtering and pagination
+   * GET /roles/search
    *
-   * @param req - Express request object containing search and pagination parameters
-   * @param res - Express response object to send the response
+   * Searches and filters roles based on various criteria.
+   * This endpoint provides advanced filtering capabilities for
+   * role management and administrative interfaces.
+   *
+   * @param req - Express request object containing search and filter parameters
+   * @param res - Express response object
    *
    * Query Parameters:
-   * - page: Page number for pagination (default: DEFAULT_PAGE)
-   * - limit: Number of items per page (default: DEFAULT_LIMIT)
-   * - search: Search term for filtering roles by name (optional)
-   * - active: Filter by active status (true/false, optional)
+   * - page: Page number for pagination (defaults to 1)
+   * - limit: Number of items per page (defaults to 10)
+   * - search: Text search term for role name or description
+   * - active: Filter by active status (true/false/undefined for all)
    *
-   * Returns:
-   * - HTTP 200 with paginated search results
-   * - Success message and filtered roles array
+   * Response:
+   * - 200: Success with filtered and paginated roles data
+   * - 400: Invalid search parameters
+   *
+   * Search functionality includes:
+   * - Text-based search in role names and descriptions
+   * - Active status filtering
+   * - Combined pagination and filtering
    */
   searchRoles = asyncHandler(async (req: Request, res: Response) => {
-    // Extract pagination and search parameters
-    const page = parseInt(req.query.page as string) || DEFAULT_PAGE;
-    const limit = parseInt(req.query.limit as string) || DEFAULT_LIMIT;
+    const page = parseInt(req.query.page as string);
+    const limit = parseInt(req.query.limit as string);
     const search = req.query.search as string;
     const active =
       req.query.active === "true"
@@ -86,49 +95,39 @@ class RoleController {
           ? false
           : undefined;
 
-    // Create combined parameters object
-    const params: PaginationParams & RoleSearchParams = {
-      page,
-      limit,
-      search,
-      active,
-    };
+    const params: PaginationParams = { page, limit };
 
-    // Search roles from service layer
-    const roles = await this.roleService.searchRoles(params);
-
-    // Return successful response with search results
+    const roles = await roleService.searchRoles(params, search, active);
     res.status(HttpStatus.OK).json({
       success: true,
-      message: "Roles search completed successfully",
+      message: "Roles searched successfully",
       data: roles,
     });
   });
 
   /**
-   * GET /roles/:id - Retrieves a specific role by its ID
+   * GET /roles/:id
    *
-   * @param req - Express request object containing the role ID in params
-   * @param res - Express response object to send the response
+   * Retrieves a specific role by its unique identifier.
+   * This endpoint is used for role details and editing interfaces.
+   *
+   * @param req - Express request object containing role ID in params
+   * @param res - Express response object
    *
    * URL Parameters:
-   * - id: The unique identifier of the role to retrieve
+   * - id: Role ID (integer)
    *
-   * Returns:
-   * - HTTP 200 with the specific role data
-   * - Success message and role object with permissions
+   * Response:
+   * - 200: Role found and returned
+   * - 400: Invalid ID format
+   * - 404: Role not found
    *
-   * Throws:
-   * - 404 if role is not found (handled by service layer)
+   * Returns complete role information including associated permissions.
    */
   getRoleById = asyncHandler(async (req: Request, res: Response) => {
-    // Extract and convert role ID from URL parameters
-    const id = parseInt(req.params.id, 10);
+    const id = parseInt(req.params.id);
 
-    // Fetch specific role from service layer
-    const role = await this.roleService.findRoleById(id);
-
-    // Return successful response with role data
+    const role = await roleService.findById(id);
     res.status(HttpStatus.OK).json({
       success: true,
       message: "Role fetched successfully",
@@ -137,139 +136,151 @@ class RoleController {
   });
 
   /**
-   * POST /roles - Creates a new role
+   * POST /roles
    *
-   * @param req - Express request object containing role data in body
-   * @param res - Express response object to send the response
+   * Creates a new role in the system.
+   * This endpoint handles role creation with optional permission assignments
+   * and validation of role name uniqueness.
+   *
+   * @param req - Express request object containing role creation data
+   * @param res - Express response object
    *
    * Request Body:
-   * - CreateRoleInput: Validated role creation data
+   * - name: Role name (required, must be unique)
+   * - description: Role description (optional)
+   * - active: Role active status (optional, defaults to true)
+   * - permissionIds: Array of permission IDs to assign (optional)
    *
-   * Returns:
-   * - HTTP 201 (Created) with the newly created role
-   * - Success message and created role object with permissions
+   * Response:
+   * - 201: Role created successfully
+   * - 400: Invalid request data
+   * - 409: Role name already exists
    *
-   * Throws:
-   * - 400 if validation fails (handled by validator middleware)
-   * - 409 if role with same name already exists (handled by service layer)
+   * The response includes the created role with assigned permissions.
    */
   postRole = asyncHandler(async (req: Request, res: Response) => {
-    // Extract validated role data from request body
     const data: CreateRoleInput = req.body;
 
-    // Create new role through service layer
-    const newRole = await this.roleService.createRole(data);
-
-    // Return successful response with created role
+    const role = await roleService.createRole(data);
     res.status(HttpStatus.CREATED).json({
       success: true,
-      message: `Role "${newRole.name}" created successfully`,
-      data: newRole,
+      message: "Role created successfully",
+      data: role,
     });
   });
 
   /**
-   * PATCH /roles/:id - Updates an existing role
+   * PATCH /roles/:id
    *
-   * @param req - Express request object containing role ID in params and update data in body
-   * @param res - Express response object to send the response
+   * Updates an existing role's information.
+   * This endpoint supports partial updates, allowing clients
+   * to update only specific fields without affecting others.
+   *
+   * @param req - Express request object containing role ID and update data
+   * @param res - Express response object
    *
    * URL Parameters:
-   * - id: The unique identifier of the role to update
+   * - id: Role ID (integer)
    *
-   * Request Body:
-   * - UpdateRoleInput: Validated role update data (partial)
+   * Request Body (all fields optional):
+   * - name: Role name (must be unique if changed)
+   * - description: Role description
+   * - active: Role active status
    *
-   * Returns:
-   * - HTTP 202 (Accepted) with the updated role
-   * - Success message and updated role object with permissions
+   * Response:
+   * - 202: Role updated successfully
+   * - 400: Invalid request data
+   * - 404: Role not found
+   * - 409: Role name already exists (if name is being changed)
    *
-   * Throws:
-   * - 400 if validation fails (handled by validator middleware)
-   * - 404 if role is not found (handled by service layer)
-   * - 409 if update would create duplicate name (handled by service layer)
+   * Only the fields provided in the request body will be updated.
    */
   patchRole = asyncHandler(async (req: Request, res: Response) => {
-    // Extract validated update data from request body
+    const id = parseInt(req.params.id);
     const data: UpdateRoleInput = req.body;
 
-    // Extract and convert role ID from URL parameters
-    const id = parseInt(req.params.id);
-
-    // Update role through service layer
-    const updatedRole = await this.roleService.updateRole(id, data);
-
-    // Return successful response with updated role
+    const role = await roleService.updateRole(id, data);
     res.status(HttpStatus.ACCEPTED).json({
       success: true,
-      message: `Role "${updatedRole.name}" updated successfully`,
-      data: updatedRole,
+      message: "Role updated successfully",
+      data: role,
     });
   });
 
   /**
-   * DELETE /roles/:id - Soft deletes a role
+   * DELETE /roles/:id
    *
-   * @param req - Express request object containing the role ID in params
-   * @param res - Express response object to send the response
+   * Deletes a specific role from the system.
+   * This endpoint performs soft deletion to maintain data integrity
+   * and preserve historical relationships.
+   *
+   * @param req - Express request object containing role ID
+   * @param res - Express response object
    *
    * URL Parameters:
-   * - id: The unique identifier of the role to delete
+   * - id: Role ID (integer)
    *
-   * Returns:
-   * - HTTP 200 with the soft-deleted role data
-   * - Success message and deleted role object
+   * Response:
+   * - 200: Role deleted successfully
+   * - 400: Invalid ID format
+   * - 404: Role not found
+   * - 409: Role cannot be deleted (has active users)
    *
-   * Throws:
-   * - 404 if role is not found (handled by service layer)
-   * - 400 if role is already deleted (handled by service layer)
+   * Deletion Behavior:
+   * - Performs soft delete (marks as deleted)
+   * - Validates no active users are assigned to the role
+   * - Maintains referential integrity
    */
   deleteRole = asyncHandler(async (req: Request, res: Response) => {
-    // Extract and convert role ID from URL parameters
-    const id = parseInt(req.params.id, 10);
+    const id = parseInt(req.params.id);
 
-    // Soft delete role through service layer
-    const deletedRole = await this.roleService.deleteRole(id);
-
-    // Return successful response with deleted role
+    const role = await roleService.deleteRole(id);
     res.status(HttpStatus.OK).json({
       success: true,
-      message: `Role "${deletedRole.name}" deleted successfully`,
-      data: deletedRole,
+      message: "Role deleted successfully",
+      data: role,
     });
   });
 
   /**
-   * DELETE /roles/bulk - Soft deletes multiple roles in bulk
+   * DELETE /roles/bulk
    *
-   * @param req - Express request object containing array of role IDs in body
-   * @param res - Express response object to send the response
+   * Deletes multiple roles in a single operation.
+   * This endpoint provides efficient bulk deletion for administrative
+   * operations and cleanup tasks.
+   *
+   * @param req - Express request object containing array of role IDs
+   * @param res - Express response object
    *
    * Request Body:
-   * - BulkRoleInput: Object containing array of role IDs to delete
+   * - ids: Array of role IDs to delete
    *
-   * Returns:
-   * - HTTP 200 with count of successfully deleted roles
-   * - Success message and deletion count
+   * Response:
+   * - 200: Bulk deletion completed
+   * - 400: Invalid request data
+   * - 409: Some roles cannot be deleted (have active users)
    *
-   * Throws:
-   * - 400 if no valid IDs provided (handled by service layer)
+   * Bulk Operation Features:
+   * - Processes multiple roles in a single request
+   * - Returns count of successfully deleted roles
+   * - Handles partial failures gracefully
+   * - Maintains data integrity across all operations
+   *
+   * Use Cases:
+   * - Administrative cleanup
+   * - Bulk role management
+   * - System maintenance operations
    */
   bulkDeleteRoles = asyncHandler(async (req: Request, res: Response) => {
-    // Extract validated bulk delete data from request body
-    const data: BulkRoleInput = req.body;
+    const { ids } = req.body;
 
-    // Perform bulk delete through service layer
-    const deletedCount = await this.roleService.bulkDeleteRoles(data);
-
-    // Return successful response with deletion count
+    const result = await roleService.bulkDeleteRoles(ids);
     res.status(HttpStatus.OK).json({
       success: true,
-      message: `${deletedCount} roles deleted successfully`,
-      data: { deletedCount },
+      message: `${result.deletedCount} roles deleted successfully`,
+      data: result,
     });
   });
 }
 
-// Export a singleton instance of the controller with injected service dependency
-export default new RoleController(roleService);
+export default new RoleController();

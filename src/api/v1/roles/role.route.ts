@@ -1,5 +1,4 @@
 import { Router } from "express";
-import roleController from "./role.controller";
 import { validate } from "../../../middlewares/validation.middleware";
 import {
   createRoleSchema,
@@ -9,11 +8,13 @@ import {
   bulkRoleSchema,
 } from "./role.validator";
 import { paginationQuerySchema } from "../../../utils/pagination.schema";
+import roleController from "./role.controller";
+import rolePermissionsRouter from "./role-permissions.route";
 
 /**
  * Express Router for Role endpoints.
  *
- * This router defines all CRUD operations for roles:
+ * This router defines all role management operations:
  * - GET / - Retrieve paginated list of roles
  * - GET /search - Search roles with filtering
  * - POST / - Create a new role
@@ -21,9 +22,8 @@ import { paginationQuerySchema } from "../../../utils/pagination.schema";
  * - PATCH /:id - Update an existing role
  * - DELETE /:id - Soft delete a role
  * - DELETE /bulk - Bulk soft delete roles
+ * - /permissions/* - Role permissions management (sub-router)
  *
- * All routes include appropriate validation middleware to ensure
- * data integrity and proper error handling.
  */
 const router = Router();
 
@@ -43,7 +43,6 @@ const router = Router();
  * - 200: Success with paginated roles data
  * - 400: Invalid pagination parameters
  *
- * Example: GET /roles?page=1&limit=20
  */
 router.get("/", validate(paginationQuerySchema), roleController.getRoles);
 
@@ -66,7 +65,6 @@ router.get("/", validate(paginationQuerySchema), roleController.getRoles);
  * - 200: Success with filtered and paginated roles data
  * - 400: Invalid search or pagination parameters
  *
- * Example: GET /roles/search?search=admin&active=true&page=1&limit=10
  */
 router.get(
   "/search",
@@ -92,14 +90,6 @@ router.get(
  * - 201: Role created successfully
  * - 400: Invalid request body
  * - 409: Role with same name already exists
- *
- * Example:
- * POST /roles
- * {
- *   "name": "ADMIN",
- *   "description": "Administrator role with full access",
- *   "permissionIds": [1, 2, 3]
- * }
  */
 router.post("/", validate(createRoleSchema), roleController.postRole);
 
@@ -119,7 +109,6 @@ router.post("/", validate(createRoleSchema), roleController.postRole);
  * - 400: Invalid ID format
  * - 404: Role not found
  *
- * Example: GET /roles/123
  */
 router.get("/:id", validate(roleIdSchema), roleController.getRoleById);
 
@@ -146,12 +135,6 @@ router.get("/:id", validate(roleIdSchema), roleController.getRoleById);
  * - 404: Role not found
  * - 409: Update would create duplicate name
  *
- * Example:
- * PATCH /roles/123
- * {
- *   "name": "MODERATOR",
- *   "description": "Updated moderator role"
- * }
  */
 router.patch(
   "/:id",
@@ -176,7 +159,6 @@ router.patch(
  * - 400: Invalid ID format or role already deleted
  * - 404: Role not found
  *
- * Example: DELETE /roles/123
  */
 router.delete("/:id", validate(roleIdSchema), roleController.deleteRole);
 
@@ -195,16 +177,22 @@ router.delete("/:id", validate(roleIdSchema), roleController.deleteRole);
  * - 200: Roles bulk deleted successfully
  * - 400: Invalid request body or no valid IDs provided
  *
- * Example:
- * DELETE /roles/bulk
- * {
- *   "ids": [1, 2, 3, 4, 5]
- * }
  */
 router.delete(
   "/bulk",
   validate(bulkRoleSchema),
   roleController.bulkDeleteRoles,
 );
+
+/**
+ * Role permissions management sub-router
+ *
+ * This sub-router handles all role permission operations:
+ * - GET /permissions/ - Get all roles with permissions
+ * - GET /permissions/:id - Get role with permissions
+ * - POST /permissions/:id/assign - Assign permissions to role
+ * - DELETE /permissions/:id/remove - Remove permissions from role
+ */
+router.use("/permissions", rolePermissionsRouter);
 
 export default router;

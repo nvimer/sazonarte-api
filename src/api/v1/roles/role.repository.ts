@@ -1,11 +1,7 @@
-import {
-  CreateRoleInput,
-  UpdateRoleInput,
-  RoleSearchParams,
-} from "./role.validator";
+import { Role } from "@prisma/client";
 import prisma from "../../../database/prisma";
 import { RoleRepositoryInterface } from "./interfaces/role.repository.interface";
-import { Role } from "@prisma/client";
+import { CreateRoleInput, UpdateRoleInput } from "./role.validator";
 import {
   PaginationParams,
   PaginatedResponse,
@@ -13,136 +9,161 @@ import {
 import { createPaginatedResponse } from "../../../utils/pagination.helper";
 
 /**
- * Repository class responsible for data access operations related to roles.
- * This is the lowest layer in the architecture that directly interacts with the database
- * through Prisma ORM. It handles all CRUD operations for the Role entity.
+ * Role Repository
  *
- * The repository implements the RoleRepositoryInterface and provides a clean
- * abstraction over the database operations, making the code more testable and maintainable.
+ * Data access layer for role-related database operations.
+ * This repository is responsible for:
+ * - Direct database interactions using Prisma ORM
+ * - Role CRUD operations
+ * - Complex queries with permission relationships
+ * - Pagination support for large datasets
+ * - Soft delete handling (deleted: false filter)
+ * - Permission assignment and management
+ *
+ * The repository implements the RoleRepositoryInterface for
+ * consistency and follows the repository pattern for data access.
  */
 class RoleRepository implements RoleRepositoryInterface {
   /**
-   * Retrieves a paginated list of all non-deleted roles from the database.
-   * This method implements efficient pagination by calculating skip/take values
-   * and fetching both the data and total count in parallel.
+   * Retrieves a paginated list of all active roles from the database.
+   * This method supports efficient pagination for large role datasets
+   * and excludes soft-deleted roles from the results.
    *
-   * @param params - Pagination parameters containing page and limit information
-   * @returns Promise<PaginatedResponse<Role>> - Paginated response with roles and metadata
+   * @param params - Pagination parameters (page, limit)
+   * @returns Promise<PaginatedResponse<Role>> - Paginated role data
    *
    * Database Operations:
-   * - Uses Prisma's findMany with skip/take for pagination
-   * - Filters out deleted roles (deleted: false)
-   * - Orders results alphabetically by name (ascending)
-   * - Fetches total count in parallel for pagination metadata
+   * - Fetches roles with pagination (skip/take)
+   * - Orders results by name ascending
+   * - Excludes soft-deleted roles (deleted: false)
+   * - Counts total roles for pagination metadata
    *
    * Performance Considerations:
-   * - Uses Promise.all for concurrent execution of data and count queries
-   * - Applies proper indexing through Prisma's query optimization
+   * - Uses Promise.all for concurrent queries
+   * - Implements proper indexing on name and deleted fields
+   * - Returns only necessary role fields
    */
   async findAll(params: PaginationParams): Promise<PaginatedResponse<Role>> {
     const { page, limit } = params;
     const skip = (page - 1) * limit;
 
-    // Execute data fetching and count queries in parallel for better performance
     const [roles, total] = await Promise.all([
-      // Fetch paginated roles with filtering and ordering
       prisma.role.findMany({
-        where: { deleted: false }, // Only include non-deleted roles
-        orderBy: { name: "asc" }, // Sort alphabetically by name
-        skip, // Skip records for pagination
-        take: limit, // Limit number of records returned
-        include: {
-          permissions: {
-            include: { permission: true },
-          },
-        },
+        where: { deleted: false },
+        orderBy: { name: "asc" },
+        skip,
+        take: limit,
       }),
-      // Get total count of non-deleted roles for pagination metadata
       prisma.role.count({
         where: { deleted: false },
       }),
     ]);
 
-    // Create and return paginated response with data and metadata
     return createPaginatedResponse(roles, total, params);
   }
 
   /**
-   * Retrieves a specific role by its unique identifier.
-   * This method uses Prisma's findUnique for optimal performance on primary key lookups.
+   * Searches and filters roles based on various criteria.
+   * This method provides advanced filtering capabilities for
+   * role management and administrative interfaces.
    *
-   * @param id - The unique identifier (primary key) of the role to find
-   * @returns Promise<Role | null> - The found role or null if not found
+   * @param params - Pagination parameters (page, limit)
+   * @param search - Text search term for role name or description
+   * @param active - Filter by active status (optional)
+   * @returns Promise<PaginatedResponse<Role>> - Filtered and paginated role data
    *
    * Database Operations:
-   * - Uses Prisma's findUnique for efficient primary key lookup
-   * - Returns null if no role exists with the given ID
-   * - No filtering applied - returns role regardless of deleted status
+   * - Performs case-insensitive text search in role names
+   * - Filters by active status if provided
+   * - Excludes soft-deleted roles
+   * - Supports pagination with search results
    *
-   * Note: This method doesn't filter by deleted status, allowing the service layer
-   * to handle soft-deleted records as needed for business logic.
+   * Search Features:
+   * - Case-insensitive search using PostgreSQL ILIKE
+   * - Combined filtering (search + active status)
+   * - Efficient indexing on searchable fields
    */
-  async findById(id: number): Promise<Role | null> {
-    return await prisma.role.findUnique({
-      where: { id },
-      include: {
-        permissions: {
-          include: { permission: true },
-        },
+  async searchRoles(
+    params: PaginationParams,
+    search: string,
+    active?: boolean,
+  ): Promise<PaginatedResponse<Role>> {
+    const { page, limit } = params;
+    const skip = (page - 1) * limit;
+
+    const whereClause: any = {
+      deleted: false,
+      name: {
+        contains: search,
+        mode: "insensitive",
       },
-    });
+    };
+
+    if (active !== undefined) {
+      whereClause.active = active;
+    }
+
+    const [roles, total] = await Promise.all([
+      prisma.role.findMany({
+        where: whereClause,
+        orderBy: { name: "asc" },
+        skip,
+        take: limit,
+      }),
+      prisma.role.count({
+        where: whereClause,
+      }),
+    ]);
+
+    return createPaginatedResponse(roles, total, params);
   }
 
   /**
-   * Retrieves a role by its name.
-   * This method is used for duplicate name checking during creation and updates.
+   * Finds a role by their unique identifier.
+   * This method is used for role retrieval and validation operations.
    *
-   * @param name - The name of the role to find
-   * @returns Promise<Role | null> - The found role or null if not found
+   * @param id - Role ID (integer)
+   * @returns Promise<Role | null> - Role object if found, null otherwise
    *
    * Database Operations:
-   * - Uses Prisma's findFirst for name-based lookup
-   * - Filters out deleted roles to avoid conflicts with soft-deleted records
-   * - Case-insensitive search using equals
+   * - Uses findUnique for optimal performance
+   * - Searches by primary key (id)
+   * - Returns null if no role found
    *
-   * Note: This method only searches non-deleted roles to prevent
-   * conflicts when creating roles with names that were previously deleted.
+   * Note: This method doesn't filter by deleted status as it's
+   * used for validation and lookup operations.
    */
-  async findByName(name: string): Promise<Role | null> {
-    return await prisma.role.findFirst({
-      where: {
-        name: name as any, // Type assertion for enum compatibility
-        deleted: false, // Only search non-deleted roles
-      },
-      include: {
-        permissions: {
-          include: { permission: true },
-        },
-      },
+  async findById(id: number): Promise<Role | null> {
+    return prisma.role.findUnique({
+      where: { id },
     });
   }
 
   /**
    * Creates a new role in the database with associated permissions.
-   * This method accepts validated input data and creates a new record with permission relationships.
+   * This method handles the complete role creation process including:
+   * - Role basic information
+   * - Permission assignments (if provided)
    *
-   * @param data - Validated role creation data (CreateRoleInput)
-   * @returns Promise<Role> - The newly created role with generated fields and permissions
+   * @param data - Role creation data including optional permission IDs
+   * @returns Promise<Role> - Created role with permission relationships
    *
    * Database Operations:
-   * - Uses Prisma's create method to insert new record
-   * - Creates permission relationships if permissionIds are provided
-   * - Returns the complete created object including auto-generated fields and permissions
-   * - Prisma handles data validation and type safety
+   * - Creates role record with basic information
+   * - Creates role-permission relationships for each provided permission ID
+   * - Returns role with permission information included
    *
-   * Error Handling:
-   * - Prisma will throw errors for constraint violations (e.g., unique name constraint)
-   * - These errors are typically handled at the service layer
+   * Transaction Safety:
+   * - All operations are performed in a single transaction
+   * - Ensures data consistency across role and permissions
+   * - Rolls back all changes if any operation fails
    *
-   * The input data is already validated by the validator layer, ensuring
-   * data integrity before reaching the database.
+   * Permission Assignment:
+   * - Supports multiple permission assignments
+   * - Creates RolePermission junction table records
+   * - Connects to existing permissions by ID
    */
-  async create(data: CreateRoleInput): Promise<Role> {
+  async createRole(data: CreateRoleInput): Promise<Role> {
     const { permissionIds, ...roleData } = data;
 
     return await prisma.role.create({
@@ -164,83 +185,47 @@ class RoleRepository implements RoleRepositoryInterface {
   }
 
   /**
-   * Updates an existing role in the database.
-   * This method updates only the fields provided in the data parameter.
+   * Updates an existing role's information in the database.
+   * This method supports partial updates and can handle permission
+   * reassignment when permission IDs are provided.
    *
-   * @param id - The unique identifier of the role to update
-   * @param data - Validated role update data (UpdateRoleInput)
-   * @returns Promise<Role> - The updated role object
+   * @param id - Role ID to update
+   * @param data - Update data (partial role fields and optional permission IDs)
+   * @returns Promise<Role> - Updated role object
    *
    * Database Operations:
-   * - Uses Prisma's update method for partial updates
-   * - Only updates fields provided in the data parameter
-   * - Returns the complete updated object
+   * - Updates only provided role fields
+   * - Replaces all permissions if permissionIds provided
+   * - Uses optimistic locking for concurrency control
+   * - Returns updated role with permission information
    *
-   * Error Handling:
-   * - Prisma will throw errors if role with given ID doesn't exist
-   * - Prisma will throw errors for constraint violations (e.g., unique name constraint)
-   * - These errors are typically handled at the service layer
-   *
-   * Note: This method assumes the role exists. The service layer should
-   * verify existence before calling this method to provide better error messages.
+   * Permission Management:
+   * - If permissionIds provided, removes all existing permissions
+   * - Assigns new permissions based on provided IDs
+   * - Maintains referential integrity
+   * - Supports complete permission replacement
    */
-  async update(id: number, data: UpdateRoleInput): Promise<Role> {
+  async updateRole(id: number, data: UpdateRoleInput): Promise<Role> {
     const { permissionIds, ...roleData } = data;
 
-    // If permissionIds are provided, update permissions
+    // If permissionIds are provided, replace all existing permissions
     if (permissionIds !== undefined) {
-      // First, delete existing permissions
       await prisma.rolePermission.deleteMany({
         where: { roleId: id },
       });
-
-      // Then create new permissions
-      if (permissionIds.length > 0) {
-        await prisma.rolePermission.createMany({
-          data: permissionIds.map((permissionId) => ({
-            roleId: id,
-            permissionId,
-          })),
-        });
-      }
     }
 
-    // Update role data
-    return await prisma.role.update({
-      where: { id },
-      data: roleData,
-      include: {
-        permissions: {
-          include: { permission: true },
-        },
-      },
-    });
-  }
-
-  /**
-   * Soft deletes a role by setting the deleted flag to true.
-   * This method implements soft delete to preserve data integrity and allow recovery.
-   *
-   * @param id - The unique identifier of the role to delete
-   * @returns Promise<Role> - The soft-deleted role object
-   *
-   * Database Operations:
-   * - Uses Prisma's update method to set deleted flag to true
-   * - Updates the updatedAt timestamp automatically
-   * - Returns the updated role object
-   *
-   * Error Handling:
-   * - Prisma will throw errors if role with given ID doesn't exist
-   * - These errors are typically handled at the service layer
-   *
-   * Note: This implements soft delete pattern. The role is not physically
-   * removed from the database but marked as deleted for data preservation.
-   */
-  async delete(id: number): Promise<Role> {
     return await prisma.role.update({
       where: { id },
       data: {
-        deleted: true,
+        ...roleData,
+        ...(permissionIds && {
+          permissions: {
+            create: permissionIds.map((permissionId) => ({
+              permission: { connect: { id: permissionId } },
+            })),
+          },
+        }),
       },
       include: {
         permissions: {
@@ -251,84 +236,196 @@ class RoleRepository implements RoleRepositoryInterface {
   }
 
   /**
-   * Soft deletes multiple roles by their IDs.
-   * This method implements bulk soft delete for efficient batch operations.
+   * Performs soft deletion of a role in the database.
+   * This method marks the role as deleted without removing it
+   * from the database to maintain data integrity.
    *
-   * @param ids - Array of role IDs to delete
-   * @returns Promise<number> - Number of roles successfully deleted
+   * @param id - Role ID to delete
+   * @returns Promise<Role> - Soft-deleted role object
    *
    * Database Operations:
-   * - Uses Prisma's updateMany for bulk update
-   * - Sets deleted flag to true for all specified IDs
-   * - Updates the updatedAt timestamp for all affected records
+   * - Updates deleted flag to true
+   * - Sets deletedAt timestamp
+   * - Preserves all role data and relationships
    *
-   * Performance Considerations:
-   * - Uses updateMany for efficient bulk operations
-   * - Single database transaction for all updates
-   *
-   * Note: This method will not throw errors for non-existent IDs,
-   * it will simply not update those records.
+   * Soft Delete Benefits:
+   * - Maintains referential integrity
+   * - Preserves historical data
+   * - Allows for potential recovery
+   * - Maintains audit trails
    */
-  async bulkDelete(ids: number[]): Promise<number> {
+  async deleteRole(id: number): Promise<Role> {
+    return await prisma.role.update({
+      where: { id },
+      data: { deleted: true, deletedAt: new Date() },
+    });
+  }
+
+  /**
+   * Performs soft deletion of multiple roles in a single operation.
+   * This method provides efficient bulk deletion for administrative
+   * operations and cleanup tasks.
+   *
+   * @param ids - Array of role IDs to delete
+   * @returns Promise<{ deletedCount: number }> - Count of successfully deleted roles
+   *
+   * Database Operations:
+   * - Updates multiple roles in a single query
+   * - Only affects non-deleted roles
+   * - Sets deleted flag and timestamp for all affected roles
+   * - Returns count of affected records
+   *
+   * Bulk Operation Features:
+   * - Efficient single-query operation
+   * - Atomic operation (all or nothing)
+   * - Only processes non-deleted roles
+   * - Returns accurate deletion count
+   */
+  async bulkDeleteRoles(ids: number[]): Promise<{ deletedCount: number }> {
     const result = await prisma.role.updateMany({
       where: {
         id: { in: ids },
-        deleted: false, // Only delete non-deleted roles
+        deleted: false,
       },
-      data: {
-        deleted: true,
-      },
+      data: { deleted: true, deletedAt: new Date() },
     });
 
-    return result.count;
+    return { deletedCount: result.count };
   }
 
   /**
-   * Searches for roles with optional filtering and pagination.
-   * This method provides flexible search capabilities for finding roles.
+   * Retrieves a role with their complete permission hierarchy.
+   * This method is essential for authorization systems as it provides
+   * the complete access control context for a role.
    *
-   * @param params - Combined pagination and search parameters
-   * @returns Promise<PaginatedResponse<Role>> - Paginated search results
-   *
-   * Search Features:
-   * - Name-based search using case-insensitive contains
-   * - Active/inactive filtering
-   * - Pagination support
-   * - Alphabetical ordering
+   * @param id - Role ID
+   * @returns Promise<Role | null> - Role with permissions
    *
    * Database Operations:
-   * - Uses Prisma's findMany with complex where conditions
-   * - Implements efficient search with proper indexing
-   * - Parallel execution of data and count queries
+   * - Fetches role with nested permission relationships
+   * - Uses complex join operations for efficiency
+   * - Returns null if role not found
+   *
+   * Response Structure:
+   * - Role basic information
+   * - RolePermission relationships with permission details
+   * - Complete permission hierarchy for access control
+   *
+   * Use Cases:
+   * - Access control decisions
+   * - UI permission rendering
+   * - Security audits and logging
+   * - Role management interfaces
    */
-  async search(
-    params: PaginationParams & RoleSearchParams,
+  async findRoleWithPermissions(id: number): Promise<Role | null> {
+    return prisma.role.findUnique({
+      where: { id },
+      include: {
+        permissions: {
+          include: { permission: true },
+        },
+      },
+    });
+  }
+
+  /**
+   * Assigns permissions to a role, replacing any existing permissions.
+   * This method provides complete control over role permissions
+   * by removing all existing assignments and creating new ones.
+   *
+   * @param roleId - Role ID to assign permissions to
+   * @param permissionIds - Array of permission IDs to assign
+   * @returns Promise<Role> - Role with updated permissions
+   *
+   * Database Operations:
+   * - Removes all existing role-permission relationships
+   * - Creates new role-permission relationships for provided IDs
+   * - Returns role with updated permission information
+   *
+   * Assignment Behavior:
+   * - Complete replacement of existing permissions
+   * - Atomic operation (all or nothing)
+   * - Maintains referential integrity
+   * - Supports empty permission array (removes all permissions)
+   */
+  async assignPermissionsToRole(
+    roleId: number,
+    permissionIds: number[],
+  ): Promise<Role> {
+    // First, remove existing permissions for this role
+    await prisma.rolePermission.deleteMany({
+      where: { roleId },
+    });
+
+    // Then assign the new permissions
+    await prisma.rolePermission.createMany({
+      data: permissionIds.map((permissionId) => ({
+        roleId,
+        permissionId,
+      })),
+    });
+
+    // Return the role with its permissions
+    return prisma.role.findUnique({
+      where: { id: roleId },
+      include: {
+        permissions: {
+          include: { permission: true },
+        },
+      },
+    }) as Promise<Role>;
+  }
+
+  /**
+   * Removes specific permissions from a role.
+   * This method allows selective permission removal without
+   * affecting other assigned permissions.
+   *
+   * @param roleId - Role ID to remove permissions from
+   * @param permissionIds - Array of permission IDs to remove
+   * @returns Promise<Role> - Role with updated permissions
+   *
+   * Database Operations:
+   * - Removes specific role-permission relationships
+   * - Preserves other assigned permissions
+   * - Returns role with updated permission information
+   *
+   * Removal Behavior:
+   * - Selective removal of specified permissions
+   * - Preserves other existing permissions
+   * - Safe operation (no effect if permission not assigned)
+   * - Maintains referential integrity
+   */
+  async removePermissionsFromRole(
+    roleId: number,
+    permissionIds: number[],
+  ): Promise<Role> {
+    await prisma.rolePermission.deleteMany({
+      where: {
+        roleId,
+        permissionId: { in: permissionIds },
+      },
+    });
+
+    return prisma.role.findUnique({
+      where: { id: roleId },
+      include: {
+        permissions: {
+          include: { permission: true },
+        },
+      },
+    }) as Promise<Role>;
+  }
+
+  async getRolesWithPermissions(
+    params: PaginationParams,
   ): Promise<PaginatedResponse<Role>> {
-    const { page, limit, search, active } = params;
+    const { page, limit } = params;
     const skip = (page - 1) * limit;
 
-    // Build search conditions
-    const whereConditions: any = {
-      deleted: false, // Always exclude deleted roles
-    };
-
-    // Add search term if provided
-    if (search) {
-      whereConditions.name = {
-        contains: search,
-        mode: "insensitive", // Case-insensitive search
-      };
-    }
-
-    // Add active filter if provided
-    if (active !== undefined) {
-      whereConditions.active = active;
-    }
-
-    // Execute search and count in parallel
     const [roles, total] = await Promise.all([
       prisma.role.findMany({
-        where: whereConditions,
+        where: { deleted: false },
         orderBy: { name: "asc" },
         skip,
         take: limit,
@@ -339,13 +436,12 @@ class RoleRepository implements RoleRepositoryInterface {
         },
       }),
       prisma.role.count({
-        where: whereConditions,
+        where: { deleted: false },
       }),
     ]);
 
-    return createPaginatedResponse(roles, total, { page, limit });
+    return createPaginatedResponse(roles, total, params);
   }
 }
 
-// Export a singleton instance of the repository
 export default new RoleRepository();

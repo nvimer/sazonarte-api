@@ -105,6 +105,62 @@ export const bulkRoleSchema = z.object({
   }),
 });
 
+// export const roleIdSchema = z.object({
+//   id: z.number().int().positive("Role ID must be a positive integer"),
+// });
+
+/**
+ * Validation schema for assigning permissions to a role.
+ * 
+ * This schema validates the request body when assigning permissions
+ * to a specific role. The operation replaces all existing permissions
+ * with the new set provided.
+ * 
+ * Validation Rules:
+ * - permissionIds: Must be an array of positive integers
+ * - At least one permission ID is required
+ * 
+ * Error Messages:
+ * - "At least one permission ID is required" if array is empty
+ * - "Permission ID must be a positive integer" for invalid IDs
+ * 
+ * Use Cases:
+ * - POST /roles/permissions/:id/assign endpoint
+ * - Role permission management interfaces
+ * - Access control configuration
+ */
+export const assignPermissionsSchema = z.object({
+  permissionIds: z
+    .array(z.number().int().positive())
+    .min(1, "At least one permission ID is required"),
+});
+
+/**
+ * Validation schema for removing permissions from a role.
+ * 
+ * This schema validates the request body when removing specific
+ * permissions from a role. The operation only removes the specified
+ * permissions, leaving other permissions intact.
+ * 
+ * Validation Rules:
+ * - permissionIds: Must be an array of positive integers
+ * - At least one permission ID is required
+ * 
+ * Error Messages:
+ * - "At least one permission ID is required" if array is empty
+ * - "Permission ID must be a positive integer" for invalid IDs
+ * 
+ * Use Cases:
+ * - DELETE /roles/permissions/:id/remove endpoint
+ * - Selective permission removal
+ * - Access control refinement
+ */
+export const removePermissionsSchema = z.object({
+  permissionIds: z
+    .array(z.number().int().positive())
+    .min(1, "At least one permission ID is required"),
+});
+
 /**
  * TypeScript type definitions derived from the validation schemas.
  * These types ensure type safety throughout the application.
