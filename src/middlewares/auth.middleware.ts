@@ -1,7 +1,7 @@
 import passport from "passport";
 import { HttpStatus } from "../utils/httpStatus.enum";
 import { NextFunction, Request, Response } from "express";
-import { AutheticatedUser } from "../types/express";
+import { AuthenticatedUser } from "../types/express";
 import { CustomError } from "../types/custom-errors";
 
 // Interface for info if generate error with token
@@ -18,7 +18,7 @@ export const authJwt = (req: Request, res: Response, next: NextFunction) => {
     { session: false },
     (
       err: Error | null,
-      user: AutheticatedUser | false,
+      user: AuthenticatedUser | false,
       info: PassportAuthInfo | undefined,
     ) => {
       if (err) {
