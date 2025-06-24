@@ -1,5 +1,51 @@
 import { z } from "zod";
 
+/**
+ * Menu item creation validation schema
+ *
+ * Validates the request body for menu item creation operations.
+ * This schema ensures all required fields are present and meet
+ * the specified validation criteria for creating new menu items.
+ *
+ * Validation Rules:
+ * - name: Must be a non-empty string (item name/identifier)
+ * - description: Must be a string (item description)
+ * - categoryId: Must be a valid number (associated category ID)
+ * - price: Must be a valid number (item price)
+ * - isExtra: Must be a boolean (indicates if item is an extra/add-on)
+ * - isAvailable: Must be a boolean (item availability status)
+ * - imageUrl: Must be a string (item image URL)
+ *
+ * Error Messages:
+ * - name: "Item name is required"
+ * - description: "Item description is required"
+ * - categoryId: "Category ID must be a valid number"
+ * - price: "Price must be a valid number"
+ * - isExtra: "isExtra must be a boolean"
+ * - isAvailable: "isAvailable must be a boolean"
+ * - imageUrl: "Image URL is required"
+ *
+ * Data Integrity:
+ * - Category ID validation (should reference existing category)
+ * - Price validation (should be positive number)
+ * - Name uniqueness validation within category
+ * - Required fields validation
+ *
+ * Use Cases:
+ * - POST /items endpoint
+ * - Menu item creation forms
+ * - New dish addition
+ * - Menu expansion
+ * - Special offer items
+ *
+ * Business Rules:
+ * - Item must be associated with a valid category
+ * - Price should be a positive number
+ * - Item name should be unique within its category
+ * - Image URL should be a valid URL format
+ * - Availability status controls item visibility
+ * - Extra flag indicates add-on items
+ */
 export const createItemSchema = z.object({
   body: z.object({
     name: z.string(),
@@ -12,4 +58,14 @@ export const createItemSchema = z.object({
   }),
 });
 
+/**
+ * Type Structure:
+ * - name: string - Item name/identifier
+ * - description: string - Item description
+ * - categoryId: number - Associated category ID
+ * - price: number - Item price
+ * - isExtra: boolean - Indicates if item is an extra/add-on
+ * - isAvailable: boolean - Item availability status
+ * - imageUrl: string - Item image URL
+ */
 export type CreateItemInput = z.infer<typeof createItemSchema>["body"];

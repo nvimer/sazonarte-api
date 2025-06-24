@@ -1,0 +1,156 @@
+openapi: 3.0.0
+paths:
+  /tables:
+    get:
+      tags:
+        - Tables
+      summary: Get tables
+      description: |
+        Retrieve tables from the system. Supports both listing all tables with pagination
+        and getting a specific table by ID.
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          description: Page number for pagination
+          example: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+          description: Number of items per page
+          example: 10
+      responses:
+        200:
+          description: Tables retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TableListResponse"
+              examples:
+                tableList:
+                  success: true
+                  message: "Tables fetched successfully"
+                  data:
+                    - id: 1
+                      number: "T1"
+                      status: "available"
+                      location: "Window side"
+                      createdAt: "2024-01-15T10:30:00Z"
+                      updatedAt: "2024-01-15T10:30:00Z"
+                    - id: 2
+                      number: "T2"
+                      status: "occupied"
+                      location: "Center"
+                      createdAt: "2024-01-15T10:30:00Z"
+                      updatedAt: "2024-01-15T10:30:00Z"
+                  meta:
+                    page: 1
+                    limit: 10
+                    total: 2
+                    totalPages: 1
+        400:
+          description: Invalid parameters
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                message: "Invalid pagination parameters"
+                error: "BAD_REQUEST"
+        404:
+          description: Table not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                message: "Table not found"
+                error: "NOT_FOUND"
+        500:
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                message: "Internal server error"
+                error: "INTERNAL_SERVER_ERROR"
+
+  /tables/{id}:
+    get:
+      tags:
+        - Tables
+      summary: Get a table by ID
+      description: |
+        Retrieve detailed information about a specific table by its ID.
+        This endpoint provides complete table information including status,
+        location, and other relevant details.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+          description: Table ID to retrieve
+          example: 1
+      responses:
+        200:
+          description: Table retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TableResponse"
+              example:
+                success: true
+                message: "Table fetched successfully"
+                data:
+                  id: 1
+                  number: "T1"
+                  status: "available"
+                  location: "Window side"
+                  description: "Table by the window with garden view"
+                  createdAt: "2024-01-15T10:30:00Z"
+                  updatedAt: "2024-01-15T10:30:00Z"
+                  deleted: false
+                  deletedAt: null
+        400:
+          description: Invalid table ID format
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                message: "Invalid table ID format"
+                error: "BAD_REQUEST"
+        404:
+          description: Table not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                message: "Table not found"
+                error: "NOT_FOUND"
+        500:
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                message: "Internal server error"
+                error: "INTERNAL_SERVER_ERROR"

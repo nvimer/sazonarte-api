@@ -19,9 +19,6 @@ import {
  * - Error handling and custom error creation
  * - Delegating data access to the role repository
  *
- * The service follows the dependency injection pattern and
- * implements the RolePermissionServiceInterface for consistency.
- *
  * Role permission management includes:
  * - Retrieving roles with their associated permissions
  * - Assigning permissions to roles (replacement strategy)
@@ -36,10 +33,6 @@ class RolePermissionService implements RolePermissionServiceInterface {
    * Validates that a role exists with permissions and returns the role if found.
    * This method is used across multiple operations to ensure
    * the role exists before performing any permission modifications.
-   *
-   * @param id - Role ID to validate
-   * @returns Promise<Role> - Role object with permissions if found
-   * @throws CustomError - If role is not found
    *
    * Error Codes:
    * - ID_NOT_FOUND: Role with the specified ID doesn't exist
@@ -63,10 +56,6 @@ class RolePermissionService implements RolePermissionServiceInterface {
    * Retrieves a specific role with all its associated permissions.
    * This method validates the role exists before returning the data.
    *
-   * @param id - Role ID (integer)
-   * @returns Promise<Role> - Role object with permissions if found
-   * @throws CustomError - If role is not found
-   *
    * Error Codes:
    * - ID_NOT_FOUND: Role with the specified ID doesn't exist
    *
@@ -84,20 +73,9 @@ class RolePermissionService implements RolePermissionServiceInterface {
    * Assigns permissions to a specific role. This operation replaces
    * all existing permissions for the role with the new set provided.
    *
-   * @param roleId - Role ID to assign permissions to
-   * @param permissionIds - Array of permission IDs to assign
-   * @returns Promise<Role> - Updated role with new permissions
-   * @throws CustomError - If role not found or validation fails
-   *
    * Error Codes:
    * - ID_NOT_FOUND: Role with the specified ID doesn't exist
    * - INVALID_PERMISSION_IDS: One or more permission IDs are invalid
-   *
-   * Assignment Behavior:
-   * - Replaces all existing permissions with the new set
-   * - Validates that all permission IDs exist
-   * - Returns updated role with new permission assignments
-   * - Maintains referential integrity
    *
    * Use Cases:
    * - Role permission management
@@ -115,11 +93,6 @@ class RolePermissionService implements RolePermissionServiceInterface {
   /**
    * Removes specific permissions from a role. This operation only
    * removes the specified permissions, leaving other permissions intact.
-   *
-   * @param roleId - Role ID to remove permissions from
-   * @param permissionIds - Array of permission IDs to remove
-   * @returns Promise<Role> - Updated role with remaining permissions
-   * @throws CustomError - If role not found
    *
    * Error Codes:
    * - ID_NOT_FOUND: Role with the specified ID doesn't exist
@@ -148,19 +121,10 @@ class RolePermissionService implements RolePermissionServiceInterface {
    * This method supports pagination for efficient data retrieval
    * and is typically used for administrative interfaces.
    *
-   * @param params - Pagination parameters (page, limit)
-   * @returns Promise<PaginatedResponse<Role>> - Paginated roles with permissions data
-   *
    * The response includes:
    * - Roles array with permission information
    * - Pagination metadata (total, page, limit, etc.)
    * - Excludes soft-deleted roles
-   *
-   * This data is typically used for:
-   * - Administrative role management
-   * - Permission auditing and review
-   * - Access control overview
-   * - Role-permission relationship analysis
    */
   async getRolesWithPermissions(
     params: PaginationParams,

@@ -29,9 +29,6 @@ class RoleRepository implements RoleRepositoryInterface {
    * This method supports efficient pagination for large role datasets
    * and excludes soft-deleted roles from the results.
    *
-   * @param params - Pagination parameters (page, limit)
-   * @returns Promise<PaginatedResponse<Role>> - Paginated role data
-   *
    * Database Operations:
    * - Fetches roles with pagination (skip/take)
    * - Orders results by name ascending
@@ -67,11 +64,6 @@ class RoleRepository implements RoleRepositoryInterface {
    * This method provides advanced filtering capabilities for
    * role management and administrative interfaces.
    *
-   * @param params - Pagination parameters (page, limit)
-   * @param search - Text search term for role name or description
-   * @param active - Filter by active status (optional)
-   * @returns Promise<PaginatedResponse<Role>> - Filtered and paginated role data
-   *
    * Database Operations:
    * - Performs case-insensitive text search in role names
    * - Filters by active status if provided
@@ -81,7 +73,6 @@ class RoleRepository implements RoleRepositoryInterface {
    * Search Features:
    * - Case-insensitive search using PostgreSQL ILIKE
    * - Combined filtering (search + active status)
-   * - Efficient indexing on searchable fields
    */
   async searchRoles(
     params: PaginationParams,
@@ -122,9 +113,6 @@ class RoleRepository implements RoleRepositoryInterface {
    * Finds a role by their unique identifier.
    * This method is used for role retrieval and validation operations.
    *
-   * @param id - Role ID (integer)
-   * @returns Promise<Role | null> - Role object if found, null otherwise
-   *
    * Database Operations:
    * - Uses findUnique for optimal performance
    * - Searches by primary key (id)
@@ -144,9 +132,6 @@ class RoleRepository implements RoleRepositoryInterface {
    * This method handles the complete role creation process including:
    * - Role basic information
    * - Permission assignments (if provided)
-   *
-   * @param data - Role creation data including optional permission IDs
-   * @returns Promise<Role> - Created role with permission relationships
    *
    * Database Operations:
    * - Creates role record with basic information
@@ -188,10 +173,6 @@ class RoleRepository implements RoleRepositoryInterface {
    * Updates an existing role's information in the database.
    * This method supports partial updates and can handle permission
    * reassignment when permission IDs are provided.
-   *
-   * @param id - Role ID to update
-   * @param data - Update data (partial role fields and optional permission IDs)
-   * @returns Promise<Role> - Updated role object
    *
    * Database Operations:
    * - Updates only provided role fields
@@ -240,9 +221,6 @@ class RoleRepository implements RoleRepositoryInterface {
    * This method marks the role as deleted without removing it
    * from the database to maintain data integrity.
    *
-   * @param id - Role ID to delete
-   * @returns Promise<Role> - Soft-deleted role object
-   *
    * Database Operations:
    * - Updates deleted flag to true
    * - Sets deletedAt timestamp
@@ -265,9 +243,6 @@ class RoleRepository implements RoleRepositoryInterface {
    * Performs soft deletion of multiple roles in a single operation.
    * This method provides efficient bulk deletion for administrative
    * operations and cleanup tasks.
-   *
-   * @param ids - Array of role IDs to delete
-   * @returns Promise<{ deletedCount: number }> - Count of successfully deleted roles
    *
    * Database Operations:
    * - Updates multiple roles in a single query
@@ -297,9 +272,6 @@ class RoleRepository implements RoleRepositoryInterface {
    * Retrieves a role with their complete permission hierarchy.
    * This method is essential for authorization systems as it provides
    * the complete access control context for a role.
-   *
-   * @param id - Role ID
-   * @returns Promise<Role | null> - Role with permissions
    *
    * Database Operations:
    * - Fetches role with nested permission relationships
@@ -332,10 +304,6 @@ class RoleRepository implements RoleRepositoryInterface {
    * Assigns permissions to a role, replacing any existing permissions.
    * This method provides complete control over role permissions
    * by removing all existing assignments and creating new ones.
-   *
-   * @param roleId - Role ID to assign permissions to
-   * @param permissionIds - Array of permission IDs to assign
-   * @returns Promise<Role> - Role with updated permissions
    *
    * Database Operations:
    * - Removes all existing role-permission relationships
@@ -380,10 +348,6 @@ class RoleRepository implements RoleRepositoryInterface {
    * Removes specific permissions from a role.
    * This method allows selective permission removal without
    * affecting other assigned permissions.
-   *
-   * @param roleId - Role ID to remove permissions from
-   * @param permissionIds - Array of permission IDs to remove
-   * @returns Promise<Role> - Role with updated permissions
    *
    * Database Operations:
    * - Removes specific role-permission relationships

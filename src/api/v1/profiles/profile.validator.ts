@@ -3,14 +3,6 @@ import { z } from "zod";
 /**
  * Profile ID validation schema
  *
- * Validates that the profile ID parameter is a valid UUID format.
- * This schema is used for route parameter validation to ensure
- * proper ID format before processing requests.
- *
- * Validation Rules:
- * - Must be a string
- * - Must be a valid UUID format
- *
  * Error Message: "Invalid profile ID format"
  */
 export const profileIdSchema = z.object({
@@ -43,11 +35,6 @@ export const updateProfileSchema = z.object({
 });
 
 /**
- * TypeScript type for profile update input
- *
- * Inferred from the updateProfileSchema, this type provides
- * TypeScript type safety for profile update operations.
- *
  * Type Structure:
  * - name?: string - Optional user name
  * - email?: string - Optional email address

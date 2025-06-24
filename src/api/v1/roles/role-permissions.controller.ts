@@ -6,17 +6,17 @@ import { PaginationParams } from "../../../interfaces/pagination.interfaces";
 
 /**
  * Role Permission Controller
- * 
+ *
  * Handles HTTP requests for role permission management operations.
  * This controller is responsible for:
  * - Processing incoming HTTP requests for role-permission operations
  * - Extracting and validating request data
  * - Delegating business logic to the role permission service
  * - Formatting and returning HTTP responses
- * 
+ *
  * All methods use asyncHandler for consistent error handling
  * and are designed to work with the role permission service layer.
- * 
+ *
  * Role permission management includes:
  * - Retrieving roles with their associated permissions
  * - Assigning permissions to roles (replacement strategy)
@@ -26,22 +26,16 @@ import { PaginationParams } from "../../../interfaces/pagination.interfaces";
 class RolePermissionController {
   /**
    * GET /roles/permissions/:id
-   * 
+   *
    * Retrieves a specific role with all its associated permissions.
    * This endpoint is essential for role management interfaces and
    * permission auditing purposes.
-   * 
-   * @param req - Express request object containing role ID in params
-   * @param res - Express response object
-   * 
-   * URL Parameters:
-   * - id: Role ID (integer)
-   * 
+   *
    * Response:
    * - 200: Role with permissions found and returned
    * - 400: Invalid ID format
    * - 404: Role not found
-   * 
+   *
    * Returns complete role information including all associated permissions.
    * This data is typically used for:
    * - Role editing interfaces
@@ -61,25 +55,16 @@ class RolePermissionController {
 
   /**
    * POST /roles/permissions/:id/assign
-   * 
+   *
    * Assigns permissions to a specific role. This operation replaces
    * all existing permissions for the role with the new set provided.
-   * 
-   * @param req - Express request object containing role ID and permission data
-   * @param res - Express response object
-   * 
-   * URL Parameters:
-   * - id: Role ID (integer)
-   * 
-   * Request Body:
-   * - permissionIds: Array of permission IDs to assign (number[], required)
-   * 
+   *
    * Response:
    * - 202: Permissions assigned to role successfully
    * - 400: Invalid request body or ID format
    * - 404: Role not found
    * - 409: Invalid permission IDs provided
-   * 
+   *
    * Assignment Behavior:
    * - Replaces all existing permissions with the new set
    * - Validates that all permission IDs exist
@@ -105,24 +90,15 @@ class RolePermissionController {
 
   /**
    * DELETE /roles/permissions/:id/remove
-   * 
+   *
    * Removes specific permissions from a role. This operation only
    * removes the specified permissions, leaving other permissions intact.
-   * 
-   * @param req - Express request object containing role ID and permission data
-   * @param res - Express response object
-   * 
-   * URL Parameters:
-   * - id: Role ID (integer)
-   * 
-   * Request Body:
-   * - permissionIds: Array of permission IDs to remove (number[], required)
-   * 
+   *
    * Response:
    * - 202: Permissions removed from role successfully
    * - 400: Invalid request body or ID format
    * - 404: Role not found
-   * 
+   *
    * Removal Behavior:
    * - Only removes the specified permissions
    * - Preserves other existing permissions
@@ -148,22 +124,15 @@ class RolePermissionController {
 
   /**
    * GET /roles/permissions
-   * 
+   *
    * Retrieves a paginated list of all roles with their associated permissions.
    * This endpoint is useful for administrative interfaces and permission
    * management dashboards.
-   * 
-   * @param req - Express request object containing pagination query parameters
-   * @param res - Express response object
-   * 
-   * Query Parameters:
-   * - page: Page number for pagination (defaults to 1)
-   * - limit: Number of items per page (defaults to 10)
-   * 
+   *
    * Response:
    * - 200: Success with paginated roles and permissions data
    * - 400: Invalid pagination parameters
-   * 
+   *
    * The response includes pagination metadata and role data with permissions.
    * This data is typically used for:
    * - Administrative role management

@@ -28,9 +28,6 @@ import {
  * - Profile updates and modifications
  * - User data validation and integrity
  * - Pagination support for large datasets
- *
- * Note: This service works with User entities as profiles
- * are typically extensions of user data rather than separate entities.
  */
 class ProfileServices implements ProfileServiceInterface {
   constructor(private profileRepository: ProfileRepositoryInterface) {}
@@ -39,10 +36,6 @@ class ProfileServices implements ProfileServiceInterface {
    * Validates that a user/profile exists by ID and returns the user if found.
    * This method is used across multiple operations to ensure
    * the user exists before performing any modifications.
-   *
-   * @param id - User/Profile ID to validate
-   * @returns Promise<User> - User object if found
-   * @throws CustomError - If user is not found
    *
    * Error Codes:
    * - ID_NOT_FOUND: User with the specified ID doesn't exist
@@ -67,9 +60,6 @@ class ProfileServices implements ProfileServiceInterface {
    * This method supports pagination for efficient data retrieval
    * and is typically used for administrative interfaces.
    *
-   * @param params - Pagination parameters (page, limit)
-   * @returns Promise<PaginatedResponse<User>> - Paginated user/profile data
-   *
    * The response includes:
    * - Users array with profile information
    * - Pagination metadata (total, page, limit, etc.)
@@ -88,18 +78,10 @@ class ProfileServices implements ProfileServiceInterface {
    * Retrieves a specific user profile by their unique identifier.
    * This method validates the user exists before returning the data.
    *
-   * @param id - User/Profile ID (UUID string)
-   * @returns Promise<User> - User object if found
-   * @throws CustomError - If user is not found
-   *
    * Error Codes:
    * - ID_NOT_FOUND: User with the specified ID doesn't exist
    *
    * Returns complete user information including profile data.
-   * This method is commonly used for:
-   * - Profile viewing and editing
-   * - User dashboard displays
-   * - Administrative user management
    */
   async findById(id: string): Promise<User> {
     return this.findByIdOrFail(id);
@@ -109,11 +91,6 @@ class ProfileServices implements ProfileServiceInterface {
    * Updates an existing user's profile information.
    * This method supports partial updates and includes validation
    * to ensure data integrity and uniqueness.
-   *
-   * @param id - User/Profile ID to update
-   * @param data - Update data (all fields optional)
-   * @returns Promise<User> - Updated user object
-   * @throws CustomError - If user not found or validation fails
    *
    * Error Codes:
    * - ID_NOT_FOUND: User with the specified ID doesn't exist
@@ -126,9 +103,6 @@ class ProfileServices implements ProfileServiceInterface {
    *
    * Update Behavior:
    * - Only the fields provided in the request body will be updated
-   * - Maintains data integrity and validation
-   * - Supports both user and profile-specific updates
-   * - Preserves existing data for non-provided fields
    *
    * Use Cases:
    * - User profile editing

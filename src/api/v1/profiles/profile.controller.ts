@@ -15,9 +15,6 @@ import { PaginationParams } from "../../../interfaces/pagination.interfaces";
  * - Delegating business logic to the profile service
  * - Formatting and returning HTTP responses
  *
- * All methods use asyncHandler for consistent error handling
- * and are designed to work with the profile service layer.
- *
  * Profile management includes:
  * - Profile retrieval and listing
  * - Profile updates and modifications
@@ -31,9 +28,6 @@ class ProfileController {
    * Retrieves a paginated list of all user profiles in the system.
    * This endpoint is typically used for administrative purposes
    * and user management interfaces.
-   *
-   * @param req - Express request object containing pagination query parameters
-   * @param res - Express response object
    *
    * Query Parameters:
    * - page: Page number for pagination (defaults to 1)
@@ -63,9 +57,6 @@ class ProfileController {
    *
    * Retrieves a specific user profile by its unique identifier.
    * This endpoint is used for profile details and editing interfaces.
-   *
-   * @param req - Express request object containing profile ID in params
-   * @param res - Express response object
    *
    * URL Parameters:
    * - id: Profile ID (UUID string)
@@ -98,9 +89,6 @@ class ProfileController {
    * Updates an existing user profile's information.
    * This endpoint supports partial updates, allowing clients
    * to update only specific profile fields without affecting others.
-   *
-   * @param req - Express request object containing profile ID and update data
-   * @param res - Express response object
    *
    * URL Parameters:
    * - id: Profile ID (UUID string)

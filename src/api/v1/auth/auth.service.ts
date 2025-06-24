@@ -7,10 +7,64 @@ import hasherUtils from "../../../utils/hasher.utils";
 import { CustomError } from "../../../types/custom-errors";
 import { HttpStatus } from "../../../utils/httpStatus.enum";
 
+/**
+ * Auth Service
+ *
+ * Core business logic layer for authentication operations.
+ * This service is responsible for:
+ * - User credential validation and verification
+ * - Password hashing and comparison
+ * - User authentication logic
+ * - Security and data protection
+ *
+ * The service follows the dependency injection pattern and
+ * implements the AuthServiceInterface for consistency.
+ *
+ * Authentication operations include:
+ * - Login credential verification
+ * - Password security validation
+ * - User data protection and sanitization
+ * - Integration with user service for data access
+ *
+ * Security Features:
+ * - Password hashing comparison using bcrypt
+ * - User data sanitization (password exclusion)
+ * - Secure credential validation
+ * - Error handling for invalid credentials
+ */
 class AuthService implements AuthServiceInterface {
   constructor(private userService: UserServiceInterface) {}
 
-  // This service is capable of verify if email passed exists in database, and compare password with password saved in db.
+  /**
+   * Authenticates a user by validating their email and password credentials.
+   * This method verifies that the email exists in the database and that
+   * the provided password matches the stored hashed password.
+   *
+   * Error Codes:
+   * - BAD_REQUEST: Invalid email or password combination
+   * - NOT_FOUND: User with provided email doesn't exist
+   *
+   * Authentication Process:
+   * - Retrieves user by email from user service
+   * - Compares provided password with stored hash
+   * - Validates password using bcrypt comparison
+   * - Returns user data without password
+   *
+   * Security Measures:
+   * - Uses bcrypt for secure password comparison
+   * - Excludes password from returned user data
+   * - Provides generic error messages for security
+   * - Validates user existence before password check
+   *
+   * Data Protection:
+   * - Password is never returned in response
+   * - User data is sanitized before return
+   * - Secure error handling prevents information leakage
+   *
+   * Integration:
+   * - Uses userService for user data retrieval
+   * - Uses hasherUtils for password comparison
+   */
   async login(data: LoginInput): Promise<User> {
     const user = await this.userService.findByEmail(data.email);
 

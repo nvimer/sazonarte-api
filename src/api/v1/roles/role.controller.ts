@@ -15,9 +15,6 @@ import { PaginationParams } from "../../../interfaces/pagination.interfaces";
  * - Delegating business logic to the role service
  * - Formatting and returning HTTP responses
  *
- * All methods use asyncHandler for consistent error handling
- * and are designed to work with the role service layer.
- *
  * Role management includes:
  * - Basic CRUD operations (Create, Read, Update, Delete)
  * - Search and filtering capabilities
@@ -31,9 +28,6 @@ class RoleController {
    * Retrieves a paginated list of all roles in the system.
    * This endpoint is typically used for role management interfaces
    * and administrative purposes.
-   *
-   * @param req - Express request object containing pagination query parameters
-   * @param res - Express response object
    *
    * Query Parameters:
    * - page: Page number for pagination (defaults to 1)
@@ -65,9 +59,6 @@ class RoleController {
    * Searches and filters roles based on various criteria.
    * This endpoint provides advanced filtering capabilities for
    * role management and administrative interfaces.
-   *
-   * @param req - Express request object containing search and filter parameters
-   * @param res - Express response object
    *
    * Query Parameters:
    * - page: Page number for pagination (defaults to 1)
@@ -111,12 +102,6 @@ class RoleController {
    * Retrieves a specific role by its unique identifier.
    * This endpoint is used for role details and editing interfaces.
    *
-   * @param req - Express request object containing role ID in params
-   * @param res - Express response object
-   *
-   * URL Parameters:
-   * - id: Role ID (integer)
-   *
    * Response:
    * - 200: Role found and returned
    * - 400: Invalid ID format
@@ -142,15 +127,6 @@ class RoleController {
    * This endpoint handles role creation with optional permission assignments
    * and validation of role name uniqueness.
    *
-   * @param req - Express request object containing role creation data
-   * @param res - Express response object
-   *
-   * Request Body:
-   * - name: Role name (required, must be unique)
-   * - description: Role description (optional)
-   * - active: Role active status (optional, defaults to true)
-   * - permissionIds: Array of permission IDs to assign (optional)
-   *
    * Response:
    * - 201: Role created successfully
    * - 400: Invalid request data
@@ -175,17 +151,6 @@ class RoleController {
    * Updates an existing role's information.
    * This endpoint supports partial updates, allowing clients
    * to update only specific fields without affecting others.
-   *
-   * @param req - Express request object containing role ID and update data
-   * @param res - Express response object
-   *
-   * URL Parameters:
-   * - id: Role ID (integer)
-   *
-   * Request Body (all fields optional):
-   * - name: Role name (must be unique if changed)
-   * - description: Role description
-   * - active: Role active status
    *
    * Response:
    * - 202: Role updated successfully
@@ -213,12 +178,6 @@ class RoleController {
    * Deletes a specific role from the system.
    * This endpoint performs soft deletion to maintain data integrity
    * and preserve historical relationships.
-   *
-   * @param req - Express request object containing role ID
-   * @param res - Express response object
-   *
-   * URL Parameters:
-   * - id: Role ID (integer)
    *
    * Response:
    * - 200: Role deleted successfully
@@ -248,12 +207,6 @@ class RoleController {
    * Deletes multiple roles in a single operation.
    * This endpoint provides efficient bulk deletion for administrative
    * operations and cleanup tasks.
-   *
-   * @param req - Express request object containing array of role IDs
-   * @param res - Express response object
-   *
-   * Request Body:
-   * - ids: Array of role IDs to delete
    *
    * Response:
    * - 200: Bulk deletion completed

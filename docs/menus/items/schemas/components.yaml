@@ -80,6 +80,3 @@ components:
                 type: string
                 description: Error message for the field
                 example: "Name must be at least 3 characters long"
-
-
-

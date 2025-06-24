@@ -17,22 +17,12 @@ import { User } from "@prisma/client";
  * - Profile CRUD operations (working with User entities)
  * - Pagination support for large datasets
  * - Soft delete handling (deleted: false filter)
- *
- * The repository implements the ProfileRepositoryInterface for
- * consistency and follows the repository pattern for data access.
- *
- * Note: This repository works with User entities as profiles
- * are typically extensions of user data rather than separate entities.
- * The profile functionality is implemented through user data management.
  */
 class ProfileRepository implements ProfileRepositoryInterface {
   /**
    * Retrieves a paginated list of all active user profiles from the database.
    * This method supports efficient pagination for large user datasets
    * and excludes soft-deleted users from the results.
-   *
-   * @param params - Pagination parameters (page, limit)
-   * @returns Promise<PaginatedResponse<User>> - Paginated user/profile data
    *
    * Database Operations:
    * - Fetches users with pagination (skip/take)
@@ -45,10 +35,6 @@ class ProfileRepository implements ProfileRepositoryInterface {
    * - Implements proper indexing on name and deleted fields
    * - Returns only necessary user fields (excludes password)
    *
-   * Profile Data:
-   * - Returns user data which includes profile information
-   * - Profile fields are typically part of the user entity
-   * - Supports profile-specific queries and filtering
    */
   async findAll(params: PaginationParams): Promise<PaginatedResponse<User>> {
     const { page, limit } = params;
@@ -85,10 +71,6 @@ class ProfileRepository implements ProfileRepositoryInterface {
    * used for validation and lookup operations where we need to
    * find the user regardless of deletion status.
    *
-   * Profile Retrieval:
-   * - Returns complete user data including profile fields
-   * - Profile information is embedded within the user entity
-   * - Supports profile-specific data access patterns
    */
   async findById(id: string): Promise<User | null> {
     return prisma.user.findUnique({
@@ -101,10 +83,6 @@ class ProfileRepository implements ProfileRepositoryInterface {
    * This method supports partial updates and only modifies
    * the fields provided in the update data.
    *
-   * @param id - User/Profile ID to update
-   * @param data - Update data (partial user/profile fields)
-   * @returns Promise<User> - Updated user object
-   *
    * Database Operations:
    * - Updates only provided fields
    * - Uses optimistic locking for concurrency control
@@ -116,11 +94,6 @@ class ProfileRepository implements ProfileRepositoryInterface {
    * - Preserves existing data for non-provided fields
    * - Handles both user and profile-specific field updates
    *
-   * Profile Updates:
-   * - Updates user data which includes profile information
-   * - Supports profile-specific field modifications
-   * - Maintains referential integrity with related entities
-   * - Validates data constraints and business rules
    */
   async update(id: string, data: UpdateUserInput): Promise<User> {
     return prisma.user.update({

@@ -17,8 +17,6 @@ import rolePermissionController from "./role-permissions.controller";
  * - POST /:id/assign - Assign permissions to a role
  * - DELETE /:id/remove - Remove permissions from a role
  *
- * All routes include appropriate validation middleware to ensure
- * data integrity and proper error handling.
  */
 const router = Router();
 
@@ -100,9 +98,6 @@ router.get(
  * - 400: Invalid request body or ID format
  * - 404: Role not found
  *
- * Note: This operation replaces all existing permissions. If you want to
- * add permissions without removing existing ones, use a different approach.
- *
  */
 router.post(
   "/:id/assign",
@@ -132,9 +127,6 @@ router.post(
  * - 400: Invalid request body or ID format
  * - 404: Role not found
  *
- * Note: This operation only removes the specified permissions.
- * Permissions not in the array will remain assigned to the role.
- *
  */
 router.delete(
   "/:id/remove",
@@ -144,4 +136,3 @@ router.delete(
 );
 
 export default router;
-

@@ -61,11 +61,6 @@ router.get("/:id", validate(profileIdSchema), profileController.getProfile);
  * URL Parameters:
  * - id: Profile ID (UUID string)
  *
- * Request Body (all fields optional):
- * - name: User's full name (string)
- * - email: User's email address (string, must be unique if changed)
- * - phone: User's phone number (string)
- *
  * Validation:
  * - profileIdSchema: Validates ID parameter format (UUID)
  * - updateProfileSchema: Validates request body

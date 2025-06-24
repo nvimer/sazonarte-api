@@ -167,9 +167,6 @@ router.delete("/:id", validate(roleIdSchema), roleController.deleteRole);
  *
  * Soft deletes multiple roles in bulk.
  *
- * Request Body:
- * - ids: Array of role IDs to delete (1-100 IDs)
- *
  * Validation:
  * - bulkRoleSchema: Validates array of role IDs
  *

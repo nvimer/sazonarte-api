@@ -4,9 +4,58 @@ import { CreateItemInput } from "./item.validator";
 import { ItemRepositoryInterface } from "./interfaces/item.repository.interface";
 import itemRepository from "./item.repository";
 
+/**
+ * Menu Item Service
+ *
+ * Core business logic layer for menu item management operations.
+ * This service is responsible for:
+ * - Menu item CRUD operations (Create, Read, Update, Delete)
+ * - Menu item validation and business rules
+ * - Category association management
+ * - Pricing and availability logic
+ * - Data validation and transformation
+ *
+ * Menu item management includes:
+ * - Item creation with validation
+ * - Category association verification
+ * - Price and availability management
+ * - Item lifecycle management
+ *
+ * Business Rules:
+ * - Item name uniqueness within category
+ * - Price must be positive
+ * - Category must exist and be active
+ * - Item status management
+ * - Data integrity maintenance
+ */
 class ItemService implements ItemServiceInteface {
   constructor(private itemRepository: ItemRepositoryInterface) {}
 
+  /**
+   * Creates a new menu item in the system with the provided information.
+   * This method handles item creation with validation and
+   * ensures proper data structure and category association.
+   *
+   * Validation Rules:
+   * - Item name uniqueness within category
+   * - Price must be positive number
+   * - Category must exist and be active
+   * - Required fields validation
+   *
+   * Business Logic:
+   * - Validates input data
+   * - Checks for name conflicts within category
+   * - Verifies category existence and status
+   * - Sets default values
+   * - Ensures data consistency
+   *
+   * Use Cases:
+   * - Menu item addition
+   * - New dish introduction
+   * - Menu expansion
+   * - Seasonal item creation
+   * - Special offer items
+   */
   async createItem(data: CreateItemInput): Promise<MenuItem> {
     return await this.itemRepository.create(data);
   }
