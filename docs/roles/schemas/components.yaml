@@ -10,28 +10,33 @@ components:
           example: 1
         name:
           type: string
-          description: Role's name
-          example: ADMIN
+          description: Role's name (must be unique)
+          example: "ADMIN"
         description:
           type: string
-          description: Role's type description
-          example: Administrator role
+          description: Role's description
+          example: "Administrator role with full access"
         createdAt:
           type: string
           format: date-time
           description: Timestamp when the role was created
+          example: "2024-01-15T10:30:00Z"
         updatedAt:
           type: string
           format: date-time
           description: Timestamp when the role was last updated
+          example: "2024-01-15T10:30:00Z"
         deleted:
           type: boolean
-          description: Soft delete flag
+          description: Soft delete flag (true if role is deleted)
           example: false
       required:
         - id
         - name
         - description
+        - createdAt
+        - updatedAt
+        - deleted
 
     CreateRoleRequest:
       type: object
@@ -41,16 +46,60 @@ components:
       properties:
         name:
           type: string
-          description: Role's name
-          example: ADMIN
+          minLength: 2
+          maxLength: 50
+          description: Role's name (must be unique)
+          example: "MODERATOR"
         description:
           type: string
-          description: Role's type description
+          minLength: 5
+          maxLength: 200
+          description: Role's description
+          example: "Moderator role with limited administrative access"
         permissionIds:
           type: array
           items:
             type: integer
+            minimum: 1
           description: Array of permission IDs to assign to the role
+          example: [1, 2, 5, 8]
+
+    UpdateRoleRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 2
+          maxLength: 50
+          description: Role's name (must be unique if provided)
+          example: "SUPER_ADMIN"
+        description:
+          type: string
+          minLength: 5
+          maxLength: 200
+          description: Role's description
+          example: "Super administrator role with enhanced privileges"
+        permissionIds:
+          type: array
+          items:
+            type: integer
+            minimum: 1
+          description: Array of permission IDs to assign to the role
+          example: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+
+    BulkDeleteRoleRequest:
+      type: object
+      required:
+        - ids
+      properties:
+        ids:
+          type: array
+          items:
+            type: integer
+            minimum: 1
+          minItems: 1
+          maxItems: 100
+          description: Array of role IDs to delete
           example: [1, 2, 3]
 
     RoleListResponse:
@@ -102,24 +151,6 @@ components:
         data:
           $ref: "#/components/schemas/Role"
 
-    UpdateRoleRequest:
-      type: object
-      properties:
-        name:
-          type: string
-          description: Role's name
-          example: ADMIN
-        description:
-          type: string
-          description: Role's type description
-          example: Administrator role
-        permissionIds:
-          type: array
-          items:
-            type: integer
-          description: Array of permission IDs to assign to the role
-          example: [1, 2, 3]
-
     ErrorResponse:
       type: object
       properties:
@@ -139,8 +170,8 @@ components:
               field:
                 type: string
                 description: Field that caused the error
-                example: "email"
+                example: "name"
               message:
                 type: string
                 description: Error message for the field
-                example: "Invalid email format"
+                example: "Role name is required"

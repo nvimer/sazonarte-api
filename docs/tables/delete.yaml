@@ -1,0 +1,81 @@
+openapi: 3.0.0
+paths:
+  /tables/{id}:
+    delete:
+      tags:
+        - Tables
+      summary: Delete a table
+      description: |
+        Performs a soft delete of a table from the system. The table is marked as deleted
+        but the record remains in the database for audit purposes.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+          description: Table ID to delete
+          example: 1
+      responses:
+        200:
+          description: Table deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteResponse"
+              example:
+                success: true
+                message: "Table deleted successfully"
+                data:
+                  id: 1
+                  number: "T1"
+        400:
+          description: Invalid table ID
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                message: "Invalid table ID format"
+                error: "BAD_REQUEST"
+        404:
+          description: Table not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                message: "Table not found"
+                error: "NOT_FOUND"
+        409:
+          description: Table cannot be deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                activeReservations:
+                  summary: Table has active reservations
+                  value:
+                    success: false
+                    message: "Cannot delete table with active reservations"
+                    error: "CONFLICT"
+                alreadyDeleted:
+                  summary: Table already deleted
+                  value:
+                    success: false
+                    message: "Table has already been deleted"
+                    error: "CONFLICT"
+        500:
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                message: "Internal server error"
+                error: "INTERNAL_SERVER_ERROR"

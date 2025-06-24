@@ -3,8 +3,32 @@ import prisma from "../../../../database/prisma";
 import { TokenRepositoryInterface } from "./token.interface";
 import moment, { Moment } from "moment";
 
+/**
+ * Token Repository
+ *
+ * Data access layer for token-related database operations.
+ * This repository is responsible for:
+ * - Token persistence and storage
+ * - Token retrieval and querying
+ * - Token lifecycle management
+ * - Database interaction for token operations
+ *
+ * The repository follows the repository pattern and
+ * implements the TokenRepositoryInterface for consistency.
+ *
+ * Database Operations:
+ * - Token creation and storage
+ * - Token expiration tracking
+ * - Token blacklist management
+ * - User-token association
+ *
+ * Security Features:
+ * - Token hashing for storage
+ * - Expiration date tracking
+ * - Blacklist status management
+ * - User association for audit trails
+ */
 class TokenRepository implements TokenRepositoryInterface {
-  // This operation save tokens in databes for recognice user
   async saveToken(
     id: string,
     token: string,

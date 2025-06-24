@@ -1,0 +1,86 @@
+openapi: 3.0.0
+paths:
+  /tables:
+    post:
+      summary: Create a new table
+      description: |
+        Create a new table in the system with the provided information.
+      tags:
+        - Tables
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTableRequest"
+            examples:
+              fullTableCreation:
+                summary: Full table creation
+                value:
+                  number: "T3"
+                  status: "available"
+                  location: "Center area"
+                  description: "Large table in the center"
+              minimalTableCreation:
+                summary: Minimal table creation
+                value:
+                  number: "T4"
+      responses:
+        201:
+          description: Table created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TableResponse"
+              example:
+                success: true
+                message: "Table created successfully"
+                data:
+                  id: 1
+                  number: "T1"
+                  status: "available"
+                  location: "Center area"
+                  description: "Large table in the center"
+                  createdAt: "2024-01-15T10:30:00Z"
+                  updatedAt: "2024-01-15T10:30:00Z"
+                  deleted: false
+                  deletedAt: null
+        400:
+          description: Invalid request data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                missingNumber:
+                  summary: Missing required field
+                  value:
+                    success: false
+                    message: "Table number is required"
+                    error: "BAD_REQUEST"
+                invalidStatus:
+                  summary: Invalid status value
+                  value:
+                    success: false
+                    message: "Invalid table status"
+                    error: "BAD_REQUEST"
+        409:
+          description: Table number already exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                message: "Table with number 'T1' already exists"
+                error: "CONFLICT"
+        500:
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                message: "Internal server error"
+                error: "INTERNAL_SERVER_ERROR"

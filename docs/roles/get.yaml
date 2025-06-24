@@ -5,19 +5,28 @@ paths:
       tags:
         - Roles
       summary: Get all roles with pagination
+      description: |
+        Retrieve all roles with pagination support.
+        Returns only active (non-deleted) roles by default.
+        Supports pagination with customizable page size.
       parameters:
         - in: query
           name: page
           schema:
             type: integer
+            minimum: 1
             default: 1
           description: Page number for pagination
+          example: 1
         - in: query
           name: limit
           schema:
             type: integer
+            minimum: 1
+            maximum: 100
             default: 10
           description: Number of items per page
+          example: 20
       responses:
         200:
           description: Roles fetched successfully
@@ -25,6 +34,27 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/RoleListResponse"
+              example:
+                success: true
+                message: "Roles fetched successfully"
+                data:
+                  items:
+                    - id: 1
+                      name: "ADMIN"
+                      description: "Administrator role with full access"
+                      createdAt: "2024-01-15T10:30:00Z"
+                      updatedAt: "2024-01-15T10:30:00Z"
+                      deleted: false
+                    - id: 2
+                      name: "USER"
+                      description: "Standard user role"
+                      createdAt: "2024-01-15T10:35:00Z"
+                      updatedAt: "2024-01-15T10:35:00Z"
+                      deleted: false
+                  total: 2
+                  page: 1
+                  limit: 20
+                  totalPages: 1
           headers:
             ETag:
               schema:
@@ -33,11 +63,14 @@ paths:
         304:
           description: Not Modified - The roles haven't changed since the last request
         400:
-          description: Bad Request
+          description: Bad Request - Invalid pagination parameters
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: 400
+                message: "Invalid pagination parameters"
         401:
           description: Unauthorized
           content:
@@ -46,12 +79,6 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
         403:
           description: Forbidden
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        404:
-          description: Role not found
           content:
             application/json:
               schema:
@@ -62,13 +89,18 @@ paths:
       tags:
         - Roles
       summary: Get a role by ID
+      description: |
+        Retrieve a specific role by its unique identifier.
+        Returns detailed information about the role including permissions.
       parameters:
         - in: path
           name: id
           required: true
           schema:
             type: integer
+            minimum: 1
           description: Role ID
+          example: 1
       responses:
         200:
           description: Role fetched successfully
@@ -76,12 +108,28 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/RoleResponse"
+              example:
+                success: true
+                message: "Role fetched successfully"
+                data:
+                  id: 1
+                  name: "ADMIN"
+                  description: "Administrator role with full access"
+                  createdAt: "2024-01-15T10:30:00Z"
+                  updatedAt: "2024-01-15T10:30:00Z"
+                  deleted: false
         400:
-          description: Bad Request
+          description: Bad Request - Invalid role ID
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: 400
+                message: "Invalid role ID"
+                errors:
+                  - field: "id"
+                    message: "Role ID must be a positive integer"
         401:
           description: Unauthorized
           content:
@@ -100,3 +148,9 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: 404
+                message: "Role not found"
+                errors:
+                  - field: "id"
+                    message: "Role with ID 999 does not exist"

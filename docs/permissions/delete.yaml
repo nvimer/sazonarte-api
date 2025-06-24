@@ -5,13 +5,19 @@ paths:
       tags:
         - Permissions
       summary: Delete a permission by ID
+      description: |
+        Soft delete a permission by its ID.
+        This operation marks the permission as deleted but preserves it in the database.
+        The permission will no longer appear in regular queries but can be recovered if needed.
       parameters:
         - in: path
           name: id
           required: true
           schema:
             type: integer
+            minimum: 1
           description: Permission ID
+          example: 1
       responses:
         200:
           description: Permission deleted successfully
@@ -25,13 +31,36 @@ paths:
                     example: true
                   message:
                     type: string
-                    example: "Permission with ID {id} has been deleted successfully"
+                    example: "Permission with ID 1 has been deleted successfully"
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        description: ID of the deleted permission
+                        example: 1
+                      name:
+                        type: string
+                        description: Name of the deleted permission
+                        example: "READ_USERS"
+              example:
+                success: true
+                message: "Permission with ID 1 has been deleted successfully"
+                data:
+                  id: 1
+                  name: "READ_USERS"
         400:
-          description: Bad Request
+          description: Bad Request - Invalid permission ID
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: 400
+                message: "Invalid permission ID"
+                errors:
+                  - field: "id"
+                    message: "Permission ID must be a positive integer"
         401:
           description: Unauthorized
           content:
@@ -49,4 +78,10 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ErrorResponse" 
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: 404
+                message: "Permission not found"
+                errors:
+                  - field: "id"
+                    message: "Permission with ID 999 does not exist" 

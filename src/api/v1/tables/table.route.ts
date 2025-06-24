@@ -9,27 +9,99 @@ import {
 } from "./table.validator";
 import { paginationQuerySchema } from "../../../utils/pagination.schema";
 
+/**
+ * Express Router for Table management endpoints.
+ *
+ * This router defines all table management operations:
+ * - GET / - Retrieve all tables with pagination
+ * - GET /:id - Get specific table by ID
+ * - POST / - Create a new table
+ * - PATCH /:id - Update table information
+ * - DELETE /:id - Delete a table
+ * - PATCH /:id/status - Update table status
+ *
+ */
 const router = Router();
 
-// All routes require authentication
-//router.use(authJwt);
-
-// Get all tables with pagination
+/**
+ * GET /tables
+ *
+ * Retrieves a paginated list of all tables in the system.
+ * This endpoint supports pagination parameters for efficient
+ * data retrieval and display.
+ *
+ * Validation:
+ * - paginationQuerySchema: Validates pagination query parameters
+ *
+ * Response:
+ * - 200: Tables retrieved successfully with pagination metadata
+ * - 400: Invalid pagination parameters
+ * - 500: Server error during retrieval
+ *
+ * Access Level: All authenticated users
+ */
 router.get("/", validate(paginationQuerySchema), tableController.getTables);
 
-// Get table by ID
+/**
+ * GET /tables/:id
+ *
+ * Retrieves detailed information about a specific table by its ID.
+ * This endpoint provides complete table information including
+ * status, capacity, and other relevant details.
+ *
+ * Validation:
+ * - tableIdSchema: Validates table ID parameter
+ *
+ */
 router.get("/:id", validate(tableIdSchema), tableController.getTableById);
 
-// Create new table (admin only)
+/**
+ * POST /tables
+ *
+ * Creates a new table in the system with the provided information.
+ * This endpoint handles table creation with validation and
+ * ensures proper data structure.
+ *
+ * Validation:
+ * - createTableSchema: Validates table creation data
+ */
 router.post("/", validate(createTableSchema), tableController.postTable);
 
-// Update table (admin only)
+/**
+ * PATCH /tables/:id
+ *
+ * Updates an existing table with new information.
+ * This endpoint allows modification of table properties
+ * while maintaining data integrity and validation.
+ *
+ * Validation:
+ * - tableIdSchema: Validates table ID parameter
+ * - updateTableSchema: Validates table update data
+ */
 router.patch("/:id", validate(updateTableSchema), tableController.updateTable);
 
-// Delete table (admin only)
+/**
+ * DELETE /tables/:id
+ *
+ * Removes a table from the system permanently.
+ * This endpoint handles table deletion with proper
+ * cleanup and validation.
+ *
+ * Validation:
+ * - tableIdSchema: Validates table ID parameter
+ */
 router.delete("/:id", validate(tableIdSchema), tableController.deleteTable);
 
-// Update table status (waiter and admin)
+/**
+ * PATCH /tables/:id/status
+ *
+ * Updates the status of a specific table (available/occupied).
+ * This endpoint is commonly used for real-time table status
+ * management in restaurant operations.
+ *
+ * Validation:
+ * - updateTableStatusSchema: Validates table ID and status
+ */
 router.patch(
   "/:id/status",
   validate(updateTableStatusSchema),

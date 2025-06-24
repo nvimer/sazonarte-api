@@ -5,21 +5,25 @@ components:
       type: object
       required:
         - name
-        - description
         - order
       properties:
         name:
           type: string
           minLength: 3
-          description: Category's name
+          maxLength: 100
+          description: Category's name (3-100 characters)
           example: "Main Dishes"
         description:
           type: string
-          description: Category's description
+          minLength: 1
+          maxLength: 500
+          description: Category's description (1-500 characters, optional)
           example: "Main course dishes"
         order:
           type: integer
-          description: Display order of the category
+          minimum: 0
+          maximum: 999
+          description: Display order of the category (0-999)
           example: 1
 
     MenuCategoryListResponse:
@@ -70,6 +74,62 @@ components:
           example: "Menu Category created successfully"
         data:
           $ref: "#/components/schemas/MenuCategory"
+
+    UpdateMenuCategoryRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 3
+          maxLength: 100
+          description: Category's name (3-100 characters)
+          example: "Main Dishes"
+        description:
+          type: string
+          minLength: 1
+          maxLength: 500
+          description: Category's description (1-500 characters)
+          example: "Main course dishes"
+        order:
+          type: integer
+          minimum: 0
+          maximum: 999
+          description: Display order of the category (0-999)
+          example: 1
+
+    BulkDeleteMenuCategoryRequest:
+      type: object
+      required:
+        - ids
+      properties:
+        ids:
+          type: array
+          minItems: 1
+          maxItems: 100
+          items:
+            type: integer
+            minimum: 1
+          description: Array of category IDs to delete (1-100 IDs)
+          example: [1, 2, 3, 4, 5]
+
+    BulkDeleteMenuCategoryResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Indicates if the request was successful
+          example: true
+        message:
+          type: string
+          description: Response message with count of deleted categories
+          example: "3 Menu Categories deleted successfully"
+        data:
+          type: object
+          properties:
+            deletedCount:
+              type: integer
+              description: Number of categories successfully deleted
+              example: 3
 
     ErrorResponse:
       type: object

@@ -1,0 +1,118 @@
+openapi: 3.0.0
+paths:
+  /tables/{id}:
+    patch:
+      tags:
+        - Tables
+      summary: Update a table
+      description: |
+        Update an existing table with new information. Supports partial updates
+        allowing modification of specific fields while maintaining data integrity.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+          description: Table ID to update
+          example: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateTableRequest"
+            examples:
+              updateNumber:
+                summary: Update table number
+                value:
+                  number: "T1A"
+              updateStatus:
+                summary: Update table status
+                value:
+                  status: "occupied"
+              updateLocation:
+                summary: Update table location
+                value:
+                  location: "Garden view"
+              updateDescription:
+                summary: Update table description
+                value:
+                  description: "Updated table description"
+              fullUpdate:
+                summary: Update multiple fields
+                value:
+                  number: "T1B"
+                  status: "available"
+                  location: "Terrace"
+                  description: "Outdoor table with view"
+      responses:
+        202:
+          description: Table updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TableResponse"
+              example:
+                success: true
+                message: "Table updated successfully"
+                data:
+                  id: 1
+                  number: "T1A"
+                  status: "available"
+                  location: "Garden view"
+                  description: "Updated table description"
+                  createdAt: "2024-01-15T10:30:00Z"
+                  updatedAt: "2024-01-15T11:45:00Z"
+                  deleted: false
+                  deletedAt: null
+        400:
+          description: Invalid request data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                invalidStatus:
+                  summary: Invalid status value
+                  value:
+                    success: false
+                    message: "Invalid table status"
+                    error: "BAD_REQUEST"
+                invalidNumber:
+                  summary: Invalid number format
+                  value:
+                    success: false
+                    message: "Table number must be a string"
+                    error: "BAD_REQUEST"
+        404:
+          description: Table not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                message: "Table not found"
+                error: "NOT_FOUND"
+        409:
+          description: Table number conflict
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                message: "Table with number 'T1A' already exists"
+                error: "CONFLICT"
+        500:
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                message: "Internal server error"
+                error: "INTERNAL_SERVER_ERROR"

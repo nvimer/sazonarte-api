@@ -10,7 +10,7 @@ export type RoleWithPermissions = Role & {
   permissions: PermissionWithRelations[];
 };
 
-export type AutheticatedUser = {
+export type AuthenticatedUser = {
   id: string;
   email: string;
   roles: {
@@ -21,7 +21,7 @@ export type AutheticatedUser = {
 declare global {
   namespace Express {
     interface Request {
-      user: AutheticatedUser;
+      user: AuthenticatedUser;
     }
   }
 }

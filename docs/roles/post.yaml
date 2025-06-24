@@ -4,16 +4,73 @@ paths:
     post:
       tags:
         - Roles
-      summary: Create a new role for users
+      summary: Create a new role
+      description: |
+        Create a new role with the specified name, description, and optional permissions.
+        The role name must be unique across all roles.
+        Permissions can be assigned by providing an array of permission IDs.
       requestBody:
+        required: true
         content:
           application/json:
             schema:
               $ref: "#/components/schemas/CreateRoleRequest"
+            example:
+              name: "MODERATOR"
+              description: "Moderator role with limited administrative access"
+              permissionIds: [1, 2, 5, 8]
       responses:
         201:
           description: Role created successfully
-        409:
-          description: Conflict.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RoleResponse"
+              example:
+                success: true
+                message: "Role created successfully"
+                data:
+                  id: 3
+                  name: "MODERATOR"
+                  description: "Moderator role with limited administrative access"
+                  createdAt: "2024-01-15T12:00:00Z"
+                  updatedAt: "2024-01-15T12:00:00Z"
+                  deleted: false
         400:
-          description: Bad Request
+          description: Bad Request - Invalid role data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: 400
+                message: "Invalid role data"
+                errors:
+                  - field: "name"
+                    message: "Role name is required"
+                  - field: "description"
+                    message: "Role description is required"
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        403:
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        409:
+          description: Conflict - Role name already exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: 409
+                message: "Role name already exists"
+                errors:
+                  - field: "name"
+                    message: "A role with this name already exists"

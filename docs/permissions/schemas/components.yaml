@@ -1,6 +1,43 @@
 openapi: 3.0.0
 components:
   schemas:
+    Permission:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique identifier for the permission
+          example: 1
+        name:
+          type: string
+          description: Permission's name (must be unique)
+          example: "READ_USERS"
+        description:
+          type: string
+          description: Permission's description
+          example: "Permission to read user data"
+        createdAt:
+          type: string
+          format: date-time
+          description: Timestamp when the permission was created
+          example: "2024-01-15T10:30:00Z"
+        updatedAt:
+          type: string
+          format: date-time
+          description: Timestamp when the permission was last updated
+          example: "2024-01-15T10:30:00Z"
+        deleted:
+          type: boolean
+          description: Soft delete flag (true if permission is deleted)
+          example: false
+      required:
+        - id
+        - name
+        - description
+        - createdAt
+        - updatedAt
+        - deleted
+
     CreatePermissionRequest:
       type: object
       required:
@@ -9,14 +46,47 @@ components:
       properties:
         name:
           type: string
+          minLength: 2
           maxLength: 50
-          description: Permission's name
-          example: "CREATE_USER"
+          description: Permission's name (must be unique)
+          example: "DELETE_USERS"
         description:
           type: string
-          maxLength: 50
+          minLength: 5
+          maxLength: 255
           description: Permission's description
-          example: "Can create new users"
+          example: "Permission to delete user accounts"
+
+    UpdatePermissionRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 2
+          maxLength: 50
+          description: Permission's name (must be unique if provided)
+          example: "MANAGE_USERS"
+        description:
+          type: string
+          minLength: 5
+          maxLength: 255
+          description: Permission's description
+          example: "Permission to manage user accounts with full access"
+
+    BulkDeletePermissionRequest:
+      type: object
+      required:
+        - ids
+      properties:
+        ids:
+          type: array
+          items:
+            type: integer
+            minimum: 1
+          minItems: 1
+          maxItems: 100
+          description: Array of permission IDs to delete
+          example: [1, 2, 3]
 
     PermissionListResponse:
       type: object
@@ -28,7 +98,7 @@ components:
         message:
           type: string
           description: Response message
-          example: "All permissions"
+          example: "Permissions fetched successfully"
         data:
           type: object
           properties:
@@ -67,20 +137,6 @@ components:
         data:
           $ref: "#/components/schemas/Permission"
 
-    UpdatePermissionRequest:
-      type: object
-      properties:
-        name:
-          type: string
-          maxLength: 50
-          description: Permission's name
-          example: "CREATE_USER"
-        description:
-          type: string
-          maxLength: 50
-          description: Permission's description
-          example: "Can create new users"
-
     ErrorResponse:
       type: object
       properties:
@@ -104,4 +160,4 @@ components:
               message:
                 type: string
                 description: Error message for the field
-                example: "Invalid name format"
+                example: "Permission name is required"
