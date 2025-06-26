@@ -1,0 +1,359 @@
+openapi: 3.0.0
+paths:
+  /roles/permissions:
+    get:
+      tags:
+        - Roles
+      summary: Get all roles with their permissions
+      description: |
+        Retrieve a paginated list of all roles with their associated permissions.
+        This endpoint is useful for displaying role-permission relationships
+        in admin interfaces or for audit purposes.
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          description: Page number for pagination
+          example: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+          description: Number of items per page
+          example: 10
+      responses:
+        200:
+          description: Roles with Permissions fetched successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Roles with Permissions fetched successfully"
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Role"
+                  pagination:
+                    $ref: "#/components/schemas/Pagination"
+              example:
+                success: true
+                message: "Roles with Permissions fetched successfully"
+                data:
+                  - id: 1
+                    name: "ADMIN"
+                    description: "Administrator role with full access"
+                    createdAt: "2024-01-15T10:30:00Z"
+                    updatedAt: "2024-01-15T10:30:00Z"
+                    deleted: false
+                    permissions:
+                      - id: 1
+                        name: "READ_USERS"
+                        description: "Permission to read user data"
+                        createdAt: "2024-01-15T10:30:00Z"
+                        updatedAt: "2024-01-15T10:30:00Z"
+                        deleted: false
+                      - id: 2
+                        name: "WRITE_USERS"
+                        description: "Permission to write user data"
+                        createdAt: "2024-01-15T10:35:00Z"
+                        updatedAt: "2024-01-15T10:35:00Z"
+                        deleted: false
+                pagination:
+                  page: 1
+                  limit: 10
+                  total: 5
+                  totalPages: 1
+        400:
+          description: Bad Request - Invalid pagination parameters
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        403:
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /roles/permissions/{id}:
+    get:
+      tags:
+        - Roles
+      summary: Get role with the assigned permissions
+      description: |
+        Retrieve a selected role with all permissions currently assigned.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+          description: Role ID
+          example: 1
+      responses:
+        200:
+          description: Role with Permissions fetched successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Role with Permissions fetched successfully"
+                  data:
+                    $ref: "#/components/schemas/Role"
+              example:
+                success: true
+                message: "Role with Permissions fetched successfully"
+                data:
+                  id: 1
+                  name: "ADMIN"
+                  description: "Administrator role with full access"
+                  createdAt: "2024-01-15T10:30:00Z"
+                  updatedAt: "2024-01-15T10:30:00Z"
+                  deleted: false
+                  permissions:
+                    - id: 1
+                      name: "READ_USERS"
+                      description: "Permission to read user data"
+                      createdAt: "2024-01-15T10:30:00Z"
+                      updatedAt: "2024-01-15T10:30:00Z"
+                      deleted: false
+                    - id: 2
+                      name: "WRITE_USERS"
+                      description: "Permission to write user data"
+                      createdAt: "2024-01-15T10:35:00Z"
+                      updatedAt: "2024-01-15T10:35:00Z"
+                      deleted: false
+        400:
+          description: Bad Request - Invalid role ID
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        403:
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        404:
+          description: Role not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /roles/permissions/{id}/assign:
+    post:
+      tags:
+        - Roles
+      summary: Assign permissions to a role
+      description: |
+        Assign permissions to a specific role. This operation replaces
+        all existing permissions for the role with the new set provided.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+          description: Role ID
+          example: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                permissionIds:
+                  type: array
+                  items:
+                    type: integer
+                    minimum: 1
+                  description: Array of permission IDs to assign
+                  example: [1, 2, 3]
+            example:
+              permissionIds: [1, 2, 3]
+      responses:
+        202:
+          description: Permissions assigned successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Permissions assigned successfully"
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Permission"
+              example:
+                success: true
+                message: "Permissions assigned successfully"
+                data:
+                  - id: 1
+                    name: "READ_USERS"
+                    description: "Permission to read user data"
+                    createdAt: "2024-01-15T10:30:00Z"
+                    updatedAt: "2024-01-15T10:30:00Z"
+                    deleted: false
+                  - id: 2
+                    name: "WRITE_USERS"
+                    description: "Permission to write user data"
+                    createdAt: "2024-01-15T10:35:00Z"
+                    updatedAt: "2024-01-15T10:35:00Z"
+                    deleted: false
+                  - id: 3
+                    name: "READ_ROLES"
+                    description: "Permission to read role data"
+                    createdAt: "2024-01-15T11:00:00Z"
+                    updatedAt: "2024-01-15T11:00:00Z"
+                    deleted: false
+        400:
+          description: Bad Request - Invalid role ID or permission IDs
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        403:
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        404:
+          description: Role or permissions not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /roles/permissions/{id}/remove:
+    delete:
+      tags:
+        - Roles
+      summary: Remove permissions from a role
+      description: |
+        Remove specific permissions from a role. This operation only
+        removes the specified permissions, leaving other permissions intact.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+          description: Role ID
+          example: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                permissionIds:
+                  type: array
+                  items:
+                    type: integer
+                    minimum: 1
+                  description: Array of permission IDs to remove
+                  example: [2, 3]
+            example:
+              permissionIds: [2, 3]
+      responses:
+        202:
+          description: Permissions removed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Permissions removed successfully"
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Permission"
+              example:
+                success: true
+                message: "Permissions removed successfully"
+                data:
+                  - id: 1
+                    name: "READ_USERS"
+                    description: "Permission to read user data"
+                    createdAt: "2024-01-15T10:30:00Z"
+                    updatedAt: "2024-01-15T10:30:00Z"
+                    deleted: false
+        400:
+          description: Bad Request - Invalid role ID or permission IDs
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        403:
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        404:
+          description: Role or permissions not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
