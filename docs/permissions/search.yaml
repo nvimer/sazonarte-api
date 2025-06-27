@@ -16,14 +16,7 @@ paths:
             minLength: 1
             maxLength: 100
           description: Search term for filtering permissions by name (case-insensitive)
-          example: "read"
-        - in: query
-          name: active
-          schema:
-            type: string
-            enum: ["true", "false"]
-          description: Filter permissions by active status
-          example: "true"
+          example: "MANAGE"
         - in: query
           name: page
           schema:
@@ -54,13 +47,13 @@ paths:
                 data:
                   items:
                     - id: 1
-                      name: "READ_USERS"
+                      name: "MANAGE_USERS"
                       description: "Permission to read user data"
                       createdAt: "2024-01-15T10:30:00Z"
                       updatedAt: "2024-01-15T10:30:00Z"
                       deleted: false
                     - id: 3
-                      name: "READ_ROLES"
+                      name: "MANAGE_ROLES"
                       description: "Permission to read role data"
                       createdAt: "2024-01-15T11:00:00Z"
                       updatedAt: "2024-01-15T11:00:00Z"
@@ -92,4 +85,4 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ErrorResponse" 
+                $ref: "#/components/schemas/ErrorResponse"

@@ -14,10 +14,10 @@ components:
           example: "T1"
         status:
           type: string
-          enum: [available, occupied, reserved, maintenance]
-          default: "available"
+          enum: [AVAILABLE, OCCUPIED, NEEDS_CLEANING]
+          default: "AVAILABLE"
           description: Initial status of the table
-          example: "available"
+          example: "AVAILABLE"
         location:
           type: string
           maxLength: 200
@@ -43,7 +43,7 @@ components:
           description: Descriptive message about the operation
           example: "Table created successfully"
         data:
-          $ref: "./table.yaml#/components/schemas/Table"
+          $ref: "#/components/schemas/Table"
           description: Table object
 
     TableListResponse:
@@ -60,7 +60,7 @@ components:
         data:
           type: array
           items:
-            $ref: "./table.yaml#/components/schemas/Table"
+            $ref: "#/components/schemas/Table"
           description: Array of table objects
         meta:
           type: object
@@ -104,7 +104,7 @@ components:
           description: Additional error details (optional)
           example:
             field: "number"
-            value: "T1"
+            value: "1"
             constraint: "unique"
 
     DeleteResponse:
@@ -128,7 +128,7 @@ components:
             number:
               type: string
               description: Number of the deleted table
-              example: "T1"
+              example: "1"
           description: Information about the deleted table
 
     UpdateTableRequest:
@@ -139,22 +139,17 @@ components:
           minLength: 1
           maxLength: 50
           description: Updated table number or identifier (must be unique)
-          example: "T1A"
+          example: "1"
         status:
           type: string
-          enum: [available, occupied, reserved, maintenance]
+          enum: [AVAILABLE, OCCUPIED, NEEDS_CLEANING]
           description: Updated status of the table
-          example: "occupied"
+          example: "OCCUPIED"
         location:
           type: string
           maxLength: 200
           description: Updated physical location or area of the table
           example: "Garden view"
-        description:
-          type: string
-          maxLength: 500
-          description: Updated description or notes about the table
-          example: "Updated table description"
 
     UpdateTableStatusRequest:
       type: object
@@ -163,6 +158,6 @@ components:
       properties:
         status:
           type: string
-          enum: [available, occupied, reserved, maintenance]
+          enum: [AVAILABLE, OCCUPIED, NEEDS_CLEANING]
           description: New status for the table
-          example: "occupied"
+          example: "OCCUPIED"

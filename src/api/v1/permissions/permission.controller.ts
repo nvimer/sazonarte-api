@@ -124,19 +124,12 @@ class PermissionController {
     const page = parseInt(req.query.page as string) || DEFAULT_PAGE;
     const limit = parseInt(req.query.limit as string) || DEFAULT_LIMIT;
     const search = req.query.search as string;
-    const active =
-      req.query.active === "true"
-        ? true
-        : req.query.active === "false"
-          ? false
-          : undefined;
 
     // Create combined parameters object
     const params: PaginationParams & PermissionSearchParams = {
       page,
       limit,
       search,
-      active,
     };
 
     const permissions = await this.permissionService.searchPermissions(params);

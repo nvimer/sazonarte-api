@@ -29,7 +29,7 @@ paths:
                 message: "Table deleted successfully"
                 data:
                   id: 1
-                  number: "T1"
+                  number: "1"
         400:
           description: Invalid table ID
           content:

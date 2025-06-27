@@ -28,19 +28,15 @@ paths:
               setAvailable:
                 summary: Set table as available
                 value:
-                  status: "available"
+                  status: "AVAILABLE"
               setOccupied:
                 summary: Set table as occupied
                 value:
-                  status: "occupied"
+                  status: "OCCUPIED"
               setReserved:
-                summary: Set table as reserved
+                summary: Set table as needs cleaning state
                 value:
-                  status: "reserved"
-              setMaintenance:
-                summary: Set table as under maintenance
-                value:
-                  status: "maintenance"
+                  status: "NEEDS_CLEANING"
       responses:
         200:
           description: Table status updated successfully
@@ -53,8 +49,8 @@ paths:
                 message: "Table status updated successfully"
                 data:
                   id: 1
-                  number: "T1"
-                  status: "occupied"
+                  number: "1"
+                  status: "OCCUPIED"
                   location: "Window side"
                   description: "Table by the window with garden view"
                   createdAt: "2024-01-15T10:30:00Z"
@@ -99,4 +95,4 @@ paths:
               example:
                 success: false
                 message: "Internal server error"
-                error: "INTERNAL_SERVER_ERROR" 
+                error: "INTERNAL_SERVER_ERROR"

@@ -17,14 +17,13 @@ paths:
               fullTableCreation:
                 summary: Full table creation
                 value:
-                  number: "T3"
-                  status: "available"
+                  number: "3"
+                  status: "AVAILABLE"
                   location: "Center area"
-                  description: "Large table in the center"
               minimalTableCreation:
                 summary: Minimal table creation
                 value:
-                  number: "T4"
+                  number: "4"
       responses:
         201:
           description: Table created successfully
@@ -37,10 +36,9 @@ paths:
                 message: "Table created successfully"
                 data:
                   id: 1
-                  number: "T1"
-                  status: "available"
+                  number: "1"
+                  status: "AVAILABLE"
                   location: "Center area"
-                  description: "Large table in the center"
                   createdAt: "2024-01-15T10:30:00Z"
                   updatedAt: "2024-01-15T10:30:00Z"
                   deleted: false
@@ -72,7 +70,7 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
               example:
                 success: false
-                message: "Table with number 'T1' already exists"
+                message: "Table with number '1' already exists"
                 error: "CONFLICT"
         500:
           description: Server error

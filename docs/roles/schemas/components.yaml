@@ -49,20 +49,20 @@ components:
           minLength: 2
           maxLength: 50
           description: Role's name (must be unique)
-          example: "MODERATOR"
+          example: "CASHIER"
         description:
           type: string
           minLength: 5
           maxLength: 200
           description: Role's description
-          example: "Moderator role with limited administrative access"
+          example: "Cashier role with limited administrative access"
         permissionIds:
           type: array
           items:
             type: integer
             minimum: 1
           description: Array of permission IDs to assign to the role
-          example: [1, 2, 5, 8]
+          example: [1, 2, 4]
 
     UpdateRoleRequest:
       type: object
@@ -72,20 +72,20 @@ components:
           minLength: 2
           maxLength: 50
           description: Role's name (must be unique if provided)
-          example: "SUPER_ADMIN"
+          example: "WAITER"
         description:
           type: string
           minLength: 5
           maxLength: 200
           description: Role's description
-          example: "Super administrator role with enhanced privileges"
+          example: "Waiter role with access to orders and menus"
         permissionIds:
           type: array
           items:
             type: integer
             minimum: 1
           description: Array of permission IDs to assign to the role
-          example: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+          example: [4]
 
     BulkDeleteRoleRequest:
       type: object
