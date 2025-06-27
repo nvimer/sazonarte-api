@@ -375,7 +375,9 @@ class RoleRepository implements RoleRepositoryInterface {
       where: { id: roleId },
       include: {
         permissions: {
-          include: { permission: true },
+          include: {
+            permission: true,
+          },
         },
       },
     }) as Promise<Role>;
@@ -386,7 +388,6 @@ class RoleRepository implements RoleRepositoryInterface {
   ): Promise<PaginatedResponse<Role>> {
     const { page, limit } = params;
     const skip = (page - 1) * limit;
-
     const [roles, total] = await Promise.all([
       prisma.role.findMany({
         where: { deleted: false },
@@ -395,7 +396,9 @@ class RoleRepository implements RoleRepositoryInterface {
         take: limit,
         include: {
           permissions: {
-            include: { permission: true },
+            include: {
+              permission: true,
+            },
           },
         },
       }),

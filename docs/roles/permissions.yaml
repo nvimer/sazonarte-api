@@ -45,8 +45,8 @@ paths:
                     type: array
                     items:
                       $ref: "#/components/schemas/Role"
-                  pagination:
-                    $ref: "#/components/schemas/Pagination"
+                  # pagination:
+                  #   $ref: "#/components/schemas/Pagination"
               example:
                 success: true
                 message: "Roles with Permissions fetched successfully"

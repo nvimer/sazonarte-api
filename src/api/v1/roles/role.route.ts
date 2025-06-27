@@ -28,6 +28,17 @@ import rolePermissionsRouter from "./role-permissions.route";
 const router = Router();
 
 /**
+ * Role permissions management sub-router
+ *
+ * This sub-router handles all role permission operations:
+ * - GET /permissions/ - Get all roles with permissions
+ * - GET /permissions/:id - Get role with permissions
+ * - POST /permissions/:id/assign - Assign permissions to role
+ * - DELETE /permissions/:id/remove - Remove permissions from role
+ */
+router.use("/permissions", rolePermissionsRouter);
+
+/**
  * GET /roles
  *
  * Retrieves a paginated list of all non-deleted roles.
@@ -180,16 +191,5 @@ router.delete(
   validate(bulkRoleSchema),
   roleController.bulkDeleteRoles,
 );
-
-/**
- * Role permissions management sub-router
- *
- * This sub-router handles all role permission operations:
- * - GET /permissions/ - Get all roles with permissions
- * - GET /permissions/:id - Get role with permissions
- * - POST /permissions/:id/assign - Assign permissions to role
- * - DELETE /permissions/:id/remove - Remove permissions from role
- */
-router.use("/permissions", rolePermissionsRouter);
 
 export default router;
