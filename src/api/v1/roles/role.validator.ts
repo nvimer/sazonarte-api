@@ -126,9 +126,11 @@ export const bulkRoleSchema = z.object({
  * - Access control configuration
  */
 export const assignPermissionsSchema = z.object({
-  permissionIds: z
-    .array(z.number().int().positive())
-    .min(1, "At least one permission ID is required"),
+  body: z.object({
+    permissionIds: z
+      .array(z.number().int().positive())
+      .min(1, "At least one permission ID is required"),
+  }),
 });
 
 /**
@@ -152,9 +154,11 @@ export const assignPermissionsSchema = z.object({
  * - Access control refinement
  */
 export const removePermissionsSchema = z.object({
-  permissionIds: z
-    .array(z.number().int().positive())
-    .min(1, "At least one permission ID is required"),
+  body: z.object({
+    permissionIds: z
+      .array(z.number().int().positive())
+      .min(1, "At least one permission ID is required"),
+  }),
 });
 
 export type RoleIdParam = z.infer<typeof roleIdSchema>["params"];
@@ -162,3 +166,9 @@ export type CreateRoleInput = z.infer<typeof createRoleSchema>["body"];
 export type UpdateRoleInput = z.infer<typeof updateRoleSchema>["body"];
 export type RoleSearchParams = z.infer<typeof roleSearchSchema>["query"];
 export type BulkRoleInput = z.infer<typeof bulkRoleSchema>["body"];
+export type AssignPermissionsInput = z.infer<
+  typeof assignPermissionsSchema
+>["body"];
+export type RemovePermissionsInput = z.infer<
+  typeof removePermissionsSchema
+>["body"];
