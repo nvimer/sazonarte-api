@@ -28,5 +28,6 @@ export interface ItemServiceInteface {
   findAllMenuItems(
     params: PaginationParams,
   ): Promise<PaginatedResponse<MenuItem>>;
+  findMenuItemById(id: number): Promise<MenuItem>;
   createItem(data: CreateItemInput): Promise<MenuItem>;
 }

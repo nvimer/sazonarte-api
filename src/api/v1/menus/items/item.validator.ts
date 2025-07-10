@@ -1,4 +1,12 @@
 import { z } from "zod";
+import { idParamsSchema } from "../../../../utils/params.schema";
+
+/**
+ * Validatio schena for meny item ID parameters.
+ */
+export const menuItemIdSchema = z.object({
+  params: idParamsSchema,
+});
 
 /**
  * Menu item creation validation schema
@@ -58,14 +66,8 @@ export const createItemSchema = z.object({
   }),
 });
 
-/**
- * Type Structure:
- * - name: string - Item name/identifier
- * - description: string - Item description
- * - categoryId: number - Associated category ID
- * - price: number - Item price
- * - isExtra: boolean - Indicates if item is an extra/add-on
- * - isAvailable: boolean - Item availability status
- * - imageUrl: string - Item image URL
+/** Typescript type definitions derived from the validation schemas.
+ * These types ensure type safety throughout the application.
  */
+export type MenuItemIdParams = z.infer<typeof menuItemIdSchema>["params"];
 export type CreateItemInput = z.infer<typeof createItemSchema>["body"];

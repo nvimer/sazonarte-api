@@ -30,7 +30,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "./schemas/components.yaml#/components/schemas/MenuItemListResponse"
+                $ref: "#/components/schemas/MenuItemListResponse"
               examples:
                 menuItemList:
                   summary: Successful response with paginated menu items
@@ -64,18 +64,98 @@ paths:
                       total: 25
                       totalPages: 3
         400:
-          description: Invalid pagination parameters
+          description: Bad Request - Invalid pagination parameters
           content:
             application/json:
               schema:
-                $ref: "./schemas/components.yaml#/components/schemas/ErrorResponse"
+                $ref: "#/components/schemas/ErrorResponse"
               example:
-                success: false
+                status: 400
                 message: "Invalid pagination parameters"
-                error: "BAD_REQUEST"
-        500:
-          description: Internal server error
+                errors:
+                  - field: "limit"
+                    message: "Limit must be between 1 and 100"
+        401:
+          description: Unauthorized
           content:
             application/json:
               schema:
-                $ref: "./schemas/components.yaml#/components/schemas/ErrorResponse"
+                $ref: "#/components/schemas/ErrorResponse"
+        403:
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /menus/items/{id}:
+    get:
+      tags:
+        - Menu Items
+      summary: Get a menu items by ID
+      description: |
+        Retrieves a specific menu item by its unique identifier 
+        Returns the item regardless of its deleted status.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+          description: Menu Item ID
+          example: 3
+      responses:
+        200:
+          description: Menu Item fetched successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MenuItemResponse"
+              example:
+                success: true
+                message: "Menu Item fetched successfully"
+                data:
+                  id: 123
+                  name: "Soda"
+                  description: "Option for drink. Not include in main dish"
+                  price: 5000
+                  isExtra: false
+                  isAvailable: true
+                  imageUrl: "htts://imageurl.url"
+        400:
+          description: Bad Request - Invalid ID format
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: 400
+                message: "Invalid menu item ID format"
+                errors:
+                  - field: "id"
+                    message: "ID must be a positive integer"
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        403:
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        404:
+          description: Menu Item not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: 404
+                message: "Menu Item ID 999 not found"
+                errors:
+                  - field: "id"
+                    message: "Menu Item not found"

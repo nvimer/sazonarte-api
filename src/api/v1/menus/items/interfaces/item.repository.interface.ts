@@ -26,5 +26,6 @@ import {
  */
 export interface ItemRepositoryInterface {
   findAll(params: PaginationParams): Promise<PaginatedResponse<MenuItem>>;
+  findById(id: number): Promise<MenuItem | null>;
   create(data: CreateItemInput): Promise<MenuItem>;
 }

@@ -71,6 +71,19 @@ class ItemRepository implements ItemRepositoryInterface {
     return createPaginatedResponse(menuItems, total, params);
   }
 
+  /*
+   * Retrieves a specific menu item by its unique identifier.
+   * This method uses Prisma's findUnique for optimal performance on primary key lookups.
+   *
+   * Database Operations:
+   * - Uses Prisma's findUnique for efficient primary key lookup.
+   * - Returns null if no menu item exists with the given ID
+   * - No filtering applied - returns menu item regardless of deleted status
+   */
+  async findById(id: number): Promise<MenuItem | null> {
+    return await prisma.menuItem.findUnique({ where: { id } });
+  }
+
   /**
    * Creates a new menu item record in the database.
    * This method handles item creation with proper data validation

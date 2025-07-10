@@ -73,6 +73,51 @@ class ItemController {
   });
 
   /**
+   * GET /items/:id
+   *
+   * Retrieves detailed information about a specific menu item by its ID.
+   * This endpoint provides complete menu-item information including
+   * name, description, price, imageUrl, isExtra and isAvailable booleans.
+   *
+   * URL Parameters:
+   * - id: Category ID (integer, required)
+   *
+   * Response:
+   * - 200: Menu item details retrieved successfully
+   * - 400: Invalid menu item  ID format
+   * - 404: Menu item not found
+   * - 500: Server error during retrieval
+   *
+   * Menu item  Information:
+   * - Menu item ID and name
+   * - Description and purpose
+   * - Price
+   * - ImageUrl for save image of product
+   * - isExtra and isAvailable for manage dish
+   * - Associated menu items count
+   *
+   * Uses Cases:
+   * - Individual menu item details view
+   * - Menu item editing interface
+   * - Category assignament verification
+   * - Menu item audit and review
+   */
+  getMenuItem = asyncHandler(async (req: Request, res: Response) => {
+    // Extract and convert menu item ID from URL parameters
+    const id = Number(req.params.id);
+
+    // Fetch specific menu item from service layer
+    const menuItem = await this.itemService.findMenuItemById(id);
+
+    // Return successful response with item data
+    res.status(HttpStatus.OK).json({
+      success: true,
+      message: "Menu Item fetched successfully",
+      data: menuItem,
+    });
+  });
+
+  /**
    * POST /items
    *
    * Creates a new menu item in the system with the provided information.

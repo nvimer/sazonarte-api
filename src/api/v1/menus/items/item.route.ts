@@ -1,7 +1,7 @@
 import { Router } from "express";
 import itemController from "./item.controller";
 import { validate } from "../../../../middlewares/validation.middleware";
-import { createItemSchema } from "./item.validator";
+import { createItemSchema, menuItemIdSchema } from "./item.validator";
 import { paginationQuerySchema } from "../../../../utils/pagination.schema";
 
 /**
@@ -32,7 +32,7 @@ import { paginationQuerySchema } from "../../../../utils/pagination.schema";
 const router = Router();
 
 /**
- * GET /menu-items
+ * GET /items
  *
  * Retrieves a paginated list of all Menu-Items in the system.
  * This endpoint supports pagination parameters for efficient
@@ -49,7 +49,7 @@ const router = Router();
 router.get("/", validate(paginationQuerySchema), itemController.getMenuItems);
 
 /**
- * POST /menu-items
+ * POST /items
  *
  * Creates a new menu item in the system with the provided information.
  * This endpoint handles menu item creation with comprehensive validation
@@ -63,5 +63,12 @@ router.get("/", validate(paginationQuerySchema), itemController.getMenuItems);
  * - URL format validation for images
  */
 router.post("/", validate(createItemSchema), itemController.postItem);
+
+/**
+ * GET /items/:id
+ *
+ * Retrieves a specific menu item by its ID
+ */
+router.get("/:id", validate(menuItemIdSchema), itemController.getMenuItem);
 
 export default router;
