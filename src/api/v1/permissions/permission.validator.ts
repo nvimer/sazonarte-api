@@ -71,10 +71,6 @@ export const permissionSearchSchema = z.object({
       .min(1, "Search term must be at least 1 character")
       .max(100, "Search term must not exceed 100 characters")
       .optional(),
-    active: z
-      .enum(["true", "false"])
-      .transform((val) => val === "true")
-      .optional(),
   }),
 });
 

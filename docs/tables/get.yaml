@@ -39,14 +39,14 @@ paths:
                   message: "Tables fetched successfully"
                   data:
                     - id: 1
-                      number: "T1"
-                      status: "available"
+                      number: "1"
+                      status: "AVAILABLE"
                       location: "Window side"
                       createdAt: "2024-01-15T10:30:00Z"
                       updatedAt: "2024-01-15T10:30:00Z"
                     - id: 2
-                      number: "T2"
-                      status: "occupied"
+                      number: "2"
+                      status: "OCCUPIED"
                       location: "Center"
                       createdAt: "2024-01-15T10:30:00Z"
                       updatedAt: "2024-01-15T10:30:00Z"
@@ -116,8 +116,8 @@ paths:
                 message: "Table fetched successfully"
                 data:
                   id: 1
-                  number: "T1"
-                  status: "available"
+                  number: "1"
+                  status: "AVAILABLE"
                   location: "Window side"
                   description: "Table by the window with garden view"
                   createdAt: "2024-01-15T10:30:00Z"

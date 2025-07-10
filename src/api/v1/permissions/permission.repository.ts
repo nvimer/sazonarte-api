@@ -118,7 +118,7 @@ class PermissionRepository implements PermissionRepositoryInterface {
   async search(
     params: PaginationParams & PermissionSearchParams,
   ): Promise<PaginatedResponse<Permission>> {
-    const { page, limit, search, active } = params;
+    const { page, limit, search } = params;
     const skip = (page - 1) * limit;
 
     // Build where clause
@@ -130,11 +130,6 @@ class PermissionRepository implements PermissionRepositoryInterface {
         contains: search,
         mode: "insensitive" as const,
       };
-    }
-
-    // Add active status filter if provided
-    if (active !== undefined) {
-      where.deleted = !active;
     }
 
     const [permissions, total] = await Promise.all([

@@ -39,8 +39,8 @@ paths:
                 data:
                   items:
                     - id: 1
-                      name: "Appetizers"
-                      description: "Light starters and snacks"
+                      name: "Salad"
+                      description: "Salads types"
                       order: 1
                       deleted: false
                       deletedAt: null

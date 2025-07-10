@@ -16,7 +16,7 @@ paths:
             minLength: 1
             maxLength: 100
           description: Search term for filtering roles by name (case-insensitive)
-          example: "admin"
+          example: "ADMIN"
         - in: query
           name: active
           schema:
@@ -92,4 +92,4 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ErrorResponse" 
+                $ref: "#/components/schemas/ErrorResponse"

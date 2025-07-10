@@ -26,9 +26,9 @@ paths:
             schema:
               $ref: "#/components/schemas/UpdateRoleRequest"
             example:
-              name: "SUPER_ADMIN"
-              description: "Super administrator role with enhanced privileges"
-              permissionIds: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+              name: "CASHIER"
+              description: "Cashier role with enhanced privileges"
+              permissionIds: [1, 2, 3, 4]
       responses:
         200:
           description: Role updated successfully
@@ -41,8 +41,8 @@ paths:
                 message: "Role updated successfully"
                 data:
                   id: 1
-                  name: "SUPER_ADMIN"
-                  description: "Super administrator role with enhanced privileges"
+                  name: "CASHIER"
+                  description: "Cashier role with enhanced privileges"
                   createdAt: "2024-01-15T10:30:00Z"
                   updatedAt: "2024-01-15T12:30:00Z"
                   deleted: false
@@ -93,4 +93,4 @@ paths:
                 message: "Role name already exists"
                 errors:
                   - field: "name"
-                    message: "A role with this name already exists" 
+                    message: "A role with this name already exists"

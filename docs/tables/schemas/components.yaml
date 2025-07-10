@@ -11,25 +11,19 @@ components:
           minLength: 1
           maxLength: 50
           description: Table number or identifier (must be unique)
-          example: "T1"
+          example: "1"
         status:
           type: string
-          enum: [available, occupied, reserved, maintenance]
-          default: "available"
+          enum: [AVAILABLE, OCCUPIED, NEEDS_CLEANING]
+          default: "AVAILABLE"
           description: Initial status of the table
-          example: "available"
+          example: "AVAILABLE"
         location:
           type: string
           maxLength: 200
           nullable: true
           description: Physical location or area of the table
           example: "Window side"
-        description:
-          type: string
-          maxLength: 500
-          nullable: true
-          description: Additional description or notes about the table
-          example: "Table by the window with garden view"
 
     TableResponse:
       type: object
@@ -43,7 +37,7 @@ components:
           description: Descriptive message about the operation
           example: "Table created successfully"
         data:
-          $ref: "./table.yaml#/components/schemas/Table"
+          $ref: "#/components/schemas/Table"
           description: Table object
 
     TableListResponse:
@@ -60,7 +54,7 @@ components:
         data:
           type: array
           items:
-            $ref: "./table.yaml#/components/schemas/Table"
+            $ref: "#/components/schemas/Table"
           description: Array of table objects
         meta:
           type: object
@@ -86,26 +80,27 @@ components:
     ErrorResponse:
       type: object
       properties:
-        success:
-          type: boolean
-          description: Indicates if the operation was successful
-          example: false
+        status:
+          type: integer
+          description: HTTP status code
+          example: 400
         message:
           type: string
-          description: Error message describing what went wrong
-          example: "Table not found"
-        error:
-          type: string
-          description: Error code for programmatic handling
-          example: "NOT_FOUND"
-        details:
-          type: object
-          nullable: true
-          description: Additional error details (optional)
-          example:
-            field: "number"
-            value: "T1"
-            constraint: "unique"
+          description: Error message
+          example: "Invalid request parameters"
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+                description: Field that caused the error
+                example: "status"
+              message:
+                type: string
+                description: Error message for the field
+                example: "status not valid, please insert AVAILABLE, OCCUPIED or NEEDS_CLEANING"
 
     DeleteResponse:
       type: object
@@ -128,7 +123,7 @@ components:
             number:
               type: string
               description: Number of the deleted table
-              example: "T1"
+              example: "1"
           description: Information about the deleted table
 
     UpdateTableRequest:
@@ -139,22 +134,17 @@ components:
           minLength: 1
           maxLength: 50
           description: Updated table number or identifier (must be unique)
-          example: "T1A"
+          example: "1"
         status:
           type: string
-          enum: [available, occupied, reserved, maintenance]
+          enum: [AVAILABLE, OCCUPIED, NEEDS_CLEANING]
           description: Updated status of the table
-          example: "occupied"
+          example: "OCCUPIED"
         location:
           type: string
           maxLength: 200
           description: Updated physical location or area of the table
           example: "Garden view"
-        description:
-          type: string
-          maxLength: 500
-          description: Updated description or notes about the table
-          example: "Updated table description"
 
     UpdateTableStatusRequest:
       type: object
@@ -163,6 +153,6 @@ components:
       properties:
         status:
           type: string
-          enum: [available, occupied, reserved, maintenance]
+          enum: [AVAILABLE, OCCUPIED, NEEDS_CLEANING]
           description: New status for the table
-          example: "occupied"
+          example: "OCCUPIED"

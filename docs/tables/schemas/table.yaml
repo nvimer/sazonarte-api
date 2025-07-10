@@ -21,11 +21,6 @@ components:
           nullable: true
           description: Physical location or area of the table
           example: "Window side"
-        description:
-          type: string
-          nullable: true
-          description: Additional description or notes about the table
-          example: "Table by the window with garden view"
         createdAt:
           type: string
           format: date-time

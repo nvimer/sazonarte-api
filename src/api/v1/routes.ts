@@ -11,7 +11,7 @@ import menusRouter from "../v1/menus/menus.route";
  *
  * This router serves as the entry point for all API v1 routes and
  * organizes them into logical modules:
- * 
+ *
  * - /permissions - Permission entity management (CRUD operations)
  * - /roles - Role management and role-permission assignments
  * - /auth - Authentication and authorization endpoints
@@ -27,7 +27,7 @@ const router = Router();
 
 /**
  * Permission Management Routes
- * 
+ *
  * Handles CRUD operations for permission entities:
  * - GET /permissions - List all permissions
  * - POST /permissions - Create new permission
@@ -39,7 +39,7 @@ router.use("/permissions", permissionsRouter);
 
 /**
  * Role Management Routes
- * 
+ *
  * Handles role management and role-permission assignments:
  * - GET /roles - List all roles
  * - POST /roles - Create new role
@@ -54,7 +54,7 @@ router.use("/roles", rolesRouter);
 
 /**
  * Authentication Routes
- * 
+ *
  * Handles user authentication and authorization:
  * - POST /auth/login - User login
  * - POST /auth/register - User registration
@@ -67,7 +67,7 @@ router.use("/auth", authRouter);
 
 /**
  * User Management Routes
- * 
+ *
  * Handles user management and user-role assignments:
  * - GET /users - List all users
  * - GET /users/:id - Get user by ID
@@ -80,7 +80,7 @@ router.use("/users", usersRouter);
 
 /**
  * Table Management Routes
- * 
+ *
  * Handles restaurant table management:
  * - GET /tables - List all tables
  * - POST /tables - Create new table
@@ -92,7 +92,7 @@ router.use("/tables", tablesRouter);
 
 /**
  * Menu Management Routes
- * 
+ *
  * Handles menu and menu item management:
  * - GET /menus/categories - List menu categories
  * - POST /menus/categories - Create menu category

@@ -27,26 +27,21 @@ paths:
               updateNumber:
                 summary: Update table number
                 value:
-                  number: "T1A"
+                  number: "1"
               updateStatus:
                 summary: Update table status
                 value:
-                  status: "occupied"
+                  status: "OCCUPIED"
               updateLocation:
                 summary: Update table location
                 value:
                   location: "Garden view"
-              updateDescription:
-                summary: Update table description
-                value:
-                  description: "Updated table description"
               fullUpdate:
                 summary: Update multiple fields
                 value:
-                  number: "T1B"
-                  status: "available"
+                  number: "1"
+                  status: "AVAILABLE"
                   location: "Terrace"
-                  description: "Outdoor table with view"
       responses:
         202:
           description: Table updated successfully
@@ -59,8 +54,8 @@ paths:
                 message: "Table updated successfully"
                 data:
                   id: 1
-                  number: "T1A"
-                  status: "available"
+                  number: "1"
+                  status: "AVAILABLE"
                   location: "Garden view"
                   description: "Updated table description"
                   createdAt: "2024-01-15T10:30:00Z"
@@ -104,7 +99,7 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
               example:
                 success: false
-                message: "Table with number 'T1A' already exists"
+                message: "Table with number '1' already exists"
                 error: "CONFLICT"
         500:
           description: Server error

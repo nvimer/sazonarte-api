@@ -4,6 +4,11 @@ import { ItemServiceInteface } from "./interfaces/item.service.interface";
 import { CreateItemInput } from "./item.validator";
 import { HttpStatus } from "../../../../utils/httpStatus.enum";
 import itemService from "./item.service";
+import {
+  DEFAULT_LIMIT,
+  DEFAULT_PAGE,
+  PaginationParams,
+} from "../../../../interfaces/pagination.interfaces";
 
 /**
  * Menu Item Controller
@@ -29,6 +34,43 @@ import itemService from "./item.service";
  */
 class ItemController {
   constructor(private itemService: ItemServiceInteface) {}
+
+  /**
+   * GET /menu-items
+   *
+   * Retrieves a paginated list of all menu-items in the system.
+   * This endpoint supports pagination parameters for efficient
+   * data retrieval and display.
+   *
+   * Response:
+   * - 200: Menu Items retrieved successfully with pagination metadata
+   * - 400: Invalid pagination parameters
+   * - 500: Server error during retrieval
+   *
+   * Pagination Features:
+   * - Configurable page size
+   * - Page number tracking
+   * - Metadata for client-side pagination
+   * - Default values for missing parameters
+   *
+   *  Use Cases:
+   * - Restaurant Menu Items management dashboard
+   * - Menu Item availability overview
+   * - Administrative menu-item listing
+   */
+  getMenuItems = asyncHandler(async (req: Request, res: Response) => {
+    const page = parseInt(req.query.page as string) || DEFAULT_PAGE;
+    const limit = parseInt(req.query.limit as string) || DEFAULT_LIMIT;
+
+    const params: PaginationParams = { page, limit };
+    const menuItems = await this.itemService.findAllMenuItems(params);
+
+    res.status(HttpStatus.OK).json({
+      success: true,
+      message: "Menu Items fetched successfully",
+      data: menuItems,
+    });
+  });
 
   /**
    * POST /items
