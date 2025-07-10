@@ -3,6 +3,10 @@ import { ItemServiceInteface } from "./interfaces/item.service.interface";
 import { CreateItemInput } from "./item.validator";
 import { ItemRepositoryInterface } from "./interfaces/item.repository.interface";
 import itemRepository from "./item.repository";
+import {
+  PaginatedResponse,
+  PaginationParams,
+} from "../../../../interfaces/pagination.interfaces";
 
 /**
  * Menu Item Service
@@ -30,6 +34,29 @@ import itemRepository from "./item.repository";
  */
 class ItemService implements ItemServiceInteface {
   constructor(private itemRepository: ItemRepositoryInterface) {}
+
+  /**
+   * Retrieves a paginated list of all Menu Items in the system.
+   * This method handles pagination logic and delegates data
+   * retrieval to the repository layer.
+   *
+   * Business Logic:
+   *  - Validates pagination parameters
+   *  - Hablde default values
+   *  - Ensures data consistency
+   *  - Provices optimized queries
+   *
+   * Uses Cases:
+   *  - Restaurant dashboard display
+   *  - Menu Item management interface
+   *  - Data export and reporting
+   *  - Administrative overview
+   */
+  async findAllMenuItems(
+    params: PaginationParams,
+  ): Promise<PaginatedResponse<MenuItem>> {
+    return this.itemRepository.findAll(params);
+  }
 
   /**
    * Creates a new menu item in the system with the provided information.

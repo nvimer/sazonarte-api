@@ -2,6 +2,7 @@ import { Router } from "express";
 import itemController from "./item.controller";
 import { validate } from "../../../../middlewares/validation.middleware";
 import { createItemSchema } from "./item.validator";
+import { paginationQuerySchema } from "../../../../utils/pagination.schema";
 
 /**
  * This router defines all CRUD operations for menu items:
@@ -29,6 +30,23 @@ import { createItemSchema } from "./item.validator";
  * - Duplicate prevention
  */
 const router = Router();
+
+/**
+ * GET /menu-items
+ *
+ * Retrieves a paginated list of all Menu-Items in the system.
+ * This endpoint supports pagination parameters for efficient
+ * data retrieval and display
+ *
+ * Validation:
+ * - paginationQuerySchema: Validates pagination query parameters
+ *
+ * Response:
+ * - 200: Menu-Items retrieved successfully with pagination metadata
+ * - 400: Invalid pagination parameters
+ * - 500: Server error during retrieval
+ */
+router.get("/", validate(paginationQuerySchema), itemController.getMenuItems);
 
 /**
  * POST /menu-items

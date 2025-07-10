@@ -1,5 +1,9 @@
 import { MenuItem } from "@prisma/client";
 import { CreateItemInput } from "../item.validator";
+import {
+  PaginatedResponse,
+  PaginationParams,
+} from "../../../../../interfaces/pagination.interfaces";
 
 /**
  * Menu Item Service Interface
@@ -21,16 +25,8 @@ import { CreateItemInput } from "../item.validator";
  * - Data validation and business rules
  */
 export interface ItemServiceInteface {
-  /**
-   * Creates a new menu item in the system with the provided information.
-   *
-   * This method should:
-   * - Validate input data and business rules
-   * - Check for name conflicts within category
-   * - Verify category existence and status
-   * - Set appropriate default values
-   * - Ensure data consistency
-   * - Handle validation errors appropriately
-   */
+  findAllMenuItems(
+    params: PaginationParams,
+  ): Promise<PaginatedResponse<MenuItem>>;
   createItem(data: CreateItemInput): Promise<MenuItem>;
 }

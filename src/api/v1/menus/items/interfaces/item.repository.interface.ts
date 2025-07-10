@@ -1,5 +1,9 @@
 import { MenuItem } from "@prisma/client";
 import { CreateItemInput } from "../item.validator";
+import {
+  PaginatedResponse,
+  PaginationParams,
+} from "../../../../../interfaces/pagination.interfaces";
 
 /**
  * Menu Item Repository Interface
@@ -21,16 +25,6 @@ import { CreateItemInput } from "../item.validator";
  * - Error handling for database operations
  */
 export interface ItemRepositoryInterface {
-  /**
-   * Creates a new menu item record in the database.
-   *
-   * This method should:
-   * - Insert data with proper validation
-   * - Handle automatic ID generation
-   * - Set creation timestamps
-   * - Return complete created record
-   * - Maintain referential integrity
-   * - Handle database constraints
-   */
+  findAll(params: PaginationParams): Promise<PaginatedResponse<MenuItem>>;
   create(data: CreateItemInput): Promise<MenuItem>;
 }

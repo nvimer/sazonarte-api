@@ -2,6 +2,11 @@ import { MenuItem } from "@prisma/client";
 import { ItemRepositoryInterface } from "./interfaces/item.repository.interface";
 import { CreateItemInput } from "./item.validator";
 import prisma from "../../../../database/prisma";
+import {
+  PaginationParams,
+  PaginatedResponse,
+} from "../../../../interfaces/pagination.interfaces";
+import { createPaginatedResponse } from "../../../../utils/pagination.helper";
 
 /**
  * Menu Item Repository
@@ -29,6 +34,43 @@ import prisma from "../../../../database/prisma";
  * - Error handling for database operations
  */
 class ItemRepository implements ItemRepositoryInterface {
+  /**
+   * Retrieves a paginated list of all non-deleted menu-items from the database.
+   * This method implements efficient pagination with proper skip/take
+   * logic and total count calculation
+   *
+   * Query Features:
+   * - Excludes soft-deleted menu-item (deleted: false)
+   * - Implements proper pagination with skip/take
+   * - Calculates total count for matadata
+   * - Uses Promises.all for concurrent execution
+   *
+   * Use Cases:
+   * - Restaurant dashboard display
+   * - MenuItem management interface
+   * - Data export and reporting
+   * - Administratice overview
+   */
+  async findAll(
+    params: PaginationParams,
+  ): Promise<PaginatedResponse<MenuItem>> {
+    const { page, limit } = params;
+    const skip = (page - 1) * limit;
+
+    const [menuItems, total] = await Promise.all([
+      prisma.menuItem.findMany({
+        where: { deleted: false },
+        skip,
+        take: limit,
+      }),
+      prisma.menuItem.count({
+        where: { deleted: false },
+      }),
+    ]);
+
+    return createPaginatedResponse(menuItems, total, params);
+  }
+
   /**
    * Creates a new menu item record in the database.
    * This method handles item creation with proper data validation
