@@ -1,6 +1,6 @@
 import { MenuItem } from "@prisma/client";
 import { ItemServiceInteface } from "./interfaces/item.service.interface";
-import { CreateItemInput } from "./item.validator";
+import { CreateItemInput, MenuItemSearchParams } from "./item.validator";
 import { ItemRepositoryInterface } from "./interfaces/item.repository.interface";
 import itemRepository from "./item.repository";
 import {
@@ -116,6 +116,13 @@ class ItemService implements ItemServiceInteface {
    */
   async createItem(data: CreateItemInput): Promise<MenuItem> {
     return await this.itemRepository.create(data);
+  }
+
+  async searchMenuItems(
+    params: PaginationParams & MenuItemSearchParams,
+  ): Promise<PaginatedResponse<MenuItem>> {
+    // Degelete to repository layer for search functionality
+    return await this.itemRepository.search(params);
   }
 }
 

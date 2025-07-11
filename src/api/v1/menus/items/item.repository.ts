@@ -1,6 +1,6 @@
 import { MenuItem } from "@prisma/client";
 import { ItemRepositoryInterface } from "./interfaces/item.repository.interface";
-import { CreateItemInput } from "./item.validator";
+import { CreateItemInput, MenuItemSearchParams } from "./item.validator";
 import prisma from "../../../../database/prisma";
 import {
   PaginationParams,
@@ -104,6 +104,46 @@ class ItemRepository implements ItemRepositoryInterface {
    */
   async create(data: CreateItemInput): Promise<MenuItem> {
     return await prisma.menuItem.create({ data });
+  }
+
+  async search(
+    params: PaginationParams & MenuItemSearchParams,
+  ): Promise<PaginatedResponse<MenuItem>> {
+    const { page, limit, search, active } = params;
+    const skip = (page - 1) * limit;
+
+    // Build search conditions
+    const whereConditions: any = {
+      deleted: false, // Always exclude deleted categories
+    };
+
+    // Add search term if provided
+    if (search) {
+      whereConditions.name = {
+        contains: search,
+        mode: "insensitive", // Case-insensitive searc
+      };
+    }
+
+    // add actice filter if provided
+    if (active === undefined) {
+      whereConditions.active = active;
+    }
+
+    // Execute search and count in parallel
+    const [menuItems, total] = await Promise.all([
+      prisma.menuItem.findMany({
+        where: whereConditions,
+        orderBy: { name: "asc" },
+        skip,
+        take: limit,
+      }),
+      prisma.menuItem.count({
+        where: whereConditions,
+      }),
+    ]);
+
+    return createPaginatedResponse(menuItems, total, { page, limit });
   }
 }
 

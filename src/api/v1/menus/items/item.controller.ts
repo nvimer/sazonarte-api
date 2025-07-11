@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { asyncHandler } from "../../../../utils/asyncHandler";
 import { ItemServiceInteface } from "./interfaces/item.service.interface";
-import { CreateItemInput } from "./item.validator";
+import { CreateItemInput, MenuItemSearchParams } from "./item.validator";
 import { HttpStatus } from "../../../../utils/httpStatus.enum";
 import itemService from "./item.service";
 import {
@@ -68,6 +68,70 @@ class ItemController {
     res.status(HttpStatus.OK).json({
       success: true,
       message: "Menu Items fetched successfully",
+      data: menuItems,
+    });
+  });
+
+  /*
+   * GET /menus/search
+   *
+   * Searches menu items with filtering and pagination capabilities.
+   * This endpoint allows searching by name/description and filtering
+   * by active status for efficient menu item management.
+   *
+   * @param req - Express request object with search and filter Parameters
+   * @param res - Express response object
+   *
+   * Query Paramenters:
+   * - page: Page number (optional, defailts to 1)
+   * - limit: Number of items per page (optional, defaults to 10)
+   * - search: Search term for name/description (optional)
+   * - active: Filter by active status (true/false, optional)
+   *
+   * Response:
+   * - 200: Filtered menu items retrieved successfully
+   * - 400: Invalid search parameters
+   * - 500: Server error during search
+   *
+   * Search Features:
+   * - Text-based search in name and description
+   * - Boolean filtering by active status
+   * - Pagination support for large result sets
+   * - Case-insensitive search
+   *
+   * Use Cases:
+   * - Menu Item s search interface
+   * - Menu organization workflows
+   * - Administrative filtering
+   * - Menu Items discovery and management
+   */
+  searchMenuItems = asyncHandler(async (req: Request, res: Response) => {
+    // Extract pagination and search Parameters
+    const page = Number(req.query.page) || DEFAULT_PAGE;
+    const limit = Number(req.query.limit) || DEFAULT_LIMIT;
+    const search = req.query.search as string;
+    const active =
+      req.query.active === "true"
+        ? true
+        : req.query.active === "false"
+          ? false
+          : undefined;
+
+    // Create combined parameters object
+    const params: PaginationParams & MenuItemSearchParams = {
+      page,
+      limit,
+      search,
+      active,
+    };
+
+    // Search menu items from service layer
+    const menuItems = await this.itemService.searchMenuItems(params);
+
+    // Return successful response with search results
+    res.status(HttpStatus.OK).json({
+      success: true,
+      message: "Menu Items search completed successfully",
       data: menuItems,
     });
   });

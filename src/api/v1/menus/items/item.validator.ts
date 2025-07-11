@@ -1,8 +1,8 @@
-import { z } from "zod";
+import { tuple, z } from "zod";
 import { idParamsSchema } from "../../../../utils/params.schema";
 
 /**
- * Validatio schena for meny item ID parameters.
+ * Validation schema for meny item ID parameters.
  */
 export const menuItemIdSchema = z.object({
   params: idParamsSchema,
@@ -66,8 +66,30 @@ export const createItemSchema = z.object({
   }),
 });
 
+/*
+ * Validation schema for search/filter parameters
+ * Used for filtering menu items by name or other criteria
+ */
+export const menuItemSearchSchema = z.object({
+  query: z.object({
+    search: z
+      .string()
+      .min(1, "Search term must be at least 1 character")
+      .max(100, "Search term cannot exceed 100 characters")
+      .trim()
+      .optional(),
+    active: z
+      .enum(["true", "false"])
+      .transform((val) => val === "true")
+      .optional(),
+  }),
+});
+
 /** Typescript type definitions derived from the validation schemas.
  * These types ensure type safety throughout the application.
  */
 export type MenuItemIdParams = z.infer<typeof menuItemIdSchema>["params"];
 export type CreateItemInput = z.infer<typeof createItemSchema>["body"];
+export type MenuItemSearchParams = z.infer<
+  typeof menuItemSearchSchema
+>["query"];

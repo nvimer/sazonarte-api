@@ -1,7 +1,11 @@
 import { Router } from "express";
 import itemController from "./item.controller";
 import { validate } from "../../../../middlewares/validation.middleware";
-import { createItemSchema, menuItemIdSchema } from "./item.validator";
+import {
+  createItemSchema,
+  menuItemIdSchema,
+  menuItemSearchSchema,
+} from "./item.validator";
 import { paginationQuerySchema } from "../../../../utils/pagination.schema";
 
 /**
@@ -47,6 +51,24 @@ const router = Router();
  * - 500: Server error during retrieval
  */
 router.get("/", validate(paginationQuerySchema), itemController.getMenuItems);
+
+/*
+ * GET /items/search
+ *
+ * Searches for menu items with optional filtering and pagination.
+ *
+ * Query Parameters:
+ * - page: Page number for pagintion (optional, defaults to 1)
+ * - limit: Number of item s per page (optional, defaults to 10)
+ * - search: Search term for name-based filtering (optional)
+ * - active: Filter by active status (true/false, optional)
+ */
+router.get(
+  "/search",
+  validate(menuItemSearchSchema),
+  validate(paginationQuerySchema),
+  itemController.searchMenuItems,
+);
 
 /**
  * POST /items
