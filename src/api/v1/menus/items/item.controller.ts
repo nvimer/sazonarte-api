@@ -33,7 +33,7 @@ import {
  * - Menu organization
  */
 class ItemController {
-  constructor(private itemService: ItemServiceInteface) {}
+  constructor(private itemService: ItemServiceInteface) { }
 
   /**
    * GET /menu-items

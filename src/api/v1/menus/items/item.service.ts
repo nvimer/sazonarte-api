@@ -35,7 +35,7 @@ import { HttpStatus } from "../../../../utils/httpStatus.enum";
  * - Data integrity maintenance
  */
 class ItemService implements ItemServiceInteface {
-  constructor(private itemRepository: ItemRepositoryInterface) {}
+  constructor(private itemRepository: ItemRepositoryInterface) { }
 
   /**
    * Private helper method to find a menu item by id and throw an error if not found.
