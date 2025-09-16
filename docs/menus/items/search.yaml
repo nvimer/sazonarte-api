@@ -1,0 +1,95 @@
+openapi: 3.0.0
+paths:
+  /menus/items/search:
+    get:
+      tags:
+        - Menu Items
+      summary: Search menu items with filtering and pagination
+      description: |
+        Search for menu items by name and filter by active status. 
+        Supports pagination and case-insensitive name search.
+      parameters:
+        - in: path
+          name: search
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 100
+          description: Search term for filtering items by name (case-insensitive)
+          example: "main"
+        - in: query
+          name: active
+          schema:
+            type: string
+            enum: ["true", "false"]
+          description: Filter items by active status
+          example: "true"
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+          description: Number of items per page
+          example: 20
+      responses:
+        200:
+          description: "Menu Items search completed successfully"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MenuItemsListResponse"
+              example:
+                success: true
+                message: "Menu Items search completed successfully"
+                data:
+                  items:
+                    - id: 1
+                      categoryId: 1
+                      name: "Spaghetti"
+                      description: "Classic pasta with meat sauce"
+                      price: 12000
+                      isExtra: false
+                      isAvailable: true
+                      imageUrl: "https://example.com/images/spaghetti.jpg"
+                      createdAt: "2024-01-15T10:30:00Z"
+                      updatedAt: "2024-01-15T10:30:00Z"
+                    - id: 2
+                      categoryId: 1
+                      name: "Pizza Margherita"
+                      description: "Traditional Italian pizza"
+                      price: 15000
+                      isExtra: false
+                      isAvailable: true
+                      imageUrl: "https://example.com/images/pizza.jpg"
+                      createdAt: "2024-02-15T10:30:00Z"
+                      updatedAt: "2024-02-15T10:30:00Z"
+                  total: 2
+                  page: 1
+                  limit: 20
+                  totalPages: 1
+        400:
+          description: Bad Request - Invalid search params
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schema/ErrorResponse"
+              example:
+                status: 400
+                message: "Invalid search parameters"
+                errors:
+                  - field: "search"
+                    message: "Search term must be at least 1 character"
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schema/ErrorResponse"
+        403:
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schema/ErrorResponse"

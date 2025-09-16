@@ -1,12 +1,14 @@
 import { MenuItem } from "@prisma/client";
 import { ItemServiceInteface } from "./interfaces/item.service.interface";
-import { CreateItemInput } from "./item.validator";
+import { CreateItemInput, MenuItemSearchParams } from "./item.validator";
 import { ItemRepositoryInterface } from "./interfaces/item.repository.interface";
 import itemRepository from "./item.repository";
 import {
   PaginatedResponse,
   PaginationParams,
 } from "../../../../interfaces/pagination.interfaces";
+import { CustomError } from "../../../../types/custom-errors";
+import { HttpStatus } from "../../../../utils/httpStatus.enum";
 
 /**
  * Menu Item Service
@@ -33,7 +35,28 @@ import {
  * - Data integrity maintenance
  */
 class ItemService implements ItemServiceInteface {
-  constructor(private itemRepository: ItemRepositoryInterface) {}
+  constructor(private itemRepository: ItemRepositoryInterface) { }
+
+  /**
+   * Private helper method to find a menu item by id and throw an error if not found.
+   * This method centralizes the "find or fail" logic to avoid code duplication
+   *
+   * This method is used internally by other service method that need
+   * to ensure a menu item exists before performing operations on it.
+   */
+  private async findMenuItemByIdOrFail(id: number) {
+    // Attempt to find the menu item in the repository
+    const menuItem = await this.itemRepository.findById(id);
+
+    // If menu item doesn't exist, throw a custom error with appropiate details.
+    if (!menuItem)
+      throw new CustomError(
+        `Menu Item ID ${id} not found`,
+        HttpStatus.NOT_FOUND,
+        "ID_NOT_FOUND",
+      );
+    return menuItem;
+  }
 
   /**
    * Retrieves a paginated list of all Menu Items in the system.
@@ -56,6 +79,14 @@ class ItemService implements ItemServiceInteface {
     params: PaginationParams,
   ): Promise<PaginatedResponse<MenuItem>> {
     return this.itemRepository.findAll(params);
+  }
+
+  /*
+   * Retrieves a specific menu item bu its ID.
+   * This method ensures the menu item exists before returning it
+   */
+  async findMenuItemById(id: number): Promise<MenuItem> {
+    return await this.findMenuItemByIdOrFail(id);
   }
 
   /**
@@ -85,6 +116,13 @@ class ItemService implements ItemServiceInteface {
    */
   async createItem(data: CreateItemInput): Promise<MenuItem> {
     return await this.itemRepository.create(data);
+  }
+
+  async searchMenuItems(
+    params: PaginationParams & MenuItemSearchParams,
+  ): Promise<PaginatedResponse<MenuItem>> {
+    // Degelete to repository layer for search functionality
+    return await this.itemRepository.search(params);
   }
 }
 

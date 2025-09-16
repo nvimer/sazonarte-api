@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { asyncHandler } from "../../../../utils/asyncHandler";
 import { ItemServiceInteface } from "./interfaces/item.service.interface";
-import { CreateItemInput } from "./item.validator";
+import { CreateItemInput, MenuItemSearchParams } from "./item.validator";
 import { HttpStatus } from "../../../../utils/httpStatus.enum";
 import itemService from "./item.service";
 import {
@@ -33,7 +33,7 @@ import {
  * - Menu organization
  */
 class ItemController {
-  constructor(private itemService: ItemServiceInteface) {}
+  constructor(private itemService: ItemServiceInteface) { }
 
   /**
    * GET /menu-items
@@ -69,6 +69,115 @@ class ItemController {
       success: true,
       message: "Menu Items fetched successfully",
       data: menuItems,
+    });
+  });
+
+  /*
+   * GET /menus/search
+   *
+   * Searches menu items with filtering and pagination capabilities.
+   * This endpoint allows searching by name/description and filtering
+   * by active status for efficient menu item management.
+   *
+   * @param req - Express request object with search and filter Parameters
+   * @param res - Express response object
+   *
+   * Query Paramenters:
+   * - page: Page number (optional, defailts to 1)
+   * - limit: Number of items per page (optional, defaults to 10)
+   * - search: Search term for name/description (optional)
+   * - active: Filter by active status (true/false, optional)
+   *
+   * Response:
+   * - 200: Filtered menu items retrieved successfully
+   * - 400: Invalid search parameters
+   * - 500: Server error during search
+   *
+   * Search Features:
+   * - Text-based search in name and description
+   * - Boolean filtering by active status
+   * - Pagination support for large result sets
+   * - Case-insensitive search
+   *
+   * Use Cases:
+   * - Menu Item s search interface
+   * - Menu organization workflows
+   * - Administrative filtering
+   * - Menu Items discovery and management
+   */
+  searchMenuItems = asyncHandler(async (req: Request, res: Response) => {
+    // Extract pagination and search Parameters
+    const page = Number(req.query.page) || DEFAULT_PAGE;
+    const limit = Number(req.query.limit) || DEFAULT_LIMIT;
+    const search = req.query.search as string;
+    const active =
+      req.query.active === "true"
+        ? true
+        : req.query.active === "false"
+          ? false
+          : undefined;
+
+    // Create combined parameters object
+    const params: PaginationParams & MenuItemSearchParams = {
+      page,
+      limit,
+      search,
+      active,
+    };
+
+    // Search menu items from service layer
+    const menuItems = await this.itemService.searchMenuItems(params);
+
+    // Return successful response with search results
+    res.status(HttpStatus.OK).json({
+      success: true,
+      message: "Menu Items search completed successfully",
+      data: menuItems,
+    });
+  });
+
+  /**
+   * GET /items/:id
+   *
+   * Retrieves detailed information about a specific menu item by its ID.
+   * This endpoint provides complete menu-item information including
+   * name, description, price, imageUrl, isExtra and isAvailable booleans.
+   *
+   * URL Parameters:
+   * - id: Category ID (integer, required)
+   *
+   * Response:
+   * - 200: Menu item details retrieved successfully
+   * - 400: Invalid menu item  ID format
+   * - 404: Menu item not found
+   * - 500: Server error during retrieval
+   *
+   * Menu item  Information:
+   * - Menu item ID and name
+   * - Description and purpose
+   * - Price
+   * - ImageUrl for save image of product
+   * - isExtra and isAvailable for manage dish
+   * - Associated menu items count
+   *
+   * Uses Cases:
+   * - Individual menu item details view
+   * - Menu item editing interface
+   * - Category assignament verification
+   * - Menu item audit and review
+   */
+  getMenuItem = asyncHandler(async (req: Request, res: Response) => {
+    // Extract and convert menu item ID from URL parameters
+    const id = Number(req.params.id);
+
+    // Fetch specific menu item from service layer
+    const menuItem = await this.itemService.findMenuItemById(id);
+
+    // Return successful response with item data
+    res.status(HttpStatus.OK).json({
+      success: true,
+      message: "Menu Item fetched successfully",
+      data: menuItem,
     });
   });
 

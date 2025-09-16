@@ -1,5 +1,5 @@
 import { MenuItem } from "@prisma/client";
-import { CreateItemInput } from "../item.validator";
+import { CreateItemInput, MenuItemSearchParams } from "../item.validator";
 import {
   PaginatedResponse,
   PaginationParams,
@@ -28,5 +28,10 @@ export interface ItemServiceInteface {
   findAllMenuItems(
     params: PaginationParams,
   ): Promise<PaginatedResponse<MenuItem>>;
+  findMenuItemById(id: number): Promise<MenuItem>;
   createItem(data: CreateItemInput): Promise<MenuItem>;
+
+  searchMenuItems(
+    params: PaginationParams & MenuItemSearchParams,
+  ): Promise<PaginatedResponse<MenuItem>>;
 }
