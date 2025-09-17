@@ -1,54 +1,98 @@
 import { PrismaClient } from "@prisma/client";
 import { logger } from "../config/logger";
 
-// use a Singleton for PrismaClient to avoid conection problems.
-const prisma = new PrismaClient();
+// Tipos para soft delete
+type SoftDeleteModel = {
+  deleted: boolean;
+  deletedAt: Date | null;
+};
+
+// Tipo para los parámetros de query de Prisma
+type PrismaQueryParams = {
+  model: string;
+  operation: string;
+  args: Record<string, any>;
+  query: (args: Record<string, any>) => Promise<any>;
+};
+
 // Lista de modelos que soportan soft delete
 const SOFT_DELETE_MODELS = [
   "Permission",
   "Role",
-  // Añade aquí todos los nombres de tus modelos que tienen isDeleted y deletedAt
-];
+  "MenuCategory",
+  "MenuItem",
+  "User",
+  "Table",
+] as const;
 
-// 1. Middleware para interceptar DELETES y convertirlos en UPDATES
-// src/database/prisma.ts
-prisma.$use(async (params, next) => {
-  if (params.action === "delete" || params.action === "deleteMany") {
-    if (SOFT_DELETE_MODELS.includes(params.model || "")) {
-      if (params.action === "delete") {
-        params.action = "update";
-        params.args.data = {
-          ...params.args.data,
-          deleted: true,
-          deletedAt: new Date(),
-        };
-      } else if (params.action === "deleteMany") {
-        params.action = "updateMany";
-        params.args.data = {
-          ...params.args.data,
-          deleted: true,
-          deletedAt: new Date(),
-        };
-      }
-    } else {
-      logger.info("Model not in SOFT_DELETE_MODELS:", params.model);
-    }
-  }
-  return next(params);
+type SoftDeleteModelName = (typeof SOFT_DELETE_MODELS)[number];
+
+// Función helper para crear soft delete handlers con tipos estrictos
+const createSoftDeleteHandlers = (modelName: SoftDeleteModelName) => ({
+  async delete({ model, operation, args, query }: PrismaQueryParams) {
+    logger.info(`Soft deleting ${modelName} with ID: ${args.where?.id}`);
+    return query({
+      ...args,
+      data: { ...args.data, deleted: true, deletedAt: new Date() },
+    });
+  },
+
+  async deleteMany({ model, operation, args, query }: PrismaQueryParams) {
+    logger.info(`Soft deleting multiple ${modelName}s`);
+    return query({
+      ...args,
+      data: { ...args.data, deleted: true, deletedAt: new Date() },
+    });
+  },
+
+  async findMany({ model, operation, args, query }: PrismaQueryParams) {
+    const where = args.where || {};
+    return query({
+      ...args,
+      where: { ...where, deleted: false },
+    });
+  },
+
+  async findFirst({ model, operation, args, query }: PrismaQueryParams) {
+    const where = args.where || {};
+    return query({
+      ...args,
+      where: { ...where, deleted: false },
+    });
+  },
+
+  async findUnique({ model, operation, args, query }: PrismaQueryParams) {
+    const where = args.where || {};
+    return query({
+      ...args,
+      where: { ...where, deleted: false },
+    });
+  },
 });
 
-// También puedes agregar logs en el middleware de lectura:
-prisma.$use(async (params, next) => {
-  if (
-    params.action.startsWith("find") &&
-    SOFT_DELETE_MODELS.includes(params.model || "")
-  ) {
-  }
-  // Hook for clean disconnect to close application
-  process.on("beforeExit", async () => {
-    await prisma.$disconnect();
-  });
-  return next(params);
+// Crear PrismaClient con extensiones para soft delete
+const prisma = new PrismaClient({
+  log: ["query", "info", "warn", "error"],
+}).$extends({
+  query: {
+    // MenuCategory soft delete
+    menuCategory: createSoftDeleteHandlers("MenuCategory"),
+    // MenuItem soft delete
+    menuItem: createSoftDeleteHandlers("MenuItem"),
+    // Permission soft delete
+    permission: createSoftDeleteHandlers("Permission"),
+    // Role soft delete
+    role: createSoftDeleteHandlers("Role"),
+    // User soft delete
+    user: createSoftDeleteHandlers("User"),
+    // Table soft delete
+    table: createSoftDeleteHandlers("Table"),
+  },
+});
+
+// Hook for clean disconnect to close application
+process.on("beforeExit", async () => {
+  await prisma.$disconnect();
 });
 
 export default prisma;

@@ -1,6 +1,7 @@
 import { Router } from "express";
 import categoryController from "./category.controller";
 import { validate } from "../../../../middlewares/validation.middleware";
+import { authJwt } from "../../../../middlewares/auth.middleware";
 import {
   categoryIdSchema,
   createMenuCategorySchema,
@@ -105,6 +106,7 @@ router.delete(
  */
 router.delete(
   "/bulk",
+  authJwt,
   validate(bulkCategorySchema),
   categoryController.bulkDeleteCategories,
 );
