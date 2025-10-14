@@ -10,5 +10,5 @@ export const validate = (schema: AnyZodObject) =>
       params: req.params,
       // file: req.file,
     });
-    next();
+    // Don't call next() explicitly - let asyncHandler handle it
   });

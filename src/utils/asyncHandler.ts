@@ -8,6 +8,12 @@ type AsyncHandlerType<T> = (
 
 export const asyncHandler =
   <T>(fn: AsyncHandlerType<T>) =>
-  (req: Request, res: Response, next: NextFunction) => {
-    Promise.resolve(fn(req, res, next)).catch(next);
-  };
+    (req: Request, res: Response, next: NextFunction) => {
+      Promise.resolve(fn(req, res, next))
+        .then(() => {
+          next();
+        })
+        .catch((error) => {
+          next(error);
+        });
+    };
