@@ -52,7 +52,7 @@ import {
  * - Bulk operations for efficiency
  */
 class CategoryController {
-  constructor(private categoryService: CategoryServiceInterface) {}
+  constructor(private categoryService: CategoryServiceInterface) { }
 
   /**
    * GET /categories
@@ -416,10 +416,8 @@ class CategoryController {
   bulkDeleteCategories = asyncHandler(async (req: Request, res: Response) => {
     // Extract validated bulk deletion data from request body
     const data: BulkCategoryInput = req.body;
-
     // Perform bulk deletion through service layer
     const deletedCount = await this.categoryService.bulkDeleteCategories(data);
-
     // Return successful response with deletion count
     res.status(HttpStatus.OK).json({
       success: true,

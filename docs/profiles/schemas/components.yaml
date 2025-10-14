@@ -1,0 +1,23 @@
+openapi: 3.0.0
+components:
+  schemas:
+    UpdateProfileRequest:
+      type: object
+      required:
+        - name
+        - order
+      properties:
+        name:
+          type: string
+          minLength: 3
+          maxLength: 100
+          description: User's name (3 - 100 characters)
+          example: "Nicolas"
+        email:
+          type: string
+          format: email
+          description: User's email address.
+          example: "nicolas@test.com"
+        phone:
+          type: integer
+          description: User's number phone
