@@ -1,12 +1,12 @@
 import { User } from "@prisma/client";
-import { UpdateUserInput } from "../../users/user.validator";
 import {
   PaginationParams,
   PaginatedResponse,
 } from "../../../../interfaces/pagination.interfaces";
+import { UpdateProfileInput } from "../profile.validator";
 
 export interface ProfileRepositoryInterface {
   findAll(params: PaginationParams): Promise<PaginatedResponse<User>>;
   findById(id: string): Promise<User | null>;
-  update(id: string, data: UpdateUserInput): Promise<User>;
+  update(id: string, data: UpdateProfileInput): Promise<User>;
 }

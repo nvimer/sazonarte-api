@@ -29,9 +29,33 @@ export const profileIdSchema = z.object({
  * to update only specific fields without affecting others.
  */
 export const updateProfileSchema = z.object({
-  name: z.string().min(1, "Name is required").optional(),
-  email: z.string().email("Invalid email format").optional(),
-  phone: z.string().optional(),
+  user: z
+    .object({
+      name: z
+        .string()
+        .min(3, "Name must be at least 3 characters long")
+        .max(50)
+        .optional(),
+      email: z.string().email("Invalid email format").optional(),
+      phone: z
+        .string()
+        .regex(/^\d{10}$/, "Phone number must be 10 digits")
+        .optional(),
+    })
+    .optional(),
+
+  profile: z
+    .object({
+      photoUrl: z.string().url("Invalid URL").optional(),
+      birthDate: z.string().datetime("Invalid date format").optional(),
+      identification: z.string().optional(),
+      address: z
+        .string()
+        .min(5, "Address must be at least 5 characters")
+        .max(200)
+        .optional(),
+    })
+    .optional(),
 });
 
 /**

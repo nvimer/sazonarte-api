@@ -1,4 +1,3 @@
-import { UpdateUserInput } from "../users/user.validator";
 import { ProfileRepositoryInterface } from "./interfaces/profile.repository.interface";
 import {
   PaginationParams,
@@ -6,7 +5,10 @@ import {
 } from "../../../interfaces/pagination.interfaces";
 import { createPaginatedResponse } from "../../../utils/pagination.helper";
 import prisma from "../../../database/prisma";
-import { User } from "@prisma/client";
+import { Profile, User } from "@prisma/client";
+import { UpdateProfileInput } from "./profile.validator";
+
+type UserWithProfile = User & { profile: Profile | null };
 
 /**
  * Profile Repository
@@ -14,7 +16,7 @@ import { User } from "@prisma/client";
  * Data access layer for user profile-related database operations.
  * This repository is responsible for:
  * - Direct database interactions using Prisma ORM
- * - Profile CRUD operations (working with User entities)
+ * - Profile CRUD operations (working with User  & Profile entities)
  * - Pagination support for large datasets
  * - Soft delete handling (deleted: false filter)
  */
@@ -36,7 +38,9 @@ class ProfileRepository implements ProfileRepositoryInterface {
    * - Returns only necessary user fields (excludes password)
    *
    */
-  async findAll(params: PaginationParams): Promise<PaginatedResponse<User>> {
+  async findAll(
+    params: PaginationParams,
+  ): Promise<PaginatedResponse<UserWithProfile>> {
     const { page, limit } = params;
     const skip = (page - 1) * limit;
 
@@ -46,6 +50,7 @@ class ProfileRepository implements ProfileRepositoryInterface {
         orderBy: { name: "asc" },
         skip,
         take: limit,
+        include: { profile: true },
       }),
       prisma.user.count({
         where: { deleted: false },
@@ -72,9 +77,10 @@ class ProfileRepository implements ProfileRepositoryInterface {
    * find the user regardless of deletion status.
    *
    */
-  async findById(id: string): Promise<User | null> {
+  async findById(id: string): Promise<UserWithProfile | null> {
     return prisma.user.findUnique({
       where: { id },
+      include: { profile: true },
     });
   }
 
@@ -95,10 +101,11 @@ class ProfileRepository implements ProfileRepositoryInterface {
    * - Handles both user and profile-specific field updates
    *
    */
-  async update(id: string, data: UpdateUserInput): Promise<User> {
+  async update(id: string, data: UpdateProfileInput): Promise<UserWithProfile> {
     return prisma.user.update({
       where: { id },
-      data,
+      data: { ...data, profile: { update: { ...data } } },
+      include: { profile: true },
     });
   }
 }
