@@ -1,5 +1,8 @@
 -- CreateEnum
-CREATE TYPE "RoleName" AS ENUM ('ADMIN', 'CASHIER', 'WAITER', 'KITCHER_MANAGER');
+CREATE TYPE "TokenType" AS ENUM ('ACCESS', 'REFRESH', 'RESET_PASSWORD', 'VERIFY_EMAIL', 'IS_USER_UPDATE_DATA');
+
+-- CreateEnum
+CREATE TYPE "RoleName" AS ENUM ('ADMIN', 'CASHIER', 'WAITER', 'KITCHEN_MANAGER');
 
 -- CreateEnum
 CREATE TYPE "TableStatus" AS ENUM ('AVAILABLE', 'OCCUPIED', 'NEEDS_CLEANING');
@@ -14,6 +17,19 @@ CREATE TYPE "OrderType" AS ENUM ('DINE_IN', 'TAKE_OUT', 'DELIVERY', 'WHATSAPP');
 CREATE TYPE "PaymentMethod" AS ENUM ('CASH', 'NEQUI', 'TICKET_BOOK');
 
 -- CreateTable
+CREATE TABLE "Token" (
+    "id" TEXT NOT NULL,
+    "token" TEXT NOT NULL,
+    "type" "TokenType" NOT NULL,
+    "expires" TIMESTAMP(3) NOT NULL,
+    "blacklisted" BOOLEAN NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "userId" TEXT NOT NULL,
+
+    CONSTRAINT "Token_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "roles" (
     "id" SERIAL NOT NULL,
     "name" "RoleName" NOT NULL,
@@ -21,6 +37,7 @@ CREATE TABLE "roles" (
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
     "deleted" BOOLEAN NOT NULL DEFAULT false,
+    "deleted_at" TIMESTAMP(3),
 
     CONSTRAINT "roles_pkey" PRIMARY KEY ("id")
 );
@@ -33,6 +50,7 @@ CREATE TABLE "permissions" (
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
     "deleted" BOOLEAN NOT NULL DEFAULT false,
+    "deleted_at" TIMESTAMP(3),
 
     CONSTRAINT "permissions_pkey" PRIMARY KEY ("id")
 );
@@ -58,6 +76,7 @@ CREATE TABLE "users" (
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
     "deleted" BOOLEAN NOT NULL DEFAULT false,
+    "deleted_at" TIMESTAMP(3),
 
     CONSTRAINT "users_pkey" PRIMARY KEY ("id")
 );
@@ -77,10 +96,14 @@ CREATE TABLE "user_roles" (
 CREATE TABLE "profiles" (
     "id" TEXT NOT NULL,
     "user_id" TEXT NOT NULL,
+    "photo_url" TEXT,
+    "birthDate" TIMESTAMP(3),
+    "identification" TEXT,
     "address" TEXT,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
     "deleted" BOOLEAN NOT NULL DEFAULT false,
+    "deleted_at" TIMESTAMP(3),
 
     CONSTRAINT "profiles_pkey" PRIMARY KEY ("id")
 );
@@ -93,6 +116,8 @@ CREATE TABLE "tables" (
     "location" TEXT,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
+    "deleted" BOOLEAN NOT NULL DEFAULT false,
+    "deleted_at" TIMESTAMP(3),
 
     CONSTRAINT "tables_pkey" PRIMARY KEY ("id")
 );
@@ -103,6 +128,8 @@ CREATE TABLE "menu_categories" (
     "name" TEXT NOT NULL,
     "description" TEXT,
     "order" INTEGER NOT NULL DEFAULT 0,
+    "deleted" BOOLEAN NOT NULL DEFAULT false,
+    "deleted_at" TIMESTAMP(3),
 
     CONSTRAINT "menu_categories_pkey" PRIMARY KEY ("id")
 );
@@ -119,6 +146,8 @@ CREATE TABLE "menu_items" (
     "image_url" TEXT,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
+    "deleted" BOOLEAN NOT NULL DEFAULT false,
+    "deleted_at" TIMESTAMP(3),
 
     CONSTRAINT "menu_items_pkey" PRIMARY KEY ("id")
 );
@@ -175,6 +204,8 @@ CREATE TABLE "costumers" (
     "email" TEXT,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
+    "deleted" BOOLEAN NOT NULL DEFAULT false,
+    "deleted_at" TIMESTAMP(3),
 
     CONSTRAINT "costumers_pkey" PRIMARY KEY ("id")
 );
@@ -239,6 +270,8 @@ CREATE TABLE "expenses" (
     "description" TEXT,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
+    "deleted" BOOLEAN NOT NULL DEFAULT false,
+    "deleted_at" TIMESTAMP(3),
 
     CONSTRAINT "expenses_pkey" PRIMARY KEY ("id")
 );
@@ -300,6 +333,9 @@ CREATE UNIQUE INDEX "daily_ticket_book_codes_used_at_payment_id_key" ON "daily_t
 
 -- CreateIndex
 CREATE UNIQUE INDEX "daily_ticket_book_codes_costumer_id_date_key" ON "daily_ticket_book_codes"("costumer_id", "date");
+
+-- AddForeignKey
+ALTER TABLE "Token" ADD CONSTRAINT "Token_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "role_permissions" ADD CONSTRAINT "role_permissions_role_id_fkey" FOREIGN KEY ("role_id") REFERENCES "roles"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

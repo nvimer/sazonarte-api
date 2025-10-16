@@ -1,0 +1,36 @@
+import { PrismaClient } from "@prisma/client";
+import { logger } from "../src/config/logger";
+import { seedPermissions } from "./seeds/permissions.seed";
+import { seedRoles } from "./seeds/roles.seed";
+import { seedUsers } from "./seeds/users.seed";
+
+const prisma = new PrismaClient();
+
+async function main() {
+  logger.info("🚀 Starting database seeding...\n");
+
+  try {
+    await seedPermissions();
+    logger.info("");
+
+    await seedRoles();
+    logger.info("");
+
+    await seedUsers();
+    logger.info("");
+
+    logger.info("🎉 Database seeding completed successfully!");
+  } catch (error) {
+    logger.error("❌ Error during seeding:", error);
+    throw error;
+  }
+}
+
+main()
+  .catch((e) => {
+    logger.error(e);
+    process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });

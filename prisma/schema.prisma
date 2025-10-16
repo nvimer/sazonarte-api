@@ -27,7 +27,7 @@ enum RoleName {
   ADMIN
   CASHIER
   WAITER
-  KITCHER_MANAGER
+  KITCHEN_MANAGER
 }
 
 enum TableStatus {
@@ -167,7 +167,10 @@ model Profile {
   userId String @unique @map("user_id")
   user   User   @relation(fields: [userId], references: [id])
 
-  address String?
+  photoUrl       String?   @map("photo_url")
+  birthDate      DateTime? @map("birthDate")
+  identification String?
+  address        String?
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
