@@ -5,10 +5,8 @@ import {
 } from "../../../interfaces/pagination.interfaces";
 import { createPaginatedResponse } from "../../../utils/pagination.helper";
 import prisma from "../../../database/prisma";
-import { Profile, User } from "@prisma/client";
 import { UpdateProfileInput } from "./profile.validator";
-
-type UserWithProfile = User & { profile: Profile | null };
+import { UserWithProfile } from "../../../types/prisma.types";
 
 /**
  * Profile Repository
@@ -102,9 +100,12 @@ class ProfileRepository implements ProfileRepositoryInterface {
    *
    */
   async update(id: string, data: UpdateProfileInput): Promise<UserWithProfile> {
+    const { name, password, email, phone, ...profileData } = data;
+
+    const userData = { name, password, phone, email };
     return prisma.user.update({
       where: { id },
-      data: { ...data, profile: { update: { ...data } } },
+      data: { ...userData, profile: { update: { ...profileData } } },
       include: { profile: true },
     });
   }

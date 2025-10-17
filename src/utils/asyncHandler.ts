@@ -11,7 +11,9 @@ export const asyncHandler =
     (req: Request, res: Response, next: NextFunction) => {
       Promise.resolve(fn(req, res, next))
         .then(() => {
-          next();
+          if (!res.headersSent) {
+            next();
+          }
         })
         .catch((error) => {
           next(error);

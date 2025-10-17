@@ -1,0 +1,193 @@
+openapi: 3.0.0
+paths:
+  /profiles/{id}:
+    patch:
+      tags:
+        - Profiles
+      summary: Update user profile
+      description: |
+        Update information about User and Profile of user. 
+
+        Params to update information:
+        - **User (Account):** name, email, phone
+        - **Profile (Personal):** address, photoUrl, birthDate, identification
+
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: User ID to update profile
+          example: "123e4567-e89b-12d3-a456-426614174000"
+
+      requestBody:
+        required: true
+        description: |
+          Profile data to update. All fields are optional. 
+          Only include the fiels you wish to modify
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateProfileRequest"
+            examples:
+              updateName:
+                summary: Update only name of user.
+                value:
+                  name: "Juan Carlos Pérez González"
+
+              updateContact:
+                summary: Update contact fields
+                value:
+                  email: "nuevo.email@sazonarte.com"
+                  phone: "3009876543"
+
+              updateProfile:
+                summary: Update personal information.
+                value:
+                  address: "Carrera 7 #100-50, Ipiales"
+                  photoUrl: "https://cloudinary.com/sazonarte/profiles/juan.jpg"
+                  birthDate: "1990-05-15"
+                  identification: "1234567890"
+
+              updateComplete:
+                summary: Update complete profile
+                value:
+                  name: "Juan Carlos Pérez González"
+                  email: "juan.perez@sazonarte.com"
+                  phone: "3001234567"
+                  address: "Calle 123 #45-67, Apartamento 301, Ipiales"
+                  photoUrl: "https://cloudinary.com/sazonarte/profiles/juan-perez.jpg"
+                  birthDate: "1990-05-15"
+                  identification: "1234567890"
+
+      responses:
+        202:
+          description: Profile updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProfileResponse"
+              example:
+                success: true
+                message: "Profile updated successfully"
+                data:
+                  id: "123e4567-e89b-12d3-a456-426614174000"
+                  name: "Juan Carlos Pérez González"
+                  email: "juan.perez@sazonarte.com"
+                  phone: "3001234567"
+                  createdAt: "2025-01-15T10:30:00.000Z"
+                  updatedAt: "2025-10-14T15:45:30.000Z"
+                  deleted: false
+                  deletedAt: null
+                  profile:
+                    id: "550e8400-e29b-41d4-a716-446655440001"
+                    userId: "123e4567-e89b-12d3-a456-426614174000"
+                    address: "Calle 123 #45-67, Ipiales"
+                    photoUrl: "https://cloudinary.com/sazonarte/profiles/juan-perez.jpg"
+                    birthDate: "1990-05-15T00:00:00.000Z"
+                    identification: "1234567890"
+                    createdAt: "2025-01-15T10:30:00.000Z"
+                    updatedAt: "2025-10-14T15:45:30.000Z"
+                    deleted: false
+                    deletedAt: null
+
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                invalidEmail:
+                  summary: Invalid email
+                  value:
+                    success: false
+                    status: 400
+                    message: "Validation failed"
+                    code: "VALIDATION_ERROR"
+                    errors:
+                      - field: "email"
+                        message: "Invalid email format"
+
+                invalidPhone:
+                  summary: Invalid number phone
+                  value:
+                    success: false
+                    status: 400
+                    message: "Validation failed"
+                    code: "VALIDATION_ERROR"
+                    errors:
+                      - field: "phone"
+                        message: "Phone number must be a 10 digits"
+
+                invalidName:
+                  summary: Nombre muy corto
+                  value:
+                    success: false
+                    status: 400
+                    message: "Validation failed"
+                    code: "VALIDATION_ERROR"
+                    errors:
+                      - field: "name"
+                        message: "Name must be at least 3 characters long"
+
+        401:
+          description: Unauthorized - Invalid or miss JWT Token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                status: 401
+                message: "Authentication required"
+                code: "UNAUTHORIZED"
+
+        403:
+          description: Unauthorized - Without permissions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                status: 403
+                message: "You don't have permission to update this profile"
+                code: "FORBIDDEN"
+
+        404:
+          description: User Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                status: 404
+                message: "User with ID 123e4567-e89b-12d3-a456-426614174000 not found."
+                code: "ID_NOT_FOUND"
+
+        409:
+          description: Conflict Error  - Email oor Phone already used
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                emailConflict:
+                  summary: Duplicated Email
+                  value:
+                    success: false
+                    status: 409
+                    message: "Email juan.perez@sazonarte.com has already been taken. Please use another email."
+                    code: "EMAIL_CONFLICT"
+
+                phoneConflict:
+                  summary: Duplicated Phone
+                  value:
+                    success: false
+                    status: 409
+                    message: "Phone number 3001234567 is already in use."
+                    code: "PHONE_CONFLICT"

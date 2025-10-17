@@ -2,8 +2,9 @@ import { Request, Response } from "express";
 import { asyncHandler } from "../../../utils/asyncHandler";
 import profileService from "./profile.service";
 import { HttpStatus } from "../../../utils/httpStatus.enum";
-import { UpdateUserInput } from "../users/user.validator";
 import { PaginationParams } from "../../../interfaces/pagination.interfaces";
+import { UpdateProfileInput } from "./profile.validator";
+import { logger } from "../../../config/logger";
 
 /**
  * Profile Controller
@@ -118,8 +119,9 @@ class ProfileController {
    */
   updateProfile = asyncHandler(async (req: Request, res: Response) => {
     const id = req.params.id;
-    const data: UpdateUserInput = req.body;
+    const data: UpdateProfileInput = req.body;
 
+    logger.info(`aqui si llega el id:  ${id}`);
     const profileUpdated = await profileService.updateUser(id, data);
 
     res.status(HttpStatus.ACCEPTED).json({

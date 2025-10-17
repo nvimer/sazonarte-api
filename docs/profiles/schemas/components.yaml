@@ -1,23 +1,252 @@
 openapi: 3.0.0
 components:
   schemas:
+    # ============================================
+    # SCHEMA: UpdateProfileRequest
+    # ============================================
     UpdateProfileRequest:
       type: object
-      required:
-        - name
-        - order
+      description: |
+        Request body for update a user profile. 
+        All fields are optionals (partial updated). 
+        Only update the fields senden in request.
       properties:
         name:
           type: string
           minLength: 3
-          maxLength: 100
-          description: User's name (3 - 100 characters)
-          example: "Nicolas"
+          maxLength: 50
+          description: Complete user's name
+          example: "Juan Carlos Pérez"
         email:
           type: string
           format: email
-          description: User's email address.
-          example: "nicolas@test.com"
+          description: User's email. (Unique value)
+          example: "juan.perez@sazonarte.com"
         phone:
+          type: string
+          pattern: '^\d{10}$'
+          description: User's number phone (10 digits, unique value)
+          example: "3001234567"
+
+        address:
+          type: string
+          description: User's address
+          example: "Calle 123 #45-67, Apartamento 301, Bogotá"
+        photoUrl:
+          type: string
+          format: uri
+          description: URL Photo user profile
+          example: "https://cloudinary.com/sazonarte/profiles/juan-perez.jpg"
+        birthDate:
+          type: string
+          format: date
+          description: User's born date
+          example: "1990-05-15"
+        identification:
+          type: string
+          description: ID Number
+          example: "1234567890"
+
+    # ============================================
+    # SCHEMA: Profile (Nested)
+    # ============================================
+    Profile:
+      type: object
+      description: Información del perfil personal del usuario
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Identificador único del perfil
+          example: "550e8400-e29b-41d4-a716-446655440001"
+        userId:
+          type: string
+          format: uuid
+          description: ID del usuario al que pertenece el perfil
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        address:
+          type: string
+          nullable: true
+          description: Dirección de residencia
+          example: "Calle 123 #45-67, Bogotá"
+        photoUrl:
+          type: string
+          format: uri
+          nullable: true
+          description: URL de la foto de perfil
+          example: "https://cloudinary.com/sazonarte/profiles/user.jpg"
+        birthDate:
+          type: string
+          format: date-time
+          nullable: true
+          description: Fecha de nacimiento
+          example: "1990-05-15T00:00:00.000Z"
+        identification:
+          type: string
+          nullable: true
+          description: Documento de identificación
+          example: "1234567890"
+        createdAt:
+          type: string
+          format: date-time
+          description: Fecha de creación del perfil
+          example: "2025-01-15T10:30:00.000Z"
+        updatedAt:
+          type: string
+          format: date-time
+          description: Fecha de última actualización
+          example: "2025-10-14T15:45:30.000Z"
+        deleted:
+          type: boolean
+          description: Indica si el perfil está eliminado (soft delete)
+          example: false
+        deletedAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: Fecha de eliminación (si aplica)
+          example: null
+
+    # ============================================
+    # SCHEMA: UserWithProfile
+    # ============================================
+    UserWithProfile:
+      type: object
+      description: Usuario completo con su perfil asociado
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Identificador único del usuario
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        name:
+          type: string
+          description: Nombre completo del usuario
+          example: "Juan Carlos Pérez"
+        email:
+          type: string
+          format: email
+          description: Correo electrónico del usuario
+          example: "juan.perez@sazonarte.com"
+        phone:
+          type: string
+          nullable: true
+          description: Número de teléfono del usuario
+          example: "3001234567"
+        createdAt:
+          type: string
+          format: date-time
+          description: Fecha de creación de la cuenta
+          example: "2025-01-15T10:30:00.000Z"
+        updatedAt:
+          type: string
+          format: date-time
+          description: Fecha de última actualización
+          example: "2025-10-14T15:45:30.000Z"
+        deleted:
+          type: boolean
+          description: Indica si el usuario está eliminado (soft delete)
+          example: false
+        deletedAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: Fecha de eliminación (si aplica)
+          example: null
+        profile:
+          $ref: "#/components/schemas/Profile"
+
+    # ============================================
+    # SCHEMA: ProfileResponse (Success)
+    # ============================================
+    ProfileResponse:
+      type: object
+      description: Respuesta exitosa con datos del perfil
+      properties:
+        success:
+          type: boolean
+          description: Indica si la operación fue exitosa
+          example: true
+        message:
+          type: string
+          description: Mensaje descriptivo de la operación
+          example: "Profile updated successfully"
+        data:
+          $ref: "#/components/schemas/UserWithProfile"
+
+    # ============================================
+    # SCHEMA: ProfileListResponse (Success)
+    # ============================================
+    ProfileListResponse:
+      type: object
+      description: Respuesta exitosa con lista paginada de perfiles
+      properties:
+        success:
+          type: boolean
+          description: Indica si la operación fue exitosa
+          example: true
+        message:
+          type: string
+          description: Mensaje descriptivo de la operación
+          example: "Profiles fetched successfully"
+        data:
+          type: object
+          properties:
+            items:
+              type: array
+              items:
+                $ref: "#/components/schemas/UserWithProfile"
+            total:
+              type: integer
+              description: Número total de perfiles
+              example: 45
+            page:
+              type: integer
+              description: Página actual
+              example: 1
+            limit:
+              type: integer
+              description: Número de items por página
+              example: 10
+            totalPages:
+              type: integer
+              description: Número total de páginas
+              example: 5
+
+    # ============================================
+    # SCHEMA: ErrorResponse
+    # ============================================
+    ErrorResponse:
+      type: object
+      description: Respuesta de error estándar
+      properties:
+        success:
+          type: boolean
+          description: Siempre false en errores
+          example: false
+        status:
           type: integer
-          description: User's number phone
+          description: Código de estado HTTP
+          example: 400
+        message:
+          type: string
+          description: Mensaje de error descriptivo
+          example: "Validation failed"
+        code:
+          type: string
+          description: Código de error interno
+          example: "VALIDATION_ERROR"
+        errors:
+          type: array
+          description: Lista de errores específicos (opcional)
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+                description: Campo que causó el error
+                example: "email"
+              message:
+                type: string
+                description: Mensaje de error para el campo
+                example: "Invalid email format"

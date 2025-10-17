@@ -5,7 +5,7 @@ import authRouter from "../v1/auth/auth.route";
 import usersRouter from "../v1/users/user.route";
 import tablesRouter from "../v1/tables/table.route";
 import menusRouter from "../v1/menus/menus.route";
-
+import profilesRouter from "../v1/profiles/profile.route";
 /**
  * Main API Router for v1 endpoints.
  *
@@ -107,4 +107,14 @@ router.use("/tables", tablesRouter);
  */
 router.use("/menus", menusRouter);
 
+/**
+ * Profiles Management Routes
+ *
+ * Handles user and profile item management:
+ * - GET /profiles - List profiles
+ * - GET /profiles/:id - Get profile by ID
+ * - PATCH /profiles/:id - Update profile by ID
+ * - DELETE /profiles/:id - Delete profile by ID
+ */
+router.use("/profiles", profilesRouter);
 export default router;
