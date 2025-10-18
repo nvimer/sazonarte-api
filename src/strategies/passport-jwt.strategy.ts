@@ -7,11 +7,12 @@ import {
 import userService from "../api/v1/users/user.service";
 import { PayloadInput } from "../api/v1/auth/tokens/token.validation";
 import { config } from "../config";
+import { logger } from "../config/logger";
 
 // define the options for strategy jwt
 // extract the jwt form header
 const options: StrategyOptions = {
-  jwtFromRequest: ExtractJwt.fromAuthHeaderWithScheme("jwt"),
+  jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
   secretOrKey: config.jwtSecret,
   // can user issuer and audience ofr major security
   // issuer:
@@ -19,11 +20,11 @@ const options: StrategyOptions = {
 };
 
 // Create a callback for verify user. Pass the payload with id of user.
-// if user exists, return the payload, if not found user, return error
+// if user exists, return the user with his roles and permissions, if not found user, return error
 const jwtVerify: VerifyCallback = async (payload: PayloadInput, done) => {
-  userService.findById(payload.sub).then((user) => {
+  userService.findUserWithRolesAndPermissions(payload.sub).then((user) => {
     if (user) {
-      done(null, payload);
+      done(null, user);
     } else {
       done(null, false);
     }

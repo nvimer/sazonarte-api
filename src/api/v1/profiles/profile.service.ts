@@ -1,5 +1,4 @@
 import { User } from "@prisma/client";
-import { UpdateUserInput } from "../users/user.validator";
 import profileRepository from "./profile.repository";
 import { CustomError } from "../../../types/custom-errors";
 import { HttpStatus } from "../../../utils/httpStatus.enum";
@@ -9,6 +8,8 @@ import {
   PaginationParams,
   PaginatedResponse,
 } from "../../../interfaces/pagination.interfaces";
+import { UpdateProfileInput } from "./profile.validator";
+import { UserWithProfile } from "../../../types/prisma.types";
 
 /**
  * Profile Service
@@ -30,7 +31,7 @@ import {
  * - Pagination support for large datasets
  */
 class ProfileServices implements ProfileServiceInterface {
-  constructor(private profileRepository: ProfileRepositoryInterface) {}
+  constructor(private profileRepository: ProfileRepositoryInterface) { }
 
   /**
    * Validates that a user/profile exists by ID and returns the user if found.
@@ -43,7 +44,7 @@ class ProfileServices implements ProfileServiceInterface {
    * This method is private as it's an internal validation helper
    * used by other service methods to ensure data integrity.
    */
-  private async findByIdOrFail(id: string): Promise<User> {
+  private async findByIdOrFail(id: string): Promise<UserWithProfile> {
     const user = await this.profileRepository.findById(id);
 
     if (!user)
@@ -83,7 +84,7 @@ class ProfileServices implements ProfileServiceInterface {
    *
    * Returns complete user information including profile data.
    */
-  async findById(id: string): Promise<User> {
+  async findById(id: string): Promise<UserWithProfile> {
     return this.findByIdOrFail(id);
   }
 
@@ -109,9 +110,31 @@ class ProfileServices implements ProfileServiceInterface {
    * - Administrative profile management
    * - Profile information updates
    */
-  async updateUser(id: string, data: UpdateUserInput): Promise<User> {
+  async updateUser(
+    id: string,
+    data: UpdateProfileInput,
+  ): Promise<UserWithProfile> {
     await this.findByIdOrFail(id);
     return this.profileRepository.update(id, data);
+  }
+
+  /**
+   *  Retrieves the authenticated user's own profile.
+   *  This method is user for the /profiles/me endpoint.
+   *
+   *  @param id - ID from the authenticated token (req.user.id)
+   *  @returs Promise<UserWithProfile> - User's complete profile
+   *
+   *  Error Codes:
+   *  - ID_NOT_FOUND: User not found (shouldn't happen if token is valid)
+   *
+   *  Security:
+   *  - Only accessible by authenticated users
+   *  - User can only see their own profile
+   */
+
+  async getMyProfile(id: string): Promise<UserWithProfile> {
+    return this.findByIdOrFail(id);
   }
 }
 
