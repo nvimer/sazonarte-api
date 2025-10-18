@@ -16,7 +16,7 @@ const options: swaggerJsdoc.Options = {
       description:
         "API documentation for SazonArte Restaurant Management System",
       contact: {
-        name: "NgCraftz",
+        name: "Sazonarte Repo",
         url: "https://github.com/niccommit/sazonarte-api",
       },
     },

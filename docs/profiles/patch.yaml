@@ -1,6 +1,6 @@
 openapi: 3.0.0
 paths:
-  /profiles/{id}:
+  /profile/{id}:
     patch:
       tags:
         - Profiles

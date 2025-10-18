@@ -1,0 +1,35 @@
+openapi: 3.0.0
+paths:
+  /profile/me:
+    get:
+      tags:
+        - Profiles
+      summary: Get own user's profile.
+      description: |
+        Retrieve a own profile of user authenticated. 
+        Returns a user information with profile information.
+
+      security:
+        - BearerAuth: []
+
+      responses:
+        200:
+          description: My profile fetched successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserWithProfile"
+              example:
+                success: true
+                message: "My profile fetched successfully"
+                data:
+                  id: "b7d9b1eb-04d1-40ab-9b18-9f57855ee0fc"
+                  name: "Juan Perez Lozano"
+                  email: "admin@gmail.com"
+                  phone: "3244422333"
+                  profile:
+                    userId: "123e4567-e89b-12d3-a456-426614174000"
+                    address: "Calle 123 #45-67, Ipiales"
+                    photoUrl: "https://cloudinary.com/sazonarte/profiles/user.jpg"
+                    birthDate: "1990-05-13T00:00:00.000Z"
+                    identification: "123786284"

@@ -111,10 +111,10 @@ router.use("/menus", menusRouter);
  * Profiles Management Routes
  *
  * Handles user and profile item management:
- * - GET /profiles - List profiles
- * - GET /profiles/:id - Get profile by ID
- * - PATCH /profiles/:id - Update profile by ID
- * - DELETE /profiles/:id - Delete profile by ID
+ * - GET /profile - List profiles
+ * - GET /profile/:id - Get profile by ID
+ * - PATCH /profile/:id - Update profile by ID
+ * - DELETE /profile/:id - Delete profile by ID
  */
-router.use("/profiles", profilesRouter);
+router.use("/profile", profilesRouter);
 export default router;

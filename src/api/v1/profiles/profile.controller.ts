@@ -130,6 +130,41 @@ class ProfileController {
       data: profileUpdated,
     });
   });
+  /**
+   * GET /profiles/me
+   *
+   * Retrieves the authenticated user's own profile.
+   * This endpoint uses the JWT token to identify the user.
+   *
+   * Headers:
+   * - Authorization: Bearer <JWT_TOKEN> (required)
+   *
+   * Response
+   * - 200: Profile found and returned (without password)
+   * - 401: Not authenticated
+   * - 404: Profile not found
+   *
+   * Returns complete profile information for the authenticated user:
+   * - User basic information (name, email, phone)
+   * - Profile details (address, photoUrl, birthDate, identification)
+   *
+   * Use Cases:
+   * - User dashboard
+   * - Profile viewing page
+   * - My account settings
+   */
+  getMyProfile = asyncHandler(async (req: Request, res: Response) => {
+    // req.user comes to middleware of authentication (authJwt)
+    const id = req.user.id;
+    const profile = await profileService.getMyProfile(id);
+
+    const { password, ...data } = profile;
+    res.status(HttpStatus.OK).json({
+      success: true,
+      message: "Profile fetched successfully",
+      data: data,
+    });
+  });
 }
 
 export default new ProfileController();

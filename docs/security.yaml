@@ -1,0 +1,15 @@
+openapi: 3.0.0
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormar: JWT
+      description: |
+        **JWT Authentication** 
+
+        Authentication using the Bearer scheme
+
+        `Authorization: JWT eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...`
+security:
+  - BearerAuth: []

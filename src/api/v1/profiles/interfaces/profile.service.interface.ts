@@ -10,4 +10,5 @@ export interface ProfileServiceInterface {
   findAll(params: PaginationParams): Promise<PaginatedResponse<User>>;
   findById(id: string): Promise<UserWithProfile>;
   updateUser(id: string, data: UpdateProfileInput): Promise<UserWithProfile>;
+  getMyProfile(id: string): Promise<UserWithProfile>;
 }

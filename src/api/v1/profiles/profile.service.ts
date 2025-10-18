@@ -117,6 +117,25 @@ class ProfileServices implements ProfileServiceInterface {
     await this.findByIdOrFail(id);
     return this.profileRepository.update(id, data);
   }
+
+  /**
+   *  Retrieves the authenticated user's own profile.
+   *  This method is user for the /profiles/me endpoint.
+   *
+   *  @param id - ID from the authenticated token (req.user.id)
+   *  @returs Promise<UserWithProfile> - User's complete profile
+   *
+   *  Error Codes:
+   *  - ID_NOT_FOUND: User not found (shouldn't happen if token is valid)
+   *
+   *  Security:
+   *  - Only accessible by authenticated users
+   *  - User can only see their own profile
+   */
+
+  async getMyProfile(id: string): Promise<UserWithProfile> {
+    return this.findByIdOrFail(id);
+  }
 }
 
 export default new ProfileServices(profileRepository);

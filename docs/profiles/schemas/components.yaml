@@ -46,67 +46,6 @@ components:
           type: string
           description: ID Number
           example: "1234567890"
-
-    # ============================================
-    # SCHEMA: Profile (Nested)
-    # ============================================
-    Profile:
-      type: object
-      description: Información del perfil personal del usuario
-      properties:
-        id:
-          type: string
-          format: uuid
-          description: Identificador único del perfil
-          example: "550e8400-e29b-41d4-a716-446655440001"
-        userId:
-          type: string
-          format: uuid
-          description: ID del usuario al que pertenece el perfil
-          example: "123e4567-e89b-12d3-a456-426614174000"
-        address:
-          type: string
-          nullable: true
-          description: Dirección de residencia
-          example: "Calle 123 #45-67, Bogotá"
-        photoUrl:
-          type: string
-          format: uri
-          nullable: true
-          description: URL de la foto de perfil
-          example: "https://cloudinary.com/sazonarte/profiles/user.jpg"
-        birthDate:
-          type: string
-          format: date-time
-          nullable: true
-          description: Fecha de nacimiento
-          example: "1990-05-15T00:00:00.000Z"
-        identification:
-          type: string
-          nullable: true
-          description: Documento de identificación
-          example: "1234567890"
-        createdAt:
-          type: string
-          format: date-time
-          description: Fecha de creación del perfil
-          example: "2025-01-15T10:30:00.000Z"
-        updatedAt:
-          type: string
-          format: date-time
-          description: Fecha de última actualización
-          example: "2025-10-14T15:45:30.000Z"
-        deleted:
-          type: boolean
-          description: Indica si el perfil está eliminado (soft delete)
-          example: false
-        deletedAt:
-          type: string
-          format: date-time
-          nullable: true
-          description: Fecha de eliminación (si aplica)
-          example: null
-
     # ============================================
     # SCHEMA: UserWithProfile
     # ============================================

@@ -3,6 +3,7 @@ import { validate } from "../../../middlewares/validation.middleware";
 import { profileIdSchema, updateProfileSchema } from "./profile.validator";
 import profileController from "./profile.controller";
 import { paginationQuerySchema } from "../../../utils/pagination.schema";
+import { authJwt } from "../../../middlewares/auth.middleware";
 
 /**
  * Express Router for Profile endpoints.
@@ -33,6 +34,21 @@ const router = Router();
  *
  */
 router.get("/", validate(paginationQuerySchema), profileController.getProfiles);
+
+/**
+ * GET /profiles/me
+ *
+ * Retrieves the authenticated user's own profile
+ *
+ * Authentication: Required (JWT Token)
+ *
+ * Response:
+ * - 200: Profile found and returned
+ * - 401: Not authenticated
+ * - 404: Profile not found
+ */
+
+router.get("/me", authJwt, profileController.getMyProfile);
 
 /**
  * GET /profiles/:id

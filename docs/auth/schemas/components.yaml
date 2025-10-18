@@ -11,12 +11,12 @@ components:
           type: string
           format: email
           description: User's email address
-          example: newuser@example.com
+          example: admin@sazonarte.com
         password:
           type: string
           format: password
           description: User's password
-          example: "StrongP@ssw0rd"
+          example: "admin123"
 
     LoginResponse:
       type: object
