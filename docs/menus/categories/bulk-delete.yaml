@@ -1,6 +1,6 @@
 openapi: 3.0.0
 paths:
-  /menus/categories/bulk:
+  /menu/categories/bulk:
     delete:
       tags:
         - Menu Categories
@@ -52,4 +52,4 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ErrorResponse" 
+                $ref: "#/components/schemas/ErrorResponse"

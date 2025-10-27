@@ -1,6 +1,6 @@
 openapi: 3.0.0
 paths:
-  /menus/categories/search:
+  /menu/categories/search:
     get:
       tags:
         - Menu Categories
@@ -92,4 +92,4 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ErrorResponse" 
+                $ref: "#/components/schemas/ErrorResponse"

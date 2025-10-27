@@ -1,6 +1,6 @@
 openapi: 3.0.0
 paths:
-  /menus/categories/{id}:
+  /menu/categories/{id}:
     delete:
       tags:
         - Menu Categories
@@ -70,4 +70,4 @@ paths:
                 message: "Menu Category ID 999 not found"
                 errors:
                   - field: "id"
-                    message: "Category not found" 
+                    message: "Category not found"

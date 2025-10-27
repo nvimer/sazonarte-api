@@ -1,6 +1,6 @@
 openapi: 3.0.0
 paths:
-  /menus/categories/{id}:
+  /menu/categories/{id}:
     patch:
       tags:
         - Menu Categories
@@ -91,7 +91,7 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
               example:
                 status: 409
-                message: "Category with name \"Updated Main Dishes\" already exists"
+                message: 'Category with name "Updated Main Dishes" already exists'
                 errors:
                   - field: "name"
                     message: "Category name already exists"

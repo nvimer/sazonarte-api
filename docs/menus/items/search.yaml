@@ -1,6 +1,6 @@
 openapi: 3.0.0
 paths:
-  /menus/items/search:
+  /menu/items/search:
     get:
       tags:
         - Menu Items
