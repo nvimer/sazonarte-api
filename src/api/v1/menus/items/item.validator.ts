@@ -1,4 +1,4 @@
-import { tuple, z } from "zod";
+import { z } from "zod";
 import { idParamsSchema } from "../../../../utils/params.schema";
 
 /**
@@ -62,7 +62,7 @@ export const createItemSchema = z.object({
     price: z.coerce.number(),
     isExtra: z.boolean(),
     isAvailable: z.boolean(),
-    imageUrl: z.string(),
+    imageUrl: z.string().optional(),
   }),
 });
 

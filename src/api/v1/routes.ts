@@ -94,18 +94,18 @@ router.use("/tables", tablesRouter);
  * Menu Management Routes
  *
  * Handles menu and menu item management:
- * - GET /menus/categories - List menu categories
- * - POST /menus/categories - Create menu category
- * - GET /menus/categories/:id - Get category by ID
- * - PATCH /menus/categories/:id - Update category
- * - DELETE /menus/categories/:id - Delete category
- * - GET /menus/items - List menu items
- * - POST /menus/items - Create menu item
- * - GET /menus/items/:id - Get item by ID
- * - PATCH /menus/items/:id - Update item
- * - DELETE /menus/items/:id - Delete item
+ * - GET /menu/categories - List menu categories
+ * - POST /menu/categories - Create menu category
+ * - GET /menu/categories/:id - Get category by ID
+ * - PATCH /menu/categories/:id - Update category
+ * - DELETE /menu/categories/:id - Delete category
+ * - GET /menu/items - List menu items
+ * - POST /menu/items - Create menu item
+ * - GET /menu/items/:id - Get item by ID
+ * - PATCH /menu/items/:id - Update item
+ * - DELETE /menu/items/:id - Delete item
  */
-router.use("/menus", menusRouter);
+router.use("/menu", menusRouter);
 
 /**
  * Profiles Management Routes

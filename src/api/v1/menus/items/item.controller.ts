@@ -68,7 +68,8 @@ class ItemController {
     res.status(HttpStatus.OK).json({
       success: true,
       message: "Menu Items fetched successfully",
-      data: menuItems,
+      data: menuItems.data,
+      meta: menuItems.meta,
     });
   });
 
