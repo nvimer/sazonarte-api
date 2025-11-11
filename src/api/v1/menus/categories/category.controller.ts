@@ -102,7 +102,8 @@ class CategoryController {
     res.status(HttpStatus.OK).json({
       success: true,
       message: "Menu Categories fetched successfully",
-      data: categories,
+      data: categories.data,
+      meta: categories.meta,
     });
   });
 
