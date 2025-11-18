@@ -1,5 +1,9 @@
-import { MenuItem } from "@prisma/client";
-import { CreateItemInput, MenuItemSearchParams } from "../item.validator";
+import { MenuItem, StockAdjustment } from "@prisma/client";
+import {
+  CreateItemInput,
+  DailyStockResetInput,
+  MenuItemSearchParams,
+} from "../item.validator";
 import {
   PaginatedResponse,
   PaginationParams,
@@ -32,4 +36,25 @@ export interface ItemRepositoryInterface {
   search(
     params: PaginationParams & MenuItemSearchParams,
   ): Promise<PaginatedResponse<MenuItem>>;
+  updateStock(
+    id: number,
+    quantity: number,
+    adjustmentType: String,
+    reason?: string,
+    userId?: string,
+    orderId?: string,
+  ): Promise<MenuItem>;
+  dailyStockReset(items: DailyStockResetInput): Promise<void>;
+  getLowStock(): Promise<MenuItem[]>;
+  getOutOfStock(): Promise<MenuItem[]>;
+  getStockHistory(
+    itemId: number,
+    page: number,
+    limit: number,
+  ): Promise<PaginatedResponse<StockAdjustment>>;
+  setInventoryType(
+    id: number,
+    inventoryType: string,
+    lowStockAlert?: number,
+  ): Promise<MenuItem>;
 }

@@ -1,4 +1,4 @@
-// This is your Prisma schema file,
+// This is your Prisma schema file,schema
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 // Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
@@ -224,9 +224,16 @@ model MenuItem {
   isAvailable Boolean @default(true) @map("is_available")
   imageUrl    String? @map("image_url")
 
+  inventoryType       String  @default("UNLIMITED") @map("inventory_type")
+  stockQuantity       Int?    @map("stock_quantity")
+  initialStock        Int?    @map("initial_stock")
+  lowStockAlert       Int?    @default(5) @map("low_stock_alert")
+  autoMarkUnavailable Boolean @default(true) @map("auto_mark_unavailable)")
+
   // Relaciones inversas para saber dónde se usa este items
   dailyMenuOptions DailyMenuOption[]
   orderItems       OrderItem[]
+  stockAdjustments StockAdjustment[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -236,6 +243,25 @@ model MenuItem {
 
   @@unique([categoryId, name])
   @@map("menu_items")
+}
+
+model StockAdjustment {
+  id         String   @id @default(uuid())
+  menuItemId Int      @map("menu_item_id")
+  menuItem   MenuItem @relation(fields: [menuItemId], references: [id])
+
+  adjustmentType String // 'DAILY_RESET' | 'MANUAL_ADD' | 'ORDER_DEDUCT' | "MANUAL_REMOVE" | 'ORDER_CANCELLED'
+  previousStock  Int    @map("previous_stock")
+  newStock       Int    @map("new_stock")
+  quantity       Int
+
+  reason  String?
+  userId  String? @map("user_id")
+  orderId String? @map("order_id")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("stock_adjustments")
 }
 
 model DailyMenuOption {
