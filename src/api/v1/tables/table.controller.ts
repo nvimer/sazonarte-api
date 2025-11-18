@@ -35,7 +35,7 @@ import {
  * - meta: Pagination metadata (for list operations)
  */
 class TableController {
-  constructor(private tableService: TableServiceInterface) {}
+  constructor(private tableService: TableServiceInterface) { }
 
   /**
    * GET /tables
