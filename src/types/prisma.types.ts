@@ -31,3 +31,88 @@ export enum StockAdjustmentType {
   ORDER_CANCELLED = "ORDER_CANCELLED", // Order cancelled
   AUTO_BLOCKED = "AUTO_BLOCKED", // Auto blocked for stock 0
 }
+
+// =============================
+// ORDER TYPES
+// =============================
+
+/**
+ * Order with all relations included
+ *
+ * Includes:
+ * - items: Array of OrderItem with MenItem details
+ * - table: Table information (optional)
+ * - waiter: User who took the Order
+ * - customer: Customer information (optional)
+ * - pauments: Payment records (optional)
+ */
+export type OrderWithRelations = Prisma.OrderGetPayload<{
+  include: {
+    items: {
+      include: {
+        menuItem: true;
+      };
+    };
+    table: true;
+    waiter: {
+      select: {
+        id: true;
+        name: true;
+        email: true;
+      };
+    };
+    costumer: true;
+    payments: true;
+  };
+}>;
+
+/**
+ * Order with items only (most common use case)
+ *
+ * Used for:
+ * - Order creation responses
+ * - Order list displays
+ * - POST/Mobile interfaces
+ */
+export type OrderWithItems = Prisma.OrderGetPayload<{
+  include: {
+    items: {
+      include: {
+        menuItem: true;
+      };
+    };
+  };
+}>;
+
+/**
+ * Order Status Enum (mirrors Prisma enum)
+ *
+ * Status Flow:
+ * PENDING -> SENT_TO_CASHIER -> PAID -> IN_KITCHEN -> READY -> DELIVERED
+ * CANCELLED (can happen from any status)
+ */
+export enum OrderStatus {
+  PENDING = "PENDING",
+  SENT_TO_CASHIER = "SENT_TO_CASHIER",
+  PAID = "PAID",
+  IN_KITCHEN = "IN_KITCHEN",
+  READY = "READY",
+  DELIVERED = "DELIVERED",
+  CANCELLED = "CANCELLED",
+}
+
+/**
+ * Order Type Enum (mirrors Prisma enum)
+ *
+ * Types:
+ * - DINE_IN: Customer eating in restaurant
+ * - TAKE_OUT: Customer picking up food
+ * - DELIVERY: Food delivered to customer
+ * - WHATSAPP: Order placed via Whatsapp
+ */
+export enum OrderType {
+  DINE_IN = "DINE_IN",
+  TAKE_OUT = "TAKE_OUT",
+  DELIVERY = "DELIVERY",
+  WHATSAPP = "WHATSAPP",
+}
