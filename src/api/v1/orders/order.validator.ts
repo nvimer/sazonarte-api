@@ -213,5 +213,5 @@ export type CreateOrderBodyInput = z.infer<typeof createOrderSchema>["body"];
 export type UpdateOrderStatusBodyInput = z.infer<
     typeof updateOrderStatusSchema
 >["body"];
-export type OrderSearchInput = z.infer<typeof orderSearchSchema>["query"];
+export type OrderSearchParams = z.infer<typeof orderSearchSchema>["query"];
 export type OrderItemInput = z.infer<typeof orderItemSchema>;
