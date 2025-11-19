@@ -120,7 +120,7 @@ export const createOrderSchema = z.object({
         waiterId: z.string().uuid("Waiter ID must be a valid UUID"),
         tableId: z.number().int().positive("Table ID must be positive").optional(),
         customerId: z.string().uuid("Customer ID must be a valid UUID").optional(),
-        type: z.array(orderTypeEnum),
+        type: orderTypeEnum,
         items: z
             .array(orderItemSchema)
             .min(1, "Order must contain at least one item.")

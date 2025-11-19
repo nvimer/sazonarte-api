@@ -1,5 +1,8 @@
 import { Order } from "@prisma/client";
-import { PaginationParams } from "../../../../interfaces/pagination.interfaces";
+import {
+    PaginatedResponse,
+    PaginationParams,
+} from "../../../../interfaces/pagination.interfaces";
 import {
     OrderWithItems,
     OrderWithRelations,
@@ -34,7 +37,7 @@ export interface OrderRepositoryInterface {
      */
     findAll(
         params: PaginationParams & OrderSearchParams,
-    ): Promise<OrderWithItems>;
+    ): Promise<PaginatedResponse<OrderWithItems>>;
 
     /**
      * Retrieves a specific order by ID with all relations
