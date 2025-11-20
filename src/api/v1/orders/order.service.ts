@@ -19,6 +19,7 @@ import {
     OrderSearchParams,
     UpdateOrderStatusBodyInput,
 } from "./order.validator";
+import orderRepository from "./order.repository";
 
 /**
  * Order Service
@@ -451,3 +452,5 @@ class OrderService implements OrderServiceInterface {
         return this.orderRepository.cancel(id);
     }
 }
+
+export default new OrderService(orderRepository);
