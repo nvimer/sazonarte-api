@@ -123,8 +123,7 @@ export const createOrderSchema = z.object({
         type: orderTypeEnum,
         items: z
             .array(orderItemSchema)
-            .min(1, "Order must contain at least one item.")
-            .optional(),
+            .min(1, "Order must contain at least one item."),
         notes: z.string().max(500, "Notes cannot exceed 500 characters").optional(),
         whatsappOrderId: z
             .string()
