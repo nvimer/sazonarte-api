@@ -196,8 +196,6 @@ export const orderSearchSchema = z.object({
         waiterId: z.string().uuid().optional(),
         tableId: z.coerce.number().int().positive().optional(),
         date: z.coerce.date().optional(),
-        page: z.coerce.number().int().positive().default(1),
-        limit: z.coerce.number().int().positive().max(100).default(10),
     }),
 });
 
