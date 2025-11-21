@@ -61,7 +61,7 @@ export type OrderWithRelations = Prisma.OrderGetPayload<{
         email: true;
       };
     };
-    costumer: true;
+    customer: true;
     payments: true;
   };
 }>;

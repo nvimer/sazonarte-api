@@ -160,7 +160,7 @@ class OrderRepository implements OrderRepositoryInterface {
                         email: true,
                     },
                 },
-                costumer: true,
+                customer: true,
                 payments: true,
             },
         });
