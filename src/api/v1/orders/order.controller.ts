@@ -1,0 +1,374 @@
+import { Request, Response } from "express";
+import { asyncHandler } from "../../../utils/asyncHandler";
+import { HttpStatus } from "../../../utils/httpStatus.enum";
+import { OrderServiceInterface } from "./interfaces/order.service.interface";
+import orderService from "./order.service";
+import {
+    DEFAULT_LIMIT,
+    DEFAULT_PAGE,
+    PaginationParams,
+} from "../../../interfaces/pagination.interfaces";
+import {
+    CreateOrderBodyInput,
+    OrderSearchParams,
+    UpdateOrderStatusBodyInput,
+} from "./order.validator";
+import { stat } from "fs";
+import { Param } from "@prisma/client/runtime/library";
+import { http } from "winston";
+
+/**
+ * Order Controller
+ *
+ * HTTP request handler layer for order operations.
+ * This controller is responsible for:
+ * - Processig incoming HTTP requests for order operations
+ * - Request validation (delegated to middleware)
+ * - Delegating business logic to service layer
+ * - Formatting HTTP responses
+ * - Error handling (delegated to error middleware)
+ *
+ * Order Operations:
+ * - Create new orders
+ * - List order with filtering
+ * - Get order details
+ * - Update order status
+ * - Cancel orders
+ *
+ * Response Format:
+ * - Success: { success: true, message: string, dat: any }
+ * - Error Handled by error middleware
+ *
+ * Status Codes:
+ * - 200: Succesful operation
+ * - 201: Resource created
+ * - 400: Bad Request
+ * - 401: Unauthorized
+ * - 403: Forbidden
+ * - 404: Not Found
+ * - 505: Server Error
+ */
+class OrderController {
+    constructor(private orderService: OrderServiceInterface) { }
+    /**
+     * GET /orders
+     *
+     * Retrieves paginated list of orders with optional filtering.
+     * This endpoint supports multiple filter criteria for flexible
+     * order management and reporting.
+     *
+     * @param req - Express request object with query parameters
+     * @param res - Express response object
+     *
+     * Query Parameter:
+     * - page: Page number (optional, default: 1)
+     * - limit: Records per page (optional, default: 20, max: 100)
+     * - status: Filter by type (optional)
+     * - type: Filter by type (optional )
+     * - waiterId: Filter by waiter (optional)
+     * - tableId: Filter by table (optional)
+     * - date: Filter by date (optional)
+     *
+     * Response:
+     * - 200: Orders retrieved successfully with pagination metadata
+     * - 400: Invalid query parameters
+     * - 401: User not authenticated
+     * - 403: User lacks required permissions
+     * - 500: Server error during retrieval
+     *
+     * Pagination Metada:
+     * - total: Total number of orders
+     * - page: Current page number
+     * - limit: Records per page
+     * - totalPages: Total number of pages
+     *
+     * Use Cases:
+     * - Active orders display
+     * - Kitchen display system
+     * - Waiter order list (filter by waiterId)
+     * - Table order tracking (filter by tableId)
+     * - Daily reports (filter by date)
+     * - Order history
+     */
+    getOrders = asyncHandler(async (req: Request, res: Response) => {
+        const page = Number(req.query.page) || DEFAULT_PAGE;
+        const limit = Number(req.query.limit) || DEFAULT_LIMIT;
+
+        const searchParams: OrderSearchParams = {
+            status: req.query.status as any,
+            type: req.query.type as any,
+            waiterId: req.query.waiterId as string,
+            tableId: req.query.tableId ? Number(req.query.tableId) : undefined,
+            date: req.query.date ? new Date(req.query.date as string) : undefined,
+        };
+
+        const params: PaginationParams & OrderSearchParams = {
+            page,
+            limit,
+            ...searchParams,
+        };
+
+        const orders = await this.orderService.findAllOrders(params);
+        res.status(HttpStatus.OK).json({
+            success: true,
+            message: "Orders fetched successfully",
+            data: orders.data,
+            meta: orders.meta,
+        });
+    });
+
+    /**
+     * GET /orders/:id
+     *
+     * Retrieves detailed information about a specific order.
+     * This endpoint provides complete order details including items,
+     * table, waiter, customer, and payment information.
+     *
+     * @param req - Express request object with order ID in params
+     * @returns res - Express response object
+     *
+     * URL Parameters:
+     * - id: Order identifier (UUID, required)
+     *
+     * Response:
+     * - 200: Order details retrieved successfully
+     * - 400: Invalid order ID format
+     * - 401: User not authenticated
+     * - 403: User lacks permission to view this order
+     * - 404: Order not Found
+     * - 500: Server error during retrieval
+     *
+     * Response Data Includes:
+     * - Order details (id, status, type, total, etc.)
+     * - Order items with menu item details
+     * - Table informacion (if applicable)
+     * - Waiter information
+     * - Customer information (if available)
+     * - Payment records
+     * - Timestamps (created, updated)
+     *
+     * Use Cases:
+     * - Order detail page
+     * - Order receipt generation
+     * - Order modification interface
+     * - Customer service inquiries
+     * - Order audit trail
+     * - Kitchen order display
+     */
+    getOrder = asyncHandler(async (req: Request, res: Response) => {
+        const id = req.params.id;
+
+        const order = await this.orderService.findOrderById(id);
+
+        res.status(HttpStatus.OK).json({
+            success: true,
+            message: "Order fetched successfully",
+            data: order,
+        });
+    });
+
+    /**
+     * POST /orders
+     *
+     * Creates a new order with items and automatic stock management.
+     * This is the primary endpoint for order creation across all channels.
+     *
+     * @param req - Express request object with order data in body
+     * @param res - Express response object
+     *
+     * Request Body:
+     * - waiterId: Waiter ID (UUID, required)
+     * - tableId: Table ID (number, optional)
+     * - customerId: Customer ID (UUID, optional)
+     * - type: Order type (DINE_IN | TAKE_OUT | DELIVERY | WHATSAPP, required)
+     * - items: Array of order items (required, min 1)
+     *   - menuItemId: Menu item ID (number, required)
+     *   - quantity: Quantity (number, required, min 1)
+     *   - notes: Special instructions (string, optional)
+     * - notes: Order notes (string, optional)
+     * - whasappOrderId: WhatsApp order ID (string, optional)
+     *
+     * Response:
+     * - 201: Order created successfully
+     * - 400: Validation errors or insufficient stock
+     * - 401: User not authenticated
+     * - 403: User lacks permission to create orders
+     * - 404: Menu item not found
+     * - 500: Server error during creation
+     *
+     * Automatic Operations:
+     * - Price captured from current menu item prices
+     * - Total amount calculated autmatically
+     * - Stock validated for all TRACKED items
+     * - Stock deducted for all TRACKED items
+     * - Audit trail created for stock changes
+     *
+     * Validation:
+     * - All menu items must exist
+     * - All menu items must be availables
+     * - Sufficient stock for TRACKED items
+     * - Waiter must exist
+     * - Table must exist (if provided)
+     * - Customer must exist (if provided)
+     *
+     * Business Rules:
+     * - At least one item required
+     * - Prices locked at order time
+     * - Stock deducted immediately
+     * - Order status starts as PENDING
+     *
+     * Use Cases:
+     * - POS order creation
+     * - Mobile app orders
+     * - WhatsApp bot orders
+     * - Table service orders
+     * - Take-out orders
+     * - Delivery orders
+     */
+    createOrder = asyncHandler(async (req: Request, res: Response) => {
+        const data: CreateOrderBodyInput = req.body;
+
+        const newOrder = await this.orderService.createOrder(data);
+
+        res.status(HttpStatus.OK).json({
+            success: true,
+            message: `Order with ID ${newOrder.id} created successfully`,
+            data: newOrder,
+        });
+    });
+
+    /**
+     * PATCH /orders/:id/status
+     *
+     * Updates the status of an order through the workflow.
+     * This endpoint enforces status transition rules and triggers
+     * appropiate side effects.
+     *
+     * @param req - Express request object with order ID and new status
+     * @param res - Express response object
+     *
+     * URL Parameters:
+     * - id: Order identifier (UUID, required)
+     *
+     * Request Body:
+     * - status: New order status (required)
+     *
+     * Valid Statuses:
+     * - PENDING: Order created
+     * - SENT_TO_CASHIER: Sent to cashier for payment
+     * - PAID: Payment confirmed
+     * - IN_KITCHEN: Being prepared
+     * - READY: Ready for pickup/delivery
+     * - DELIVERED: Delivered to customer
+     * - CANCELLED: Order cancelled
+     *
+     * Response:
+     * - 200: Status updated successfully
+     * - 400: Invalid status or transtition
+     * - 401: User not authenticated
+     * - 403: User lacks permission for this status change
+     * - 404: Order not found
+     * - 500: Server error during update
+     *
+     * Status Transition Rules:
+     * - PENDING -> SENT_TO_CASHIER (waiter)
+     * - SENT_TO_CASHIER -> PAID (cashier)
+     * - PAID -> IN_KITCHEN (system / kitchen)
+     * - IN_KITCHEN -> READY (waiter)
+     * - READY -> DELIVERED (waiter)
+     * - Any status -> CANCELLED (manager / admin)
+     *
+     * Terminal Statuses:
+     * - DELIVERED: Cannot be changed
+     * - CANCELLED: Cannot be changed
+     *
+     * Side Effects:
+     * - CANCELLED: Stock automatically reverted (use DELETE endpoint)
+     * - Other statuses: No automatic side effects
+     *
+     * Uses Cases:
+     * - Waiter workflow progression
+     * - Kitchen status updates
+     * - Delivery confirmations
+     * - Payment confirmations
+     * - Status tracking
+     */
+    updateOrderStatus = asyncHandler(async (req: Request, res: Response) => {
+        const id = req.params.id;
+        const status: UpdateOrderStatusBodyInput = req.body;
+
+        const order = await this.orderService.updateOrderStatus(id, status);
+
+        res.status(HttpStatus.OK).json({
+            success: true,
+            message: "Order status updated successfully",
+            data: order,
+        });
+    });
+
+    /**
+     * DELETE /orders/:id
+     *
+     * Cancels an order and automatically reverts stock.
+     * This endpoint handles order cancellation with full cleanup.
+     *
+     * @param req - Express request object with order ID in params
+     * @param res - Express response object
+     *
+     * URL Parameters:
+     * - id: Order identifier (UUID, required)
+     *
+     * Response:
+     * - 200: Order cancelled successfully
+     * - 400: Cannot cancel this order (already delivered/cancelled)
+     * - 401: User not authenticated
+     * - 403: User lacks permission to cancel orders
+     * - 404: Order not found
+     * - 500: Server error during cancellation
+     *
+     * Automatic Operations:
+     * - Order status changed to CANCELLED
+     * - Stock reverted for all TRACKED items
+     * - Audit trail created for stock changes
+     * - Order preserved in database (soft delete)
+     *
+     * Cancellation Rules:
+     * - Cannot cancel DELIVERED orders
+     * - Cannot cancel already CANCELLED orders
+     * - Can cancel from any other status
+     * - May require manager/admin permission
+     * - Time limits may apply
+     *
+     * Stock Reversion:
+     * - All order items stock restored
+     * - Only TRACKED items affected
+     * - Stock adjustment records created
+     * - Items may become available again
+     *
+     * Business Rules:
+     * - Customer notification may be triggered
+     * - Payment refund may be initiated
+     * - Cancellation logged for audit
+     * - Metrics updated
+     *
+     * Use Cases:
+     * - Customer cancellation
+     * - Kitchen unable to prepare
+     * - Incorrect order placed
+     * - Customer left without paying
+     * - Duplicate order correction
+     * - Manager override
+     */
+    cancelOrder = asyncHandler(async (req: Request, res: Response) => {
+        const id = req.params.id;
+
+        const order = await this.orderService.cancelOrder(id);
+        res.status(HttpStatus.OK).json({
+            success: true,
+            message: `Order with ID ${id} has been CANCELLED`,
+            data: order,
+        });
+    });
+}
+
+export default new OrderController(orderService);
