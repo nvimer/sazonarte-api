@@ -13,9 +13,6 @@ import {
     OrderSearchParams,
     UpdateOrderStatusBodyInput,
 } from "./order.validator";
-import { stat } from "fs";
-import { Param } from "@prisma/client/runtime/library";
-import { http } from "winston";
 
 /**
  * Order Controller
