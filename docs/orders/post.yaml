@@ -1,0 +1,232 @@
+openapi: 3.0.0
+paths:
+  /orders:
+    post:
+      tags:
+        - Orders
+      summary: Create a new order
+      description: |
+        Creates a new order with items and automatic stock management.
+
+        **Authentication:**
+        - JWT token required (Bearer token in Authorization header)
+        - Waiter ID automatically extracted from authenticated user
+        - Do not include waiterId in request body
+
+        This endpoint:
+        - Validates all menu items exist and are available
+        - Checks stock availability for TRACKED items
+        - Captures current prices (locked at order time)
+        - Calculates total amount automatically
+        - Deducts stock for TRACKED items
+        - Creates audit trail for stock changes
+
+        **Stock Integration:**
+        - TRACKED items: Stock validated and deducted
+        - UNLIMITED items: No stock validation
+        - Insufficient stock: Order rejected with error
+
+        **Price Locking:**
+        - Prices captured from MenuItem at order time
+        - Stored in OrderItem.priceAtOrder
+        - Protected from future price changes
+
+        **Required Permissions:**
+        - WAITER, ADMIN, or MANAGER role
+
+      security:
+        - BearerAuth: []
+
+      requestBody:
+        required: true
+        description: Order creation data with items
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateOrderRequest"
+            examples:
+              dineInOrder:
+                summary: Dine-in order with table
+                value:
+                  tableId: 5
+                  type: "DINE_IN"
+                  items:
+                    - menuItemId: 1
+                      quantity: 2
+                      notes: "No onions"
+                    - menuItemId: 3
+                      quantity: 1
+                  notes: "Customer prefers window seat"
+
+              takeOutOrder:
+                summary: Take-out order without table
+                value:
+                  type: "TAKE_OUT"
+                  items:
+                    - menuItemId: 2
+                      quantity: 3
+                    - menuItemId: 4
+                      quantity: 2
+                      notes: "Extra sauce"
+
+              deliveryOrder:
+                summary: Delivery order with customer
+                value:
+                  costumerId: "660e8400-e29b-41d4-a716-446655440002"
+                  type: "DELIVERY"
+                  items:
+                    - menuItemId: 1
+                      quantity: 1
+                    - menuItemId: 5
+                      quantity: 2
+                  notes: "Deliver to main entrance"
+
+              whatsappOrder:
+                summary: WhatsApp order
+                value:
+                  type: "WHATSAPP"
+                  whatsappOrderId: "WA123456"
+                  items:
+                    - menuItemId: 3
+                      quantity: 2
+
+      responses:
+        201:
+          description: Order created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderResponse"
+              example:
+                success: true
+                message: "Order created successfully"
+                data:
+                  id: "123e4567-e89b-12d3-a456-426614174000"
+                  tableId: 5
+                  costumerId: null
+                  status: "PENDING"
+                  type: "DINE_IN"
+                  totalAmount: 75000.00
+                  notes: "Customer prefers window seat"
+                  whatsappOrderId: null
+                  createdAt: "2025-11-17T12:30:00.000Z"
+                  updatedAt: "2025-11-17T12:30:00.000Z"
+                  items:
+                    - id: 1
+                      orderId: "123e4567-e89b-12d3-a456-426614174000"
+                      menuItemId: 1
+                      quantity: 2
+                      priceAtOrder: 25000.00
+                      notes: "No onions"
+                      isFreeSubstitution: false
+                      menuItem:
+                        id: 1
+                        name: "Bandeja Paisa"
+                        price: 25000.00
+                        isAvailable: true
+                        inventoryType: "TRACKED"
+                    - id: 2
+                      orderId: "123e4567-e89b-12d3-a456-426614174000"
+                      menuItemId: 3
+                      quantity: 1
+                      priceAtOrder: 25000.00
+                      notes: null
+                      isFreeSubstitution: false
+                      menuItem:
+                        id: 3
+                        name: "Ajiaco"
+                        price: 25000.00
+                        isAvailable: true
+                        inventoryType: "TRACKED"
+
+        400:
+          description: Bad Request - Validation errors or business rule violations
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                emptyItems:
+                  summary: No items in order
+                  value:
+                    success: false
+                    status: 400
+                    message: "Validation failed"
+                    code: "VALIDATION_ERROR"
+                    errors:
+                      - field: "items"
+                        message: "Order must contain at least one item"
+
+                invalidQuantity:
+                  summary: Invalid item quantity
+                  value:
+                    success: false
+                    status: 400
+                    message: "Validation failed"
+                    code: "VALIDATION_ERROR"
+                    errors:
+                      - field: "quantity"
+                        message: "Quantity must be at least 1"
+
+                itemNotAvailable:
+                  summary: Menu item not available
+                  value:
+                    success: false
+                    status: 400
+                    message: "The following items are not available: Bandeja Paisa, Ajiaco"
+                    code: "ITEMS_NOT_AVAILABLE"
+
+                insufficientStock:
+                  summary: Insufficient stock for item
+                  value:
+                    success: false
+                    status: 400
+                    message: "Insufficient stock for Bandeja Paisa. Available: 3, Required: 5"
+                    code: "INSUFFICIENT_STOCK"
+
+        401:
+          description: Unauthorized - Missing or invalid JWT token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                status: 401
+                message: "Authentication required"
+                code: "UNAUTHORIZED"
+
+        403:
+          description: Forbidden - User lacks permission to create orders
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                status: 403
+                message: "You don't have permission to create orders"
+                code: "FORBIDDEN"
+
+        404:
+          description: Not Found - Menu item or waiter not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                menuItemNotFound:
+                  summary: Menu item doesn't exist
+                  value:
+                    success: false
+                    status: 404
+                    message: "Menu Item ID 1 not found"
+                    code: "ID_NOT_FOUND"
+
+                waiterNotFound:
+                  summary: Waiter doesn't exist
+                  value:
+                    success: false
+                    status: 404
+                    message: "Waiter with ID 550e8400-e29b-41d4-a716-446655440001 not found"
+                    code: "WAITER_NOT_FOUND"

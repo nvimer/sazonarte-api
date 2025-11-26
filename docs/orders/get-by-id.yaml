@@ -1,0 +1,149 @@
+openapi: 3.0.0
+paths:
+  /orders/{id}:
+    get:
+      tags:
+        - Orders
+      summary: Get order details
+      description: |
+        Retrieves complete details of a specific order including:
+        - Order information (status, type, total, notes)
+        - All order items with menu item details
+        - Table information (if applicable)
+        - Waiter information
+        - Customer information (if available)
+        - Payment records (if any)
+        
+        **Use Cases:**
+        - Order detail page
+        - Order receipt generation
+        - Order modification interface
+        - Customer service inquiries
+        - Order audit trail
+        - Kitchen order display
+        
+        **Required Permissions:**
+        - WAITER: Can view their own orders
+        - MANAGER/ADMIN: Can view all orders
+      
+      security:
+        - BearerAuth: []
+      
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Order identifier
+          example: "123e4567-e89b-12d3-a456-426614174000"
+      
+      responses:
+        200:
+          description: Order details retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderResponse"
+              example:
+                success: true
+                message: "Order fetched successfully"
+                data:
+                  id: "123e4567-e89b-12d3-a456-426614174000"
+                  tableId: 5
+                  waiterId: "550e8400-e29b-41d4-a716-446655440001"
+                  costumerId: null
+                  status: "IN_KITCHEN"
+                  type: "DINE_IN"
+                  totalAmount: 75000.00
+                  notes: "Customer prefers window seat"
+                  whatsappOrderId: null
+                  createdAt: "2025-11-17T12:30:00.000Z"
+                  updatedAt: "2025-11-17T12:35:00.000Z"
+                  items:
+                    - id: 1
+                      orderId: "123e4567-e89b-12d3-a456-426614174000"
+                      menuItemId: 1
+                      quantity: 2
+                      priceAtOrder: 25000.00
+                      notes: "No onions"
+                      isFreeSubstitution: false
+                      createdAt: "2025-11-17T12:30:00.000Z"
+                      updatedAt: "2025-11-17T12:30:00.000Z"
+                      menuItem:
+                        id: 1
+                        name: "Bandeja Paisa"
+                        description: "Traditional Colombian platter"
+                        price: 25000.00
+                        isAvailable: true
+                        imageUrl: "https://cloudinary.com/sazonarte/items/bandeja-paisa.jpg"
+                        inventoryType: "TRACKED"
+                    - id: 2
+                      orderId: "123e4567-e89b-12d3-a456-426614174000"
+                      menuItemId: 3
+                      quantity: 1
+                      priceAtOrder: 25000.00
+                      notes: null
+                      isFreeSubstitution: false
+                      createdAt: "2025-11-17T12:30:00.000Z"
+                      updatedAt: "2025-11-17T12:30:00.000Z"
+                      menuItem:
+                        id: 3
+                        name: "Ajiaco"
+                        description: "Traditional Colombian soup"
+                        price: 25000.00
+                        isAvailable: true
+                        imageUrl: "https://cloudinary.com/sazonarte/items/ajiaco.jpg"
+                        inventoryType: "TRACKED"
+        
+        400:
+          description: Bad Request - Invalid order ID format
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                status: 400
+                message: "Validation failed"
+                code: "VALIDATION_ERROR"
+                errors:
+                  - field: "id"
+                    message: "ID must be a valid UUID"
+        
+        401:
+          description: Unauthorized - Missing or invalid JWT token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                status: 401
+                message: "Authentication required"
+                code: "UNAUTHORIZED"
+        
+        403:
+          description: Forbidden - User lacks permission to view this order
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                status: 403
+                message: "You don't have permission to view this order"
+                code: "FORBIDDEN"
+        
+        404:
+          description: Not Found - Order doesn't exist
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                status: 404
+                message: "Order with ID 123e4567-e89b-12d3-a456-426614174000 not found"
+                code: "ORDER_NOT_FOUND"
