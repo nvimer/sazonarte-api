@@ -62,7 +62,7 @@ export interface OrderServiceInterface {
      * @return Created order with items
      * @throws Custom Error if validation fails or insufficient stock
      */
-    createOrder(data: CreateOrderBodyInput): Promise<OrderWithItems>;
+    createOrder(id: string, data: CreateOrderBodyInput): Promise<OrderWithItems>;
 
     /**
      * Updates order status with validation

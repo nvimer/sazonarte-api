@@ -53,7 +53,7 @@ export interface OrderRepositoryInterface {
      * @param data - Order creation data including items
      * @returns Created order with items
      */
-    create(data: CreateOrderBodyInput): Promise<OrderWithItems>;
+    create(waiterId: string, data: CreateOrderBodyInput): Promise<OrderWithItems>;
 
     /**
      * Updates order status

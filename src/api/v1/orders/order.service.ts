@@ -216,7 +216,10 @@ class OrderService implements OrderServiceInterface {
      * - Take-out orders
      * - Delivery orders
      */
-    async createOrder(data: CreateOrderBodyInput): Promise<OrderWithItems> {
+    async createOrder(
+        id: string,
+        data: CreateOrderBodyInput,
+    ): Promise<OrderWithItems> {
         // Step 1: Validate and ferch all menu items
         const menuItemsPromises = data.items.map((item) =>
             itemService.findMenuItemById(item.menuItemId),
@@ -269,7 +272,10 @@ class OrderService implements OrderServiceInterface {
         );
 
         // Step 6: Create order in database
-        let order = await this.orderRepository.create(orderDataWithPrices as any);
+        let order = await this.orderRepository.create(
+            id,
+            orderDataWithPrices as any,
+        );
         order = (await this.orderRepository.updateTotal(
             order.id,
             totalAmount,

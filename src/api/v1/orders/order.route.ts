@@ -7,6 +7,7 @@ import {
 } from "./order.validator";
 import orderController from "./order.controller";
 import { validate } from "../../../middlewares/validation.middleware";
+import { authJwt } from "../../../middlewares/auth.middleware";
 
 /**
  * Order Routes
@@ -17,11 +18,19 @@ import { validate } from "../../../middlewares/validation.middleware";
  * - Order Status management
  * - Order filtering and search
  *
+ * Authentication:
+ * - All routes require JWT authentication
+ * - User information available via req.user
+ *
  * Validation:
  * - Request validation via Zod schemas
  * - Automatic error responses for invalid data
  */
 const router = Router();
+
+// Apply authentication to ALL order routes
+// This ensures req.user is available in all controllers
+router.use(authJwt);
 
 /**
  * GET /orders
@@ -73,28 +82,35 @@ router.get("/:id", validate(orderIdSchema), orderController.getOrder);
  *
  * Creates a new order with items and stock management
  *
- * Request Body:
- * - waiterId: Waiter UUID (required)
- * - tableId: Table number (optional)
- * - customerId: Customer UUID (optional)
- * - type: Order type (DINE_IN | TAKE_OUT | DELIVERY | WHATSAPP, required)
- * - notes: Order notes optional
- * - whatsappOrderId: WhatsApp order ID (optional)
+ * Authentication: Required (waiter ID extracted automatically from JWT token)
  *
- * Authentication: Required
+ * Request Body:
+ * - tableId: Table number (optional, typically required for DINE_IN)
+ * - customerId: Customer UUID (optional, for registered customers)
+ * - type: Order type (DINE_IN | TAKE_OUT | DELIVERY | WHATSAPP, required)
+ * - items: Array of order items (required, minimum 1 item)
+ * - notes: Order notes (optional, max 500 characters)
+ * - whatsappOrderId: WhatsApp order ID (optional, for WHATSAPP orders)
+ *
+ * Note: waiterId is automatically extracted from the authenticated user's JWT token
+ *
  * Validation: createOrderSchema
  *
  * Automatic Operations:
- * - Price capture
- * - Total calculation
- * - Stock validation
- * - Stock deduction
+ * - Waiter ID captured from JWT token (req.user.id)
+ * - Price capture from current menu items (locked at order time)
+ * - Total amount calculation
+ * - Stock validation for TRACKED items
+ * - Stock deduction for TRACKED items
+ * - Audit trail creation
  *
  * Use Cases:
  * - POS order creation
- * - Mobile orders
- * - WhatsApp orders
- * - Table service
+ * - Mobile app orders
+ * - WhatsApp bot orders
+ * - Table service orders
+ * - Take-out orders
+ * - Delivery orders
  */
 router.post("/", validate(createOrderSchema), orderController.createOrder);
 

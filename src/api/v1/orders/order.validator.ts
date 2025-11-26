@@ -117,7 +117,6 @@ const orderItemSchema = z.object({
  */
 export const createOrderSchema = z.object({
     body: z.object({
-        waiterId: z.string().uuid("Waiter ID must be a valid UUID"),
         tableId: z.number().int().positive("Table ID must be positive").optional(),
         customerId: z.string().uuid("Customer ID must be a valid UUID").optional(),
         type: orderTypeEnum,
@@ -127,7 +126,8 @@ export const createOrderSchema = z.object({
         notes: z.string().max(500, "Notes cannot exceed 500 characters").optional(),
         whatsappOrderId: z
             .string()
-            .max(100, "WhatsApp Order ID cannot exceed 100 characters"),
+            .max(100, "WhatsApp Order ID cannot exceed 100 characters")
+            .optional(),
     }),
 });
 

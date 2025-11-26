@@ -205,7 +205,10 @@ class OrderRepository implements OrderRepositoryInterface {
      * - WhatsApp order integration
      * - Table service orders
      */
-    async create(data: CreateOrderBodyInput): Promise<OrderWithItems> {
+    async create(
+        waiterId: string,
+        data: CreateOrderBodyInput,
+    ): Promise<OrderWithItems> {
         // Extract items from order data
         const { items, ...orderData } = data;
 
@@ -213,6 +216,7 @@ class OrderRepository implements OrderRepositoryInterface {
         const order = await prisma.order.create({
             data: {
                 ...orderData,
+                waiterId,
                 status: OrderStatus.PENDING,
                 totalAmount: 0,
                 items: {

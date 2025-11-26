@@ -224,8 +224,9 @@ class OrderController {
      */
     createOrder = asyncHandler(async (req: Request, res: Response) => {
         const data: CreateOrderBodyInput = req.body;
+        const id = req.user.id;
 
-        const newOrder = await this.orderService.createOrder(data);
+        const newOrder = await this.orderService.createOrder(id, data);
 
         res.status(HttpStatus.OK).json({
             success: true,
