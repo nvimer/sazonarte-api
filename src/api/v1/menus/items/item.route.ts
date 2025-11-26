@@ -121,13 +121,6 @@ router.post(
 );
 
 /**
- * GET /items/:id
- *
- * Retrieves a specific menu item by its ID
- */
-router.get("/:id", validate(menuItemIdSchema), itemController.getMenuItem);
-
-/**
  * GET /items/low-stock
  *
  * Retrieves a list of items with low stock.
@@ -140,6 +133,13 @@ router.get("/low-stock", authJwt, itemController.getLowStock);
  * Retrieves a list of items without stock.
  */
 router.get("/out-of-stock", authJwt, itemController.getOutOfStock);
+
+/**
+ * GET /items/:id
+ *
+ * Retrieves a specific menu item by its ID
+ */
+router.get("/:id", validate(menuItemIdSchema), itemController.getMenuItem);
 
 /**
  * POST /items/:id/stock/add

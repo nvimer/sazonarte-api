@@ -288,8 +288,8 @@ model Order {
   waiterId String @map("waiter_id")
   waiter   User   @relation("OrdersTakenByWaiter", fields: [waiterId], references: [id])
 
-  costumerId String?   @map("costumer_id")
-  costumer   Costumer? @relation(fields: [costumerId], references: [id])
+  customerId String?   @map("customerId")
+  customer   Customer? @relation(fields: [customerId], references: [id])
 
   status OrderStatus @default(PENDING)
   type   OrderType   @default(DINE_IN)
@@ -328,7 +328,7 @@ model OrderItem {
   @@map("order_items")
 }
 
-model Costumer {
+model Customer {
   id    String  @id @default(uuid())
   name  String
   phone String  @unique
@@ -344,14 +344,14 @@ model Costumer {
   deleted   Boolean   @default(false)
   deletedAt DateTime? @map("deleted_at")
 
-  @@map("costumers")
+  @@map("customers")
 }
 
 model TicketBook {
   id String @id @default(uuid())
 
-  costumerId String?   @map("costumer_id")
-  costumer   Costumer? @relation(fields: [costumerId], references: [id])
+  customerId String?   @map("customerId")
+  customer   Customer? @relation(fields: [customerId], references: [id])
 
   purchaseDate     DateTime @default(now()) @map("purchase_date")
   expiryDate       DateTime @map("expiry_date")
@@ -442,8 +442,8 @@ model Expense {
 model DailyTicketBookCode {
   id String @id @default(uuid())
 
-  costumerId String?   @map("costumer_id")
-  costumer   Costumer? @relation(fields: [costumerId], references: [id])
+  customerId String?   @map("customerId")
+  customer   Customer? @relation(fields: [customerId], references: [id])
 
   code String   @unique
   date DateTime @db.Date
@@ -456,6 +456,6 @@ model DailyTicketBookCode {
 
   createdAt DateTime @default(now()) @map("created_at")
 
-  @@unique([costumerId, date])
+  @@unique([customerId, date])
   @@map("daily_ticket_book_codes")
 }

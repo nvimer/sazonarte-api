@@ -1,0 +1,243 @@
+openapi: 3.0.0
+paths:
+  /orders:
+    get:
+      tags:
+        - Orders
+      summary: List orders with filtering
+      description: |
+        Retrieves a paginated list of orders with optional filtering.
+        
+        This endpoint supports filtering by:
+        - Order status (e.g., IN_KITCHEN for kitchen display)
+        - Order type (DINE_IN, TAKE_OUT, DELIVERY, WHATSAPP)
+        - Waiter (for waiter performance tracking)
+        - Table (for table order tracking)
+        - Date (for daily reports)
+        
+        **Common Use Cases:**
+        - Active orders dashboard
+        - Kitchen display system (filter by status=IN_KITCHEN)
+        - Waiter order list (filter by waiterId)
+        - Table order tracking (filter by tableId)
+        - Daily sales reports (filter by date)
+        - Order history
+        
+        **Required Permissions:**
+        - WAITER: Can view their own orders
+        - MANAGER/ADMIN: Can view all orders
+      
+      security:
+        - BearerAuth: []
+      
+      parameters:
+        - in: query
+          name: page
+          required: false
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            default: 1
+          description: Page number for pagination
+          example: 1
+        
+        - in: query
+          name: limit
+          required: false
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 100
+            default: 20
+          description: Number of records per page
+          example: 20
+        
+        - in: query
+          name: status
+          required: false
+          schema:
+            type: string
+            enum:
+              - PENDING
+              - SENT_TO_CASHIER
+              - PAID
+              - IN_KITCHEN
+              - READY
+              - DELIVERED
+              - CANCELLED
+          description: Filter by order status
+          example: "IN_KITCHEN"
+        
+        - in: query
+          name: type
+          required: false
+          schema:
+            type: string
+            enum:
+              - DINE_IN
+              - TAKE_OUT
+              - DELIVERY
+              - WHATSAPP
+          description: Filter by order type
+          example: "DINE_IN"
+        
+        - in: query
+          name: waiterId
+          required: false
+          schema:
+            type: string
+            format: uuid
+          description: Filter by waiter UUID
+          example: "550e8400-e29b-41d4-a716-446655440001"
+        
+        - in: query
+          name: tableId
+          required: false
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+          description: Filter by table number
+          example: 5
+        
+        - in: query
+          name: date
+          required: false
+          schema:
+            type: string
+            format: date
+          description: Filter by order creation date (YYYY-MM-DD)
+          example: "2025-11-17"
+      
+      responses:
+        200:
+          description: Orders retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderListResponse"
+              examples:
+                allOrders:
+                  summary: All orders (paginated)
+                  value:
+                    success: true
+                    message: "Orders fetched successfully"
+                    data:
+                      - id: "123e4567-e89b-12d3-a456-426614174000"
+                        tableId: 5
+                        waiterId: "550e8400-e29b-41d4-a716-446655440001"
+                        status: "IN_KITCHEN"
+                        type: "DINE_IN"
+                        totalAmount: 75000.00
+                        createdAt: "2025-11-17T12:30:00.000Z"
+                        items:
+                          - menuItemId: 1
+                            quantity: 2
+                            priceAtOrder: 25000.00
+                            menuItem:
+                              name: "Bandeja Paisa"
+                      - id: "223e4567-e89b-12d3-a456-426614174001"
+                        tableId: 3
+                        waiterId: "550e8400-e29b-41d4-a716-446655440001"
+                        status: "READY"
+                        type: "DINE_IN"
+                        totalAmount: 50000.00
+                        createdAt: "2025-11-17T11:45:00.000Z"
+                        items:
+                          - menuItemId: 3
+                            quantity: 2
+                            priceAtOrder: 25000.00
+                            menuItem:
+                              name: "Ajiaco"
+                    meta:
+                      total: 150
+                      page: 1
+                      limit: 20
+                      totalPages: 8
+                
+                kitchenOrders:
+                  summary: Kitchen orders only (filter by status)
+                  value:
+                    success: true
+                    message: "Orders fetched successfully"
+                    data:
+                      - id: "123e4567-e89b-12d3-a456-426614174000"
+                        status: "IN_KITCHEN"
+                        type: "DINE_IN"
+                        totalAmount: 75000.00
+                        items:
+                          - menuItemId: 1
+                            quantity: 2
+                            menuItem:
+                              name: "Bandeja Paisa"
+                    meta:
+                      total: 8
+                      page: 1
+                      limit: 20
+                      totalPages: 1
+        
+        400:
+          description: Bad Request - Invalid query parameters
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                invalidPage:
+                  summary: Invalid page number
+                  value:
+                    success: false
+                    status: 400
+                    message: "Validation failed"
+                    code: "VALIDATION_ERROR"
+                    errors:
+                      - field: "page"
+                        message: "Page must be positive"
+                
+                invalidLimit:
+                  summary: Limit exceeds maximum
+                  value:
+                    success: false
+                    status: 400
+                    message: "Validation failed"
+                    code: "VALIDATION_ERROR"
+                    errors:
+                      - field: "limit"
+                        message: "Limit cannot exceed 100"
+                
+                invalidStatus:
+                  summary: Invalid status value
+                  value:
+                    success: false
+                    status: 400
+                    message: "Validation failed"
+                    code: "VALIDATION_ERROR"
+                    errors:
+                      - field: "status"
+                        message: "Invalid enum value"
+        
+        401:
+          description: Unauthorized - Missing or invalid JWT token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                status: 401
+                message: "Authentication required"
+                code: "UNAUTHORIZED"
+        
+        403:
+          description: Forbidden - User lacks permission to view orders
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                status: 403
+                message: "You don't have permission to view orders"
+                code: "FORBIDDEN"

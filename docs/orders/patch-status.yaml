@@ -1,0 +1,189 @@
+openapi: 3.0.0
+paths:
+  /orders/{id}/status:
+    patch:
+      tags:
+        - Orders
+      summary: Update order status
+      description: |
+        Updates the status of an order through the workflow.
+        
+        **Status Flow:**
+        ```
+        PENDING
+          ↓
+        SENT_TO_CASHIER (Waiter sends to cashier)
+          ↓
+        PAID (Cashier confirms payment)
+          ↓
+        IN_KITCHEN (Kitchen preparing)
+          ↓
+        READY (Ready for serving)
+          ↓
+        DELIVERED (Delivered to customer)
+        
+        CANCELLED (Can happen from any status - use DELETE endpoint)
+        ```
+        
+        **Terminal Statuses:**
+        - DELIVERED: Cannot be changed
+        - CANCELLED: Cannot be changed
+        
+        **Status Transition Rules:**
+        - PENDING → SENT_TO_CASHIER (Waiter)
+        - SENT_TO_CASHIER → PAID (Cashier)
+        - PAID → IN_KITCHEN (System/Kitchen)
+        - IN_KITCHEN → READY (Kitchen)
+        - READY → DELIVERED (Waiter)
+        
+        **Required Permissions:**
+        - WAITER: Can update to SENT_TO_CASHIER, DELIVERED
+        - CASHIER: Can update to PAID
+        - KITCHEN: Can update to IN_KITCHEN, READY
+        - MANAGER/ADMIN: Can update to any status
+      
+      security:
+        - BearerAuth: []
+      
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Order identifier
+          example: "123e4567-e89b-12d3-a456-426614174000"
+      
+      requestBody:
+        required: true
+        description: New order status
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateOrderStatusRequest"
+            examples:
+              sendToCashier:
+                summary: Waiter sends order to cashier
+                value:
+                  status: "SENT_TO_CASHIER"
+              
+              markPaid:
+                summary: Cashier marks order as paid
+                value:
+                  status: "PAID"
+              
+              sendToKitchen:
+                summary: Send to kitchen for preparation
+                value:
+                  status: "IN_KITCHEN"
+              
+              markReady:
+                summary: Kitchen marks order as ready
+                value:
+                  status: "READY"
+              
+              markDelivered:
+                summary: Waiter marks order as delivered
+                value:
+                  status: "DELIVERED"
+      
+      responses:
+        200:
+          description: Order status updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Order status updated successfully"
+                  data:
+                    $ref: "#/components/schemas/Order"
+              example:
+                success: true
+                message: "Order status updated successfully"
+                data:
+                  id: "123e4567-e89b-12d3-a456-426614174000"
+                  tableId: 5
+                  waiterId: "550e8400-e29b-41d4-a716-446655440001"
+                  status: "IN_KITCHEN"
+                  type: "DINE_IN"
+                  totalAmount: 75000.00
+                  notes: "Customer prefers window seat"
+                  createdAt: "2025-11-17T12:30:00.000Z"
+                  updatedAt: "2025-11-17T12:40:00.000Z"
+        
+        400:
+          description: Bad Request - Invalid status or transition
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                invalidStatus:
+                  summary: Invalid status value
+                  value:
+                    success: false
+                    status: 400
+                    message: "Validation failed"
+                    code: "VALIDATION_ERROR"
+                    errors:
+                      - field: "status"
+                        message: "Invalid enum value"
+                
+                deliveredOrder:
+                  summary: Cannot change delivered order status
+                  value:
+                    success: false
+                    status: 400
+                    message: "Cannot change status of delivered order"
+                    code: "INVALID_STATUS_TRANSITION"
+                
+                cancelledOrder:
+                  summary: Cannot change cancelled order status
+                  value:
+                    success: false
+                    status: 400
+                    message: "Cannot change status of cancelled order"
+                    code: "INVALID_STATUS_TRANSITION"
+        
+        401:
+          description: Unauthorized - Missing or invalid JWT token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                status: 401
+                message: "Authentication required"
+                code: "UNAUTHORIZED"
+        
+        403:
+          description: Forbidden - User lacks permission for this status change
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                status: 403
+                message: "You don't have permission to change order status"
+                code: "FORBIDDEN"
+        
+        404:
+          description: Not Found - Order doesn't exist
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                status: 404
+                message: "Order with ID 123e4567-e89b-12d3-a456-426614174000 not found"
+                code: "ORDER_NOT_FOUND"

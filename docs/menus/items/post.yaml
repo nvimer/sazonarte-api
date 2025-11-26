@@ -6,14 +6,69 @@ paths:
         - Menu Items
       summary: Create a new menu item
       description: |
-        Create a new item for menu with the specified name, description, price and other values referented to cost for item.
-        The item name must be a unique across all items.
+        Creates a new menu item with specified details.
+        
+        **Key Features:**
+        - Item name must be unique within its category
+        - Price is required and must be positive
+        - Inventory type defaults to UNLIMITED if not specified
+        - Stock fields only relevant for TRACKED items
+        
+        **Inventory Configuration:**
+        - **UNLIMITED** (default): Always available, no stock tracking
+        - **TRACKED**: Requires daily stock management
+        
+        **Required Permissions:**
+        - ADMIN or MANAGER role
+      
+      security:
+        - BearerAuth: []
+      
       requestBody:
         required: true
+        description: Menu item data
         content:
           application/json:
             schema:
               $ref: "#/components/schemas/CreateItemRequest"
+            examples:
+              unlimitedItem:
+                summary: Unlimited item (bottled drink)
+                value:
+                  name: "Coca Cola 350ml"
+                  description: "Bottled Coca Cola"
+                  categoryId: 5
+                  price: 3000.00
+                  isExtra: false
+                  isAvailable: true
+                  imageUrl: "https://cloudinary.com/sazonarte/items/coca-cola.jpg"
+                  inventoryType: "UNLIMITED"
+              
+              trackedItem:
+                summary: Tracked item (prepared dish)
+                value:
+                  name: "Bandeja Paisa"
+                  description: "Traditional Colombian platter with beans, rice, meat, fried egg, plantain, arepa, and avocado"
+                  categoryId: 1
+                  price: 25000.00
+                  isExtra: false
+                  isAvailable: true
+                  imageUrl: "https://cloudinary.com/sazonarte/items/bandeja-paisa.jpg"
+                  inventoryType: "TRACKED"
+                  lowStockAlert: 5
+                  autoMarkUnavailable: true
+              
+              extraItem:
+                summary: Extra/Add-on item
+                value:
+                  name: "Extra Avocado"
+                  description: "Additional avocado slices"
+                  categoryId: 6
+                  price: 2000.00
+                  isExtra: true
+                  isAvailable: true
+                  inventoryType: "UNLIMITED"
+      
       responses:
         201:
           description: Item created successfully
@@ -21,27 +76,112 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MenuItemResponse"
+              example:
+                success: true
+                message: "Item created successfully"
+                data:
+                  id: 1
+                  categoryId: 1
+                  name: "Bandeja Paisa"
+                  description: "Traditional Colombian platter with beans, rice, meat, fried egg, plantain, arepa, and avocado"
+                  price: 25000.00
+                  isExtra: false
+                  isAvailable: true
+                  imageUrl: "https://cloudinary.com/sazonarte/items/bandeja-paisa.jpg"
+                  inventoryType: "TRACKED"
+                  stockQuantity: null
+                  initialStock: null
+                  lowStockAlert: 5
+                  autoMarkUnavailable: true
+                  createdAt: "2025-11-17T10:00:00.000Z"
+                  updatedAt: "2025-11-17T10:00:00.000Z"
+                  deleted: false
+                  deletedAt: null
+        
         400:
-          description: Bad Request
+          description: Bad Request - Validation errors
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                invalidName:
+                  summary: Name too short
+                  value:
+                    success: false
+                    status: 400
+                    message: "Validation failed"
+                    code: "VALIDATION_ERROR"
+                    errors:
+                      - field: "name"
+                        message: "Name must be at least 3 characters"
+                
+                invalidPrice:
+                  summary: Negative price
+                  value:
+                    success: false
+                    status: 400
+                    message: "Validation failed"
+                    code: "VALIDATION_ERROR"
+                    errors:
+                      - field: "price"
+                        message: "Price must be positive"
+                
+                invalidCategoryId:
+                  summary: Invalid category ID
+                  value:
+                    success: false
+                    status: 400
+                    message: "Validation failed"
+                    code: "VALIDATION_ERROR"
+                    errors:
+                      - field: "categoryId"
+                        message: "Category ID must be positive"
+        
         401:
-          description: Unauthorized
+          description: Unauthorized - Missing or invalid JWT token
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                status: 401
+                message: "Authentication required"
+                code: "UNAUTHORIZED"
+        
         403:
-          description: Forbidden
+          description: Forbidden - User lacks permission to create items
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                status: 403
+                message: "You don't have permission to create menu items"
+                code: "FORBIDDEN"
+        
+        404:
+          description: Not Found - Category doesn't exist
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                status: 404
+                message: "Category with ID 1 not found"
+                code: "CATEGORY_NOT_FOUND"
+        
         409:
           description: Conflict - Item with this name already exists in the category
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                status: 409
+                message: "Item with name 'Bandeja Paisa' already exists in this category"
+                code: "ITEM_NAME_CONFLICT"

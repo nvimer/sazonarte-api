@@ -6,6 +6,7 @@ import usersRouter from "../v1/users/user.route";
 import tablesRouter from "../v1/tables/table.route";
 import menusRouter from "../v1/menus/menus.route";
 import profilesRouter from "../v1/profiles/profile.route";
+import ordersRouter from "../v1/orders/order.route";
 /**
  * Main API Router for v1 endpoints.
  *
@@ -117,4 +118,17 @@ router.use("/menu", menusRouter);
  * - DELETE /profile/:id - Delete profile by ID
  */
 router.use("/profile", profilesRouter);
+
+/**
+ * Orders Management Routes
+ *
+ * Handles orders of users
+ * - GET /orders - List orders
+ * - GET /orders/:id - Get order by id
+ * - POST /orders - Create new order with at least 1 item
+ * - PATCH /orders/:id/status - Update status of order
+ * - DELETE /orders/:id - Cancel Order
+ */
+router.use("/orders", ordersRouter);
+
 export default router;
