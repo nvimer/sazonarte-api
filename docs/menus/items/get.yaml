@@ -40,24 +40,38 @@ paths:
                     data:
                       - id: 1
                         categoryId: 1
-                        name: "Spaghetti"
-                        description: "Classic pasta with meat sauce"
-                        price: 12000
+                        name: "Bandeja Paisa"
+                        description: "Traditional Colombian platter"
+                        price: 25000.00
                         isExtra: false
                         isAvailable: true
-                        imageUrl: "https://example.com/images/spaghetti.jpg"
-                        createdAt: "2024-01-15T10:30:00Z"
-                        updatedAt: "2024-01-15T10:30:00Z"
+                        imageUrl: "https://cloudinary.com/sazonarte/items/bandeja-paisa.jpg"
+                        inventoryType: "TRACKED"
+                        stockQuantity: 18
+                        initialStock: 30
+                        lowStockAlert: 5
+                        autoMarkUnavailable: true
+                        createdAt: "2025-01-15T10:00:00.000Z"
+                        updatedAt: "2025-11-17T14:30:00.000Z"
+                        deleted: false
+                        deletedAt: null
                       - id: 2
-                        categoryId: 1
-                        name: "Pizza Margherita"
-                        description: "Traditional Italian pizza"
-                        price: 15000
+                        categoryId: 5
+                        name: "Coca Cola 350ml"
+                        description: "Bottled Coca Cola"
+                        price: 3000.00
                         isExtra: false
                         isAvailable: true
-                        imageUrl: "https://example.com/images/pizza.jpg"
-                        createdAt: "2024-02-15T10:30:00Z"
-                        updatedAt: "2024-02-15T10:30:00Z"
+                        imageUrl: "https://cloudinary.com/sazonarte/items/coca-cola.jpg"
+                        inventoryType: "UNLIMITED"
+                        stockQuantity: null
+                        initialStock: null
+                        lowStockAlert: null
+                        autoMarkUnavailable: true
+                        createdAt: "2025-01-15T10:00:00.000Z"
+                        updatedAt: "2025-11-17T14:30:00.000Z"
+                        deleted: false
+                        deletedAt: null
                     meta:
                       page: 1
                       limit: 10
@@ -117,12 +131,22 @@ paths:
                 message: "Menu Item fetched successfully"
                 data:
                   id: 123
-                  name: "Soda"
-                  description: "Option for drink. Not include in main dish"
-                  price: 5000
+                  categoryId: 5
+                  name: "Coca Cola 350ml"
+                  description: "Bottled Coca Cola drink"
+                  price: 3000.00
                   isExtra: false
                   isAvailable: true
-                  imageUrl: "htts://imageurl.url"
+                  imageUrl: "https://cloudinary.com/sazonarte/items/coca-cola.jpg"
+                  inventoryType: "UNLIMITED"
+                  stockQuantity: null
+                  initialStock: null
+                  lowStockAlert: null
+                  autoMarkUnavailable: true
+                  createdAt: "2025-01-15T10:00:00.000Z"
+                  updatedAt: "2025-11-17T14:30:00.000Z"
+                  deleted: false
+                  deletedAt: null
         400:
           description: Bad Request - Invalid ID format
           content:

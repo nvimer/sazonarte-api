@@ -1,0 +1,140 @@
+openapi: 3.0.0
+paths:
+  /orders/{id}:
+    delete:
+      tags:
+        - Orders
+      summary: Cancel order
+      description: |
+        Cancels an order and automatically reverts stock for all TRACKED items.
+        
+        **Automatic Operations:**
+        - Order status changed to CANCELLED
+        - Stock reverted for all TRACKED items
+        - Audit trail created for stock changes
+        - Order preserved in database (not deleted)
+        
+        **Stock Reversion:**
+        - All order items stock quantities restored
+        - Only TRACKED inventory items affected
+        - UNLIMITED items skipped
+        - Stock adjustment records created with order ID
+        - Items may become available again if they were blocked
+        
+        **Cancellation Rules:**
+        - ✅ Can cancel: PENDING, SENT_TO_CASHIER, PAID, IN_KITCHEN, READY
+        - ❌ Cannot cancel: DELIVERED (order already completed)
+        - ❌ Cannot cancel: CANCELLED (already cancelled)
+        
+        **Side Effects:**
+        - Stock quantities restored to pre-order levels
+        - Items become available if they were auto-blocked
+        - Audit trail links cancellation to order
+        - Customer notification may be triggered
+        - Payment refund may be initiated
+        
+        **Required Permissions:**
+        - MANAGER/ADMIN: Can cancel any order
+        - WAITER: Can cancel own orders (with restrictions)
+      
+      security:
+        - BearerAuth: []
+      
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Order identifier
+          example: "123e4567-e89b-12d3-a456-426614174000"
+      
+      responses:
+        200:
+          description: Order cancelled successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Order cancelled successfully"
+                  data:
+                    $ref: "#/components/schemas/Order"
+              example:
+                success: true
+                message: "Order cancelled successfully"
+                data:
+                  id: "123e4567-e89b-12d3-a456-426614174000"
+                  tableId: 5
+                  waiterId: "550e8400-e29b-41d4-a716-446655440001"
+                  status: "CANCELLED"
+                  type: "DINE_IN"
+                  totalAmount: 75000.00
+                  notes: "Customer prefers window seat"
+                  createdAt: "2025-11-17T12:30:00.000Z"
+                  updatedAt: "2025-11-17T13:15:00.000Z"
+        
+        400:
+          description: Bad Request - Cannot cancel this order
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                alreadyDelivered:
+                  summary: Order already delivered
+                  value:
+                    success: false
+                    status: 400
+                    message: "Cannot cancel delivered order"
+                    code: "CANNOT_CANCEL_DELIVERED_ORDER"
+                
+                alreadyCancelled:
+                  summary: Order already cancelled
+                  value:
+                    success: false
+                    status: 400
+                    message: "Order is already cancelled"
+                    code: "ORDER_ALREADY_CANCELLED"
+        
+        401:
+          description: Unauthorized - Missing or invalid JWT token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                status: 401
+                message: "Authentication required"
+                code: "UNAUTHORIZED"
+        
+        403:
+          description: Forbidden - User lacks permission to cancel orders
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                status: 403
+                message: "You don't have permission to cancel orders"
+                code: "FORBIDDEN"
+        
+        404:
+          description: Not Found - Order doesn't exist
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                status: 404
+                message: "Order with ID 123e4567-e89b-12d3-a456-426614174000 not found"
+                code: "ORDER_NOT_FOUND"

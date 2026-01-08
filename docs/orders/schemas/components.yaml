@@ -1,0 +1,409 @@
+openapi: 3.0.0
+components:
+  schemas:
+    # ============================================
+    # SCHEMA: Order
+    # ============================================
+    Order:
+      type: object
+      description: Complete order object with all details
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique order identifier
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        tableId:
+          type: integer
+          format: int32
+          nullable: true
+          description: Table number (for DINE_IN orders)
+          example: 5
+        waiterId:
+          type: string
+          format: uuid
+          description: Waiter who took the order
+          example: "550e8400-e29b-41d4-a716-446655440001"
+        costumerId:
+          type: string
+          format: uuid
+          nullable: true
+          description: Customer identifier (if registered customer)
+          example: "660e8400-e29b-41d4-a716-446655440002"
+        status:
+          type: string
+          enum:
+            - PENDING
+            - SENT_TO_CASHIER
+            - PAID
+            - IN_KITCHEN
+            - READY
+            - DELIVERED
+            - CANCELLED
+          description: Current order status
+          example: "PENDING"
+        type:
+          type: string
+          enum:
+            - DINE_IN
+            - TAKE_OUT
+            - DELIVERY
+            - WHATSAPP
+          description: Order type
+          example: "DINE_IN"
+        totalAmount:
+          type: number
+          format: decimal
+          description: Total order amount (calculated automatically)
+          example: 75000.00
+        notes:
+          type: string
+          nullable: true
+          description: Order notes or special instructions
+          example: "Customer prefers window seat"
+        whatsappOrderId:
+          type: string
+          nullable: true
+          description: WhatsApp order identifier (for WHATSAPP type)
+          example: "WA123456"
+        createdAt:
+          type: string
+          format: date-time
+          description: Order creation timestamp
+          example: "2025-11-17T12:30:00.000Z"
+        updatedAt:
+          type: string
+          format: date-time
+          description: Last update timestamp
+          example: "2025-11-17T12:30:00.000Z"
+
+    # ============================================
+    # SCHEMA: OrderItem
+    # ============================================
+    OrderItem:
+      type: object
+      description: Individual item within an order
+      properties:
+        id:
+          type: integer
+          format: int32
+          description: Unique order item identifier
+          example: 1
+        orderId:
+          type: string
+          format: uuid
+          description: Associated order identifier
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        menuItemId:
+          type: integer
+          format: int32
+          nullable: true
+          description: Menu item identifier
+          example: 1
+        quantity:
+          type: integer
+          format: int32
+          minimum: 1
+          description: Number of units ordered
+          example: 2
+        priceAtOrder:
+          type: number
+          format: decimal
+          description: Price captured at order time (locked price)
+          example: 25000.00
+        notes:
+          type: string
+          nullable: true
+          description: Special instructions for this item
+          example: "No onions, extra spicy"
+        isFreeSubstitution:
+          type: boolean
+          description: Whether this is a free substitution
+          example: false
+        createdAt:
+          type: string
+          format: date-time
+          description: Item creation timestamp
+          example: "2025-11-17T12:30:00.000Z"
+        updatedAt:
+          type: string
+          format: date-time
+          description: Last update timestamp
+          example: "2025-11-17T12:30:00.000Z"
+        menuItem:
+          $ref: "#/components/schemas/MenuItemBasic"
+
+    # ============================================
+    # SCHEMA: MenuItemBasic (for Order relations)
+    # ============================================
+    MenuItemBasic:
+      type: object
+      description: Basic menu item information (used in order responses)
+      properties:
+        id:
+          type: integer
+          description: Menu item identifier
+          example: 1
+        name:
+          type: string
+          description: Item name
+          example: "Bandeja Paisa"
+        description:
+          type: string
+          description: Item description
+          example: "Traditional Colombian platter"
+        price:
+          type: number
+          format: decimal
+          description: Current item price
+          example: 25000.00
+        imageUrl:
+          type: string
+          nullable: true
+          description: Item image URL
+          example: "https://cloudinary.com/sazonarte/items/bandeja-paisa.jpg"
+        isAvailable:
+          type: boolean
+          description: Item availability status
+          example: true
+        inventoryType:
+          type: string
+          enum:
+            - TRACKED
+            - UNLIMITED
+          description: Inventory tracking type
+          example: "TRACKED"
+
+    # ============================================
+    # SCHEMA: OrderWithItems
+    # ============================================
+    OrderWithItems:
+      allOf:
+        - $ref: "#/components/schemas/Order"
+        - type: object
+          properties:
+            items:
+              type: array
+              description: Order items with menu item details
+              items:
+                $ref: "#/components/schemas/OrderItem"
+
+    # ============================================
+    # SCHEMA: CreateOrderRequest
+    # ============================================
+    CreateOrderRequest:
+      type: object
+      description: |
+        Request body for creating a new order.
+        
+        **Authentication Required:** The waiter ID is automatically extracted 
+        from the JWT token of the authenticated user. Do not include waiterId 
+        in the request body.
+        
+        **Automatic Operations:**
+        - Waiter ID extracted from JWT token
+        - Prices locked at order time
+        - Total amount calculated automatically
+        - Stock validated and deducted for TRACKED items
+      required:
+        - type
+        - items
+      properties:
+        tableId:
+          type: integer
+          format: int32
+          minimum: 1
+          description: Table number (typically required for DINE_IN orders)
+          example: 5
+        costumerId:
+          type: string
+          format: uuid
+          description: Registered customer ID (optional)
+          example: "660e8400-e29b-41d4-a716-446655440002"
+        type:
+          type: string
+          enum:
+            - DINE_IN
+            - TAKE_OUT
+            - DELIVERY
+            - WHATSAPP
+          description: Order type
+          example: "DINE_IN"
+        items:
+          type: array
+          description: Order items (at least one required)
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/CreateOrderItemRequest"
+        notes:
+          type: string
+          maxLength: 500
+          description: General order notes or instructions
+          example: "Customer prefers window seat"
+        whatsappOrderId:
+          type: string
+          maxLength: 100
+          description: WhatsApp order identifier (for WHATSAPP type orders)
+          example: "WA123456"
+
+    # ============================================
+    # SCHEMA: CreateOrderItemRequest
+    # ============================================
+    CreateOrderItemRequest:
+      type: object
+      description: Individual item in order creation request
+      required:
+        - menuItemId
+        - quantity
+      properties:
+        menuItemId:
+          type: integer
+          format: int32
+          minimum: 1
+          description: Menu item identifier
+          example: 1
+        quantity:
+          type: integer
+          format: int32
+          minimum: 1
+          description: Number of units to order
+          example: 2
+        notes:
+          type: string
+          maxLength: 200
+          description: Special instructions for this item
+          example: "No onions, extra spicy"
+
+    # ============================================
+    # SCHEMA: UpdateOrderStatusRequest
+    # ============================================
+    UpdateOrderStatusRequest:
+      type: object
+      description: Request body for updating order status
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          enum:
+            - PENDING
+            - SENT_TO_CASHIER
+            - PAID
+            - IN_KITCHEN
+            - READY
+            - DELIVERED
+            - CANCELLED
+          description: New order status
+          example: "IN_KITCHEN"
+
+    # ============================================
+    # SCHEMA: OrderResponse
+    # ============================================
+    OrderResponse:
+      type: object
+      description: Successful order operation response
+      properties:
+        success:
+          type: boolean
+          description: Operation success status
+          example: true
+        message:
+          type: string
+          description: Response message
+          example: "Order created successfully"
+        data:
+          $ref: "#/components/schemas/OrderWithItems"
+
+    # ============================================
+    # SCHEMA: OrderListResponse
+    # ============================================
+    OrderListResponse:
+      type: object
+      description: Paginated list of orders response
+      properties:
+        success:
+          type: boolean
+          description: Operation success status
+          example: true
+        message:
+          type: string
+          description: Response message
+          example: "Orders fetched successfully"
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/OrderWithItems"
+        meta:
+          type: object
+          description: Pagination metadata
+          properties:
+            total:
+              type: integer
+              description: Total number of orders
+              example: 150
+            page:
+              type: integer
+              description: Current page number
+              example: 1
+            limit:
+              type: integer
+              description: Records per page
+              example: 20
+            totalPages:
+              type: integer
+              description: Total number of pages
+              example: 8
+
+    # ============================================
+    # SCHEMA: SuccessResponse (No Data)
+    # ============================================
+    SuccessResponseNoData:
+      type: object
+      description: Successful operation response without data
+      properties:
+        success:
+          type: boolean
+          description: Operation success status
+          example: true
+        message:
+          type: string
+          description: Response message
+          example: "Order cancelled successfully"
+
+    # ============================================
+    # SCHEMA: ErrorResponse
+    # ============================================
+    ErrorResponse:
+      type: object
+      description: Standard error response
+      properties:
+        success:
+          type: boolean
+          description: Always false for errors
+          example: false
+        status:
+          type: integer
+          description: HTTP status code
+          example: 400
+        message:
+          type: string
+          description: Error message description
+          example: "Validation failed"
+        code:
+          type: string
+          description: Internal error code
+          example: "VALIDATION_ERROR"
+        errors:
+          type: array
+          description: Detailed validation errors (optional)
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+                description: Field that caused the error
+                example: "waiterId"
+              message:
+                type: string
+                description: Field-specific error message
+                example: "Waiter ID must be a valid UUID"

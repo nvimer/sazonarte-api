@@ -3,39 +3,39 @@ paths:
   # ============================================
   # POST /items/stock/daily-reset
   # ============================================
-  /items/stock/daily-reset:
+  /menu/items/stock/daily-reset:
     post:
       tags:
         - Menu Items - Stock
       summary: Register initial daily stock
       description: |
         Initializes stock quantities for multiple menu items at the start of the business day.
-        
+
         This operation is typically performed by administrators or managers when:
         - Opening operations for the day
         - Completing kitchen preparation
         - Recording production quantities
-        
+
         **Key Features:**
         - Batch operation for multiple items
         - Sets both stockQuantity and initialStock
         - Marks all items as available
         - Creates audit trail entries
         - Atomic transaction (all or nothing)
-        
+
         **Business Rules:**
         - Only TRACKED inventory items can have stock reset
         - UNLIMITED items will be rejected
         - All items must exist in database
         - Previous stock values are preserved in history
         - Low stock alerts are configured per item
-        
+
         **Required Permissions:**
         - ADMIN or MANAGER role
-      
+
       security:
         - BearerAuth: []
-      
+
       requestBody:
         required: true
         description: Array of items with their initial stock quantities
@@ -51,7 +51,7 @@ paths:
                     - itemId: 1
                       quantity: 30
                       lowStockAlert: 5
-              
+
               multipleItems:
                 summary: Reset stock for multiple items
                 value:
@@ -65,7 +65,7 @@ paths:
                     - itemId: 5
                       quantity: 40
                       lowStockAlert: 10
-              
+
               withoutAlerts:
                 summary: Reset without custom alerts (uses defaults)
                 value:
@@ -74,7 +74,7 @@ paths:
                       quantity: 30
                     - itemId: 2
                       quantity: 25
-              
+
               zeroStock:
                 summary: Reset with zero stock (valid for preparation tracking)
                 value:
@@ -82,7 +82,7 @@ paths:
                     - itemId: 1
                       quantity: 0
                       lowStockAlert: 5
-      
+
       responses:
         200:
           description: Stock reset completed successfully
@@ -93,7 +93,7 @@ paths:
               example:
                 success: true
                 message: "Daily stock reset successfully"
-        
+
         400:
           description: Bad Request - Validation errors or business rule violations
           content:
@@ -111,7 +111,7 @@ paths:
                     errors:
                       - field: "items"
                         message: "At least one item must be provided"
-                
+
                 negativeQuantity:
                   summary: Negative quantity provided
                   value:
@@ -122,7 +122,7 @@ paths:
                     errors:
                       - field: "quantity"
                         message: "Quantity must be 0 or greater"
-                
+
                 invalidItemId:
                   summary: Invalid item ID format
                   value:
@@ -133,7 +133,7 @@ paths:
                     errors:
                       - field: "itemId"
                         message: "Item ID must be positive"
-                
+
                 unlimitedItems:
                   summary: Attempting to reset UNLIMITED items
                   value:
@@ -141,7 +141,7 @@ paths:
                     status: 400
                     message: "Only TRACKED items can have stock reset"
                     code: "INVALID_INVENTORY_TYPE"
-        
+
         401:
           description: Unauthorized - Missing or invalid JWT token
           content:
@@ -153,7 +153,7 @@ paths:
                 status: 401
                 message: "Authentication required"
                 code: "UNAUTHORIZED"
-        
+
         403:
           description: Forbidden - User lacks required permissions
           content:
@@ -165,7 +165,7 @@ paths:
                 status: 403
                 message: "You don't have permission to perform stock operations"
                 code: "FORBIDDEN"
-        
+
         404:
           description: Not Found - One or more items don't exist
           content:
@@ -181,39 +181,39 @@ paths:
   # ============================================
   # POST /items/{id}/stock/add
   # ============================================
-  /items/{id}/stock/add:
+  /menu/items/{id}/stock/add:
     post:
       tags:
         - Menu Items - Stock
       summary: Add stock manually
       description: |
         Manually adds stock to a specific menu item.
-        
+
         This operation is used for:
         - Mid-day production additions
         - Additional prep due to high demand
         - Inventory corrections (count adjustments)
         - Stock replenishment during service
-        
+
         **Key Features:**
         - Adds to current stock quantity
         - Records reason for audit trail
         - Captures user ID automatically
         - Creates MANUAL_ADD adjustment record
         - Can make unavailable items available again
-        
+
         **Business Rules:**
         - Only TRACKED inventory items can have stock added
         - UNLIMITED items will be rejected
         - Item must exist and not be deleted
         - Reason is mandatory for accountability
-        
+
         **Required Permissions:**
         - ADMIN or MANAGER role
-      
+
       security:
         - BearerAuth: []
-      
+
       parameters:
         - in: path
           name: id
@@ -224,7 +224,7 @@ paths:
             minimum: 1
           description: Menu item identifier
           example: 1
-      
+
       requestBody:
         required: true
         description: Stock addition details
@@ -238,19 +238,19 @@ paths:
                 value:
                   quantity: 15
                   reason: "Additional mid-day production due to high demand"
-              
+
               inventoryCorrection:
                 summary: Inventory count correction
                 value:
                   quantity: 5
                   reason: "Inventory correction after physical count"
-              
+
               morningBatch:
                 summary: Morning batch completed
                 value:
                   quantity: 20
                   reason: "Second morning production batch completed"
-      
+
       responses:
         200:
           description: Stock added successfully
@@ -279,7 +279,7 @@ paths:
                   updatedAt: "2025-10-14T14:30:00.000Z"
                   deleted: false
                   deletedAt: null
-        
+
         400:
           description: Bad Request - Validation or business rule errors
           content:
@@ -297,7 +297,7 @@ paths:
                     errors:
                       - field: "quantity"
                         message: "Quantity must be positive"
-                
+
                 missingReason:
                   summary: Reason not provided
                   value:
@@ -308,7 +308,7 @@ paths:
                     errors:
                       - field: "reason"
                         message: "Reason must be at least 3 characters"
-                
+
                 unlimitedItem:
                   summary: Attempting to add stock to UNLIMITED item
                   value:
@@ -316,7 +316,7 @@ paths:
                     status: 400
                     message: "Cannot add stock to UNLIMITED items"
                     code: "INVALID_INVENTORY_TYPE"
-        
+
         401:
           description: Unauthorized - Missing or invalid JWT token
           content:
@@ -328,7 +328,7 @@ paths:
                 status: 401
                 message: "Authentication required"
                 code: "UNAUTHORIZED"
-        
+
         403:
           description: Forbidden - User lacks required permissions
           content:
@@ -340,7 +340,7 @@ paths:
                 status: 403
                 message: "You don't have permission to manage stock"
                 code: "FORBIDDEN"
-        
+
         404:
           description: Not Found - Menu item doesn't exist
           content:
@@ -356,41 +356,41 @@ paths:
   # ============================================
   # POST /items/{id}/stock/remove
   # ============================================
-  /items/{id}/stock/remove:
+  menu/items/{id}/stock/remove:
     post:
       tags:
         - Menu Items - Stock
       summary: Remove stock manually
       description: |
         Manually removes stock from a specific menu item.
-        
+
         This operation is used for:
         - Food spoilage tracking
         - Damaged items removal
         - Quality control removals
         - Dropped or spilled items
         - End-of-day waste recording
-        
+
         **Key Features:**
         - Subtracts from current stock
         - Records reason for waste analysis
         - Captures user ID automatically
         - Creates MANUAL_REMOVE adjustment record
         - Can trigger item unavailability
-        
+
         **Business Rules:**
         - Only TRACKED inventory items can have stock removed
         - UNLIMITED items will be rejected
         - Cannot remove more than current stock
         - Item must exist and not be deleted
         - If stock reaches 0, item may become unavailable
-        
+
         **Required Permissions:**
         - ADMIN or MANAGER role
-      
+
       security:
         - BearerAuth: []
-      
+
       parameters:
         - in: path
           name: id
@@ -401,7 +401,7 @@ paths:
             minimum: 1
           description: Menu item identifier
           example: 1
-      
+
       requestBody:
         required: true
         description: Stock removal details
@@ -415,25 +415,25 @@ paths:
                 value:
                   quantity: 3
                   reason: "Items spoiled due to temperature issues"
-              
+
               damaged:
                 summary: Damaged during service
                 value:
                   quantity: 2
                   reason: "Dishes dropped during service - kitchen accident"
-              
+
               qualityControl:
                 summary: Quality control removal
                 value:
                   quantity: 1
                   reason: "Quality standards not met - removed from service"
-              
+
               wasteTracking:
                 summary: End-of-day waste
                 value:
                   quantity: 5
                   reason: "End-of-day waste - items not sold"
-      
+
       responses:
         200:
           description: Stock removed successfully
@@ -462,7 +462,7 @@ paths:
                   updatedAt: "2025-10-14T15:00:00.000Z"
                   deleted: false
                   deletedAt: null
-        
+
         400:
           description: Bad Request - Validation or business rule errors
           content:
@@ -480,7 +480,7 @@ paths:
                     errors:
                       - field: "quantity"
                         message: "Quantity must be positive"
-                
+
                 insufficientStock:
                   summary: Not enough stock to remove
                   value:
@@ -488,7 +488,7 @@ paths:
                     status: 400
                     message: "Insufficient stock to remove"
                     code: "INSUFFICIENT_STOCK"
-                
+
                 unlimitedItem:
                   summary: Attempting to remove from UNLIMITED item
                   value:
@@ -496,7 +496,7 @@ paths:
                     status: 400
                     message: "Cannot remove stock from UNLIMITED items"
                     code: "INVALID_INVENTORY_TYPE"
-        
+
         401:
           description: Unauthorized - Missing or invalid JWT token
           content:
@@ -508,7 +508,7 @@ paths:
                 status: 401
                 message: "Authentication required"
                 code: "UNAUTHORIZED"
-        
+
         403:
           description: Forbidden - User lacks required permissions
           content:
@@ -520,7 +520,7 @@ paths:
                 status: 403
                 message: "You don't have permission to manage stock"
                 code: "FORBIDDEN"
-        
+
         404:
           description: Not Found - Menu item doesn't exist
           content:
@@ -536,39 +536,39 @@ paths:
   # ============================================
   # GET /items/low-stock
   # ============================================
-  /items/low-stock:
+  /menu/items/low-stock:
     get:
       tags:
         - Menu Items - Stock
       summary: List items with low stock
       description: |
         Retrieves menu items that have reached or fallen below their low stock alert threshold.
-        
+
         This endpoint helps with:
         - Proactive stock management
         - Preventing stockouts during service
         - Kitchen production planning
         - Manager notifications
-        
+
         **Key Features:**
         - Returns items where: stockQuantity <= lowStockAlert
         - Only TRACKED inventory items included
         - Excludes soft-deleted items
         - No pagination (typically small result set)
         - Real-time accuracy
-        
+
         **Business Rules:**
         - Each item has customizable lowStockAlert threshold
         - Default threshold is 5 units
         - Only applies to TRACKED items
         - UNLIMITED items never appear in results
-        
+
         **Required Permissions:**
         - ADMIN, MANAGER, or WAITER role
-      
+
       security:
         - BearerAuth: []
-      
+
       responses:
         200:
           description: Low stock items retrieved successfully
@@ -594,7 +594,7 @@ paths:
                     lowStockAlert: 5
                     inventoryType: "TRACKED"
                     isAvailable: true
-        
+
         401:
           description: Unauthorized - Missing or invalid JWT token
           content:
@@ -606,7 +606,7 @@ paths:
                 status: 401
                 message: "Authentication required"
                 code: "UNAUTHORIZED"
-        
+
         403:
           description: Forbidden - User lacks required permissions
           content:
@@ -622,39 +622,39 @@ paths:
   # ============================================
   # GET /items/out-of-stock
   # ============================================
-  /items/out-of-stock:
+  /menu/items/out-of-stock:
     get:
       tags:
         - Menu Items - Stock
       summary: List items that are out of stock
       description: |
         Retrieves menu items that have completely depleted their stock (stockQuantity = 0).
-        
+
         Critical for:
         - Service staff to know what cannot be ordered
         - Kitchen production prioritization
         - Preventing order fulfillment errors
         - Dynamic menu adjustments
-        
+
         **Key Features:**
         - Returns items with exactly 0 stock
         - Only TRACKED inventory items included
         - Includes both available and unavailable items
         - No pagination (typically small result set)
         - Real-time updates essential
-        
+
         **Business Rules:**
         - Items with autoMarkUnavailable=true are automatically blocked
         - Out of stock items still appear in this list
         - Useful for production planning
         - Only applies to TRACKED items
-        
+
         **Required Permissions:**
         - ADMIN, MANAGER, or WAITER role
-      
+
       security:
         - BearerAuth: []
-      
+
       responses:
         200:
           description: Out of stock items retrieved successfully
@@ -680,7 +680,7 @@ paths:
                     inventoryType: "TRACKED"
                     isAvailable: false
                     autoMarkUnavailable: true
-        
+
         401:
           description: Unauthorized - Missing or invalid JWT token
           content:
@@ -692,7 +692,7 @@ paths:
                 status: 401
                 message: "Authentication required"
                 code: "UNAUTHORIZED"
-        
+
         403:
           description: Forbidden - User lacks required permissions
           content:
@@ -708,39 +708,39 @@ paths:
   # ============================================
   # GET /items/{id}/stock/history
   # ============================================
-  /items/{id}/stock/history:
+  /menu/items/{id}/stock/history:
     get:
       tags:
         - Menu Items - Stock
       summary: Get stock adjustment history
       description: |
         Retrieves complete stock adjustment history for a specific menu item with pagination.
-        
+
         This endpoint provides:
         - Complete audit trail of stock changes
         - User accountability tracking
         - Order-stock reconciliation
         - Waste tracking analysis
-        
+
         **Key Features:**
         - Paginated results (newest first)
         - Complete adjustment details
         - User and order tracking
         - Configurable page size
-        
+
         **Adjustment Types:**
         - DAILY_RESET: Daily stock initialization
         - MANUAL_ADD: Manual stock addition
         - MANUAL_REMOVE: Manual stock removal (waste, spoilage)
         - ORDER_DEDUCT: Stock deducted for order fulfillment
         - ORDER_CANCELLED: Stock restored from cancelled order
-        
+
         **Required Permissions:**
         - ADMIN or MANAGER role
-      
+
       security:
         - BearerAuth: []
-      
+
       parameters:
         - in: path
           name: id
@@ -751,7 +751,7 @@ paths:
             minimum: 1
           description: Menu item identifier
           example: 1
-        
+
         - in: query
           name: page
           required: false
@@ -762,7 +762,7 @@ paths:
             default: 1
           description: Page number
           example: 1
-        
+
         - in: query
           name: limit
           required: false
@@ -774,7 +774,7 @@ paths:
             default: 20
           description: Records per page
           example: 20
-      
+
       responses:
         200:
           description: Stock history retrieved successfully
@@ -822,7 +822,7 @@ paths:
                     page: 1
                     limit: 20
                     totalPages: 3
-        
+
         400:
           description: Bad Request - Invalid parameters
           content:
@@ -840,7 +840,7 @@ paths:
                     errors:
                       - field: "page"
                         message: "Page must be positive"
-                
+
                 invalidLimit:
                   summary: Limit exceeds maximum
                   value:
@@ -851,7 +851,7 @@ paths:
                     errors:
                       - field: "limit"
                         message: "Limit cannot exceed 100"
-        
+
         401:
           description: Unauthorized - Missing or invalid JWT token
           content:
@@ -863,7 +863,7 @@ paths:
                 status: 401
                 message: "Authentication required"
                 code: "UNAUTHORIZED"
-        
+
         403:
           description: Forbidden - User lacks required permissions
           content:
@@ -875,7 +875,7 @@ paths:
                 status: 403
                 message: "You don't have permission to view audit information"
                 code: "FORBIDDEN"
-        
+
         404:
           description: Not Found - Menu item doesn't exist
           content:
@@ -891,22 +891,22 @@ paths:
   # ============================================
   # PATCH /items/{id}/inventory-type
   # ============================================
-  /items/{id}/inventory-type:
+  /menu/items/{id}/inventory-type:
     patch:
       tags:
         - Menu Items - Stock
       summary: Configure inventory tracking type
       description: |
         Configures whether a menu item requires stock tracking or has unlimited availability.
-        
+
         This endpoint is used for:
         - Initial menu item setup
         - Converting item types
         - Seasonal inventory changes
         - Business model adjustments
-        
+
         **Inventory Types:**
-        
+
         **TRACKED:**
         - Limited daily stock
         - Requires daily reset
@@ -914,24 +914,24 @@ paths:
         - Can go out of stock
         - Low stock alerts enabled
         - Suitable for: Pre-prepared dishes
-        
+
         **UNLIMITED:**
         - Always available
         - No stock tracking
         - No deduction on orders
         - No alerts
         - Suitable for: Bottled drinks
-        
+
         **Side Effects:**
         - TRACKED → UNLIMITED: Clears stock data
         - UNLIMITED → TRACKED: Requires subsequent daily-reset
-        
+
         **Required Permissions:**
         - ADMIN role only
-      
+
       security:
         - BearerAuth: []
-      
+
       parameters:
         - in: path
           name: id
@@ -942,7 +942,7 @@ paths:
             minimum: 1
           description: Menu item identifier
           example: 1
-      
+
       requestBody:
         required: true
         description: Inventory type configuration
@@ -956,18 +956,18 @@ paths:
                 value:
                   inventoryType: "TRACKED"
                   lowStockAlert: 5
-              
+
               setUnlimited:
                 summary: Configure as UNLIMITED
                 value:
                   inventoryType: "UNLIMITED"
-              
+
               trackedHighAlert:
                 summary: TRACKED with high alert threshold
                 value:
                   inventoryType: "TRACKED"
                   lowStockAlert: 10
-      
+
       responses:
         200:
           description: Inventory type updated successfully
@@ -996,7 +996,7 @@ paths:
                   updatedAt: "2025-10-14T15:30:00.000Z"
                   deleted: false
                   deletedAt: null
-        
+
         400:
           description: Bad Request - Invalid inventory type
           content:
@@ -1011,7 +1011,7 @@ paths:
                 errors:
                   - field: "inventoryType"
                     message: "Invalid enum value. Expected 'TRACKED' | 'UNLIMITED'"
-        
+
         401:
           description: Unauthorized - Missing or invalid JWT token
           content:
@@ -1023,7 +1023,7 @@ paths:
                 status: 401
                 message: "Authentication required"
                 code: "UNAUTHORIZED"
-        
+
         403:
           description: Forbidden - User lacks ADMIN role
           content:
@@ -1035,7 +1035,7 @@ paths:
                 status: 403
                 message: "Only administrators can configure inventory types"
                 code: "FORBIDDEN"
-        
+
         404:
           description: Not Found - Menu item doesn't exist
           content:
