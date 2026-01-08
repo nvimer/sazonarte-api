@@ -1,4 +1,3 @@
-import "dotenv/config";
 import jwt from "jsonwebtoken";
 import moment, { Moment } from "moment";
 import {
@@ -7,6 +6,7 @@ import {
 } from "./token.interface";
 import { AuthTokenResponseInput, PayloadInput } from "./token.validation";
 import { Token, TokenType } from "@prisma/client";
+import { config } from "../../../../config";
 import tokenRepository from "./token.repository";
 
 /**
@@ -37,7 +37,7 @@ import tokenRepository from "./token.repository";
  *
  */
 class TokenService implements TokenServiceInterface {
-  constructor(private tokenRepository: TokenRepositoryInterface) {}
+  constructor(private tokenRepository: TokenRepositoryInterface) { }
 
   /**
    * Generates a JWT token with the specified parameters.
@@ -61,7 +61,7 @@ class TokenService implements TokenServiceInterface {
     id: string,
     expires: Moment,
     type: TokenType,
-    secret: string = String(process.env.JWT_SECRET),
+    secret: string = config.jwtSecret,
   ): string {
     // create a personalizate payload where save necesary values for token in auth user.
     const payload: PayloadInput = {
@@ -143,7 +143,7 @@ class TokenService implements TokenServiceInterface {
    */
   async generateAuthToken(id: string): Promise<AuthTokenResponseInput> {
     const accessTokenExpires = moment().add(
-      process.env.JWT_ACCESS_EXPIRATION_MINUTES,
+      config.jwtAccessExpirationMinutes,
       "minutes",
     );
     const accessToken = this.generateToken(
@@ -153,7 +153,7 @@ class TokenService implements TokenServiceInterface {
     );
 
     const refreshTokenExpires = moment().add(
-      process.env.JWT_ACCESS_EXPIRATION_DAYS,
+      config.jwtAccessExpirationDays,
       "days",
     );
 
@@ -179,6 +179,21 @@ class TokenService implements TokenServiceInterface {
         expires: String(refreshTokenExpires.toDate()),
       },
     };
+  }
+
+  /**
+   * Logs out a user by deleting all their refresh tokens
+   * This invalidated all active sessions for the user.
+   *
+   * Logout Process
+   * - Deletes all refresh tokens from database
+   * - User must re-authenticated to get new tokens
+   * - Access tokens remain valid until expiration
+   *
+   * @param userId - User identifier
+   */
+  async logout(userId: string): Promise<void> {
+    await this.tokenRepository.deleteRefreshTokenByUserId(userId);
   }
 }
 

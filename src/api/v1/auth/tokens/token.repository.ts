@@ -46,6 +46,16 @@ class TokenRepository implements TokenRepositoryInterface {
       },
     });
   }
+
+  async deleteRefreshTokenByUserId(userId: string): Promise<number> {
+    const result = await prisma.token.deleteMany({
+      where: {
+        userId,
+        type: TokenType.REFRESH,
+      },
+    });
+    return result.count;
+  }
 }
 
 export default new TokenRepository();

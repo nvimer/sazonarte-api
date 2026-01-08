@@ -13,6 +13,7 @@ import { Moment } from "moment";
  */
 export interface TokenServiceInterface {
   generateAuthToken(id: string): Promise<AuthTokenResponseInput>;
+  logout(userId: string): Promise<void>;
 }
 
 /**
@@ -36,4 +37,6 @@ export interface TokenRepositoryInterface {
     expires: Moment,
     blacklisted: boolean,
   ): Promise<Token>;
+
+  deleteRefreshTokenByUserId(userId: string): Promise<number>;
 }
