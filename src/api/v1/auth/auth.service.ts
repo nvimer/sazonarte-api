@@ -33,7 +33,7 @@ import { HttpStatus } from "../../../utils/httpStatus.enum";
  * - Error handling for invalid credentials
  */
 class AuthService implements AuthServiceInterface {
-  constructor(private userService: UserServiceInterface) {}
+  constructor(private userService: UserServiceInterface) { }
 
   /**
    * Authenticates a user by validating their email and password credentials.
@@ -68,7 +68,7 @@ class AuthService implements AuthServiceInterface {
   async login(data: LoginInput): Promise<User> {
     const user = await this.userService.findByEmail(data.email);
 
-    if (!hasherUtils.comparePass(data.password, user.password))
+    if (!(await hasherUtils.comparePass(data.password, user.password)))
       throw new CustomError(
         "Invalid credentials",
         HttpStatus.BAD_REQUEST,
