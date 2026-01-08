@@ -7,6 +7,7 @@ import authService from "./auth.service";
 import { AuthServiceInterface } from "./interfaces/auth.service.interface";
 import { TokenServiceInterface } from "./tokens/token.interface";
 import tokenService from "./tokens/token.service";
+import { logger } from "../../../config/logger";
 
 /**
  * Auth Controller
@@ -29,7 +30,7 @@ class AuthController {
   constructor(
     private authService: AuthServiceInterface,
     private tokenService: TokenServiceInterface,
-  ) {}
+  ) { }
 
   /**
    * POST /auth/register
@@ -127,6 +128,29 @@ class AuthController {
       success: true,
       message: "Token created successfully",
       data: token,
+    });
+  });
+
+  /**
+   * POST /auth/logout
+   *
+   * Logs out authenticated user by invalidating refresh tokens.
+   * This endpoint requieres authentication and uses the user ID from the JWT token.
+   *
+   * Authentication: Required (JWT token)
+   *
+   * Response:
+   * - 200: Logout successful
+   * - 401: Not authenticated
+   */
+  logout = asyncHandler(async (req: Request, res: Response) => {
+    const userId = req.user.id;
+
+    await this.tokenService.logout(userId);
+
+    res.status(HttpStatus.OK).json({
+      success: true,
+      message: "Logged out successfully",
     });
   });
 }

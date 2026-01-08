@@ -6,8 +6,8 @@ import {
 } from "./token.interface";
 import { AuthTokenResponseInput, PayloadInput } from "./token.validation";
 import { Token, TokenType } from "@prisma/client";
-import tokenRepository from "./token.repository";
 import { config } from "../../../../config";
+import tokenRepository from "./token.repository";
 
 /**
  * Token Service
@@ -179,6 +179,21 @@ class TokenService implements TokenServiceInterface {
         expires: String(refreshTokenExpires.toDate()),
       },
     };
+  }
+
+  /**
+   * Logs out a user by deleting all their refresh tokens
+   * This invalidated all active sessions for the user.
+   *
+   * Logout Process
+   * - Deletes all refresh tokens from database
+   * - User must re-authenticated to get new tokens
+   * - Access tokens remain valid until expiration
+   *
+   * @param userId - User identifier
+   */
+  async logout(userId: string): Promise<void> {
+    await this.tokenRepository.deleteRefreshTokenByUserId(userId);
   }
 }
 
