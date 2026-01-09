@@ -45,7 +45,7 @@ class ProfileRepository implements ProfileRepositoryInterface {
     const [users, total] = await Promise.all([
       prisma.user.findMany({
         where: { deleted: false },
-        orderBy: { name: "asc" },
+        orderBy: { firstName: "asc", lastName: "asc" },
         skip,
         take: limit,
         include: { profile: true },
@@ -100,9 +100,10 @@ class ProfileRepository implements ProfileRepositoryInterface {
    *
    */
   async update(id: string, data: UpdateProfileInput): Promise<UserWithProfile> {
-    const { name, password, email, phone, ...profileData } = data;
+    const { firstName, lastName, password, email, phone, ...profileData } =
+      data;
 
-    const userData = { name, password, phone, email };
+    const userData = { firstName, lastName, password, phone, email };
     return prisma.user.update({
       where: { id },
       data: { ...userData, profile: { update: { ...profileData } } },

@@ -57,7 +57,8 @@ export type OrderWithRelations = Prisma.OrderGetPayload<{
     waiter: {
       select: {
         id: true;
-        name: true;
+        firstName: true;
+        lastName: true;
         email: true;
       };
     };
