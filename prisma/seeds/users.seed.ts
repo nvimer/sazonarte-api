@@ -6,7 +6,8 @@ const prisma = new PrismaClient();
 
 export const usersData = [
     {
-        name: "Admin User",
+        firstName: "Admin",
+        lastName: "User",
         email: "admin@sazonarte.com",
         phone: "3001234567",
         password: "admin123",
@@ -16,7 +17,8 @@ export const usersData = [
         },
     },
     {
-        name: "Nicolas Pantoja",
+        firstName: "Nicolas",
+        lastName: "Pantoja",
         email: "mesero@sazonarte.com",
         phone: "3007890123",
         password: "mesero123",
@@ -26,7 +28,8 @@ export const usersData = [
         },
     },
     {
-        name: "Janneth Diaz",
+        firstName: "Janneth",
+        lastName: "Díaz",
         email: "cajera@sazonarte.com",
         phone: "3008765432",
         password: "cajero123",
@@ -36,7 +39,8 @@ export const usersData = [
         },
     },
     {
-        name: "Cesar Pantoja",
+        firstName: "Cesar",
+        lastName: "Pantoja",
         email: "cocina@sazonarte.com",
         phone: "3134568765",
         password: "cocina123",
@@ -57,7 +61,8 @@ export async function seedUsers() {
             where: { email: userData.email },
             update: {},
             create: {
-                name: userData.name,
+                firstName: userData.firstName,
+                lastName: userData.lastName,
                 email: userData.email,
                 phone: userData.phone,
                 password: hashedPassword,
@@ -66,7 +71,7 @@ export async function seedUsers() {
                 },
             },
         });
-        logger.info(` 📝 User "${userData.name}" seeded`);
+        logger.info(` 📝 User "${userData.firstName} ${userData.lastName}" seeded`);
 
         for (const roleName of userData.roles) {
             const role = await prisma.role.findUnique({
@@ -89,7 +94,9 @@ export async function seedUsers() {
                 });
             }
         }
-        logger.info(`  ✅ Roles assigned to ${userData.name}`);
+        logger.info(
+            `  ✅ Roles assigned to ${userData.firstName} ${userData.lastName}`,
+        );
     }
 
     logger.info(`✅ ${usersData.length} users seeded successfully!`);

@@ -123,8 +123,8 @@ model RolePermission {
 
 model User {
   id        String  @id @default(uuid())
-  firstName String
-  lastName  String
+  firstName String  @map("first_name")
+  lastName  String  @map("last_name")
   email     String  @unique
   phone     String? @unique
   password  String
@@ -331,8 +331,8 @@ model OrderItem {
 
 model Customer {
   id        String  @id @default(uuid())
-  firstName String
-  lastName  String
+  firstName String  @map("first_name")
+  lastName  String  @map("last_name")
   phone     String  @unique
   email     String?
 
