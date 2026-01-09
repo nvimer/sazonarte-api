@@ -19,12 +19,15 @@ export const profileIdSchema = z.object({
  * provided, they must meet specific validation criteria.
  *
  * Validation Rules:
+ * - firstName: If provided, must be 2-50 characters
+ * - lastName: If provided, must be 2-50 characters
  * - name: If provided, must be a non-empty string
  * - email: If provided, must be a valid email format
  * - phone: If provided, must be a string (no specific format validation)
  *
  * Error Messages:
- * - name: "Name is required" (if provided but empty)
+ * - firstName: "Name is required" (if provided but empty)
+ * - lastName: "Name is required" (if provided but empty)
  * - email: "Invalid email format" (if provided but invalid)
  *
  * Note: This schema supports partial updates, allowing clients
@@ -32,10 +35,15 @@ export const profileIdSchema = z.object({
  */
 export const updateProfileSchema = z.object({
   body: z.object({
-    name: z
+    firstName: z
       .string()
-      .min(3, "Name must be at least 3 characters long")
-      .max(50)
+      .min(2, "First name must be at least 2 characters long")
+      .max(50, "First name cannot exceed 50 characters")
+      .optional(),
+    lastName: z
+      .string()
+      .min(2, "Last name must be at least 2 characters long")
+      .max(50, "Last name cannot exceed 50 characters")
       .optional(),
     email: z.string().email("Invalid email format").optional(),
     phone: z
@@ -59,7 +67,8 @@ export const updateProfileSchema = z.object({
 
 /**
  * Type Structure:
- * - name?: string - Optional user name
+ * - firstName?: string - Optional user first name
+ * - lastName?: string - Optional user last name
  * - email?: string - Optional email address
  * - phone?: string - Optional phone number
  */

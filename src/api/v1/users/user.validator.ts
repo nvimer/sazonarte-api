@@ -8,7 +8,14 @@ export const userIdSchema = z.object({
 export const updateUserSchema = z.object({
   body: z
     .object({
-      name: z.string().min(3, "Name must be at least3 characters long").max(50),
+      firstName: z
+        .string()
+        .min(2, "First name must be at least 2 characters long")
+        .max(50, "First name cannot exceed 50 characters"),
+      lastName: z
+        .string()
+        .min(2, "Last name must be at least 2 characters long")
+        .max(50, "Last name cannot exceed 50 characters"),
       email: z.string().email("Invalid email address"),
       phone: z.string().regex(/^\d{10}$/, "Phone number must be a 10 digits"),
       password: z

@@ -11,12 +11,18 @@ components:
         All fields are optionals (partial updated). 
         Only update the fields senden in request.
       properties:
-        name:
+        first:
           type: string
           minLength: 3
           maxLength: 50
-          description: Complete user's name
-          example: "Juan Carlos Pérez"
+          description: First user's name
+          example: "Juan"
+        lastName:
+          type: string
+          minLength: 3
+          maxLength: 50
+          description: Last user's name
+          example: "Pérez"
         email:
           type: string
           format: email
@@ -27,7 +33,6 @@ components:
           pattern: '^\d{10}$'
           description: User's number phone (10 digits, unique value)
           example: "3001234567"
-
         address:
           type: string
           description: User's address
@@ -58,10 +63,14 @@ components:
           format: uuid
           description: Identificador único del usuario
           example: "123e4567-e89b-12d3-a456-426614174000"
-        name:
+        firstName:
           type: string
           description: Nombre completo del usuario
-          example: "Juan Carlos Pérez"
+          example: "Juan Carlos"
+        lastName:
+          type: string
+          description: Apellido completo del usuario
+          example: "Perez Santana"
         email:
           type: string
           format: email

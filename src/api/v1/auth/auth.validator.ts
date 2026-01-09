@@ -8,14 +8,16 @@ import { z } from "zod";
  * the specified validation criteria for creating new user accounts.
  *
  * Validation Rules:
- * - name: Must be 3-50 characters long
+ * - firstName: Must be 2-50 characters long
+ * - lastName: Must be 2-50 characters long
  * - email: Must be a valid email format
  * - phone: Must be exactly 10 digits (optional)
  * - password: Must be at least 8 characters long
  * - roleIds: Array of positive integers (optional)
  *
  * Error Messages:
- * - name: "Name must be at least 3 characters long"
+ * - firstName: "First name must be at least 2 characters long"
+ * - lastName: "Last name must be at least 2 characters long"
  * - email: "Invalid email address"
  * - phone: "Phone number must be a 10 digits"
  * - password: "Password must be at least 8 characters long"
@@ -34,7 +36,14 @@ import { z } from "zod";
  */
 export const registerSchema = z.object({
   body: z.object({
-    name: z.string().min(3, "Name must be at least 3 characters long").max(50),
+    firstName: z
+      .string()
+      .min(3, "First name must be at least 3 characters long")
+      .max(50, "First name cannot be exceed 50 characters"),
+    lastName: z
+      .string()
+      .min(3, "Last name must be at least 3 characters long")
+      .max(50, "Last name cannot be exceed 50 characters"),
     email: z.string().email("Invalid email address"),
     phone: z
       .string()
@@ -89,7 +98,8 @@ export const loginSchema = z.object({
 
 /**
  * Type Structure:
- * - name: string - User's full name (3-50 characters)
+ * - firstName: string - User's first name (2-50 characters)
+ * - lastName: string - User's last name (2-50 characters)
  * - email: string - User's email address
  * - phone?: string - User's phone number (optional, 10 digits)
  * - password: string - User's password (min 8 characters)

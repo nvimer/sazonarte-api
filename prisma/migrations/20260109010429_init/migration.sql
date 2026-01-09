@@ -69,7 +69,8 @@ CREATE TABLE "role_permissions" (
 -- CreateTable
 CREATE TABLE "users" (
     "id" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
+    "first_name" TEXT NOT NULL,
+    "last_name" TEXT NOT NULL,
     "email" TEXT NOT NULL,
     "phone" TEXT,
     "password" TEXT NOT NULL,
@@ -144,12 +145,33 @@ CREATE TABLE "menu_items" (
     "is_extra" BOOLEAN NOT NULL DEFAULT false,
     "is_available" BOOLEAN NOT NULL DEFAULT true,
     "image_url" TEXT,
+    "inventory_type" TEXT NOT NULL DEFAULT 'UNLIMITED',
+    "stock_quantity" INTEGER,
+    "initial_stock" INTEGER,
+    "low_stock_alert" INTEGER DEFAULT 5,
+    "auto_mark_unavailable)" BOOLEAN NOT NULL DEFAULT true,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
     "deleted" BOOLEAN NOT NULL DEFAULT false,
     "deleted_at" TIMESTAMP(3),
 
     CONSTRAINT "menu_items_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "stock_adjustments" (
+    "id" TEXT NOT NULL,
+    "menu_item_id" INTEGER NOT NULL,
+    "adjustmentType" TEXT NOT NULL,
+    "previous_stock" INTEGER NOT NULL,
+    "new_stock" INTEGER NOT NULL,
+    "quantity" INTEGER NOT NULL,
+    "reason" TEXT,
+    "user_id" TEXT,
+    "order_id" TEXT,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "stock_adjustments_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -169,7 +191,7 @@ CREATE TABLE "orders" (
     "id" TEXT NOT NULL,
     "table_id" INTEGER,
     "waiter_id" TEXT NOT NULL,
-    "costumer_id" TEXT,
+    "customerId" TEXT,
     "status" "OrderStatus" NOT NULL DEFAULT 'PENDING',
     "type" "OrderType" NOT NULL DEFAULT 'DINE_IN',
     "total_amount" DECIMAL(10,2) NOT NULL DEFAULT 0.00,
@@ -197,9 +219,10 @@ CREATE TABLE "order_items" (
 );
 
 -- CreateTable
-CREATE TABLE "costumers" (
+CREATE TABLE "customers" (
     "id" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
+    "first_name" TEXT NOT NULL,
+    "last_name" TEXT NOT NULL,
     "phone" TEXT NOT NULL,
     "email" TEXT,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -207,13 +230,13 @@ CREATE TABLE "costumers" (
     "deleted" BOOLEAN NOT NULL DEFAULT false,
     "deleted_at" TIMESTAMP(3),
 
-    CONSTRAINT "costumers_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "customers_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "ticket_books" (
     "id" TEXT NOT NULL,
-    "costumer_id" TEXT,
+    "customerId" TEXT,
     "purchase_date" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "expiry_date" TIMESTAMP(3) NOT NULL,
     "total_portions" INTEGER NOT NULL,
@@ -279,7 +302,7 @@ CREATE TABLE "expenses" (
 -- CreateTable
 CREATE TABLE "daily_ticket_book_codes" (
     "id" TEXT NOT NULL,
-    "costumer_id" TEXT,
+    "customerId" TEXT,
     "code" TEXT NOT NULL,
     "date" DATE NOT NULL,
     "is_used" BOOLEAN NOT NULL DEFAULT false,
@@ -320,7 +343,7 @@ CREATE UNIQUE INDEX "daily_menu_options_date_option_type_key" ON "daily_menu_opt
 CREATE UNIQUE INDEX "orders_whatsapp_order_id_key" ON "orders"("whatsapp_order_id");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "costumers_phone_key" ON "costumers"("phone");
+CREATE UNIQUE INDEX "customers_phone_key" ON "customers"("phone");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "payments_daily_ticket_book_code_id_key" ON "payments"("daily_ticket_book_code_id");
@@ -332,7 +355,7 @@ CREATE UNIQUE INDEX "daily_ticket_book_codes_code_key" ON "daily_ticket_book_cod
 CREATE UNIQUE INDEX "daily_ticket_book_codes_used_at_payment_id_key" ON "daily_ticket_book_codes"("used_at_payment_id");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "daily_ticket_book_codes_costumer_id_date_key" ON "daily_ticket_book_codes"("costumer_id", "date");
+CREATE UNIQUE INDEX "daily_ticket_book_codes_customerId_date_key" ON "daily_ticket_book_codes"("customerId", "date");
 
 -- AddForeignKey
 ALTER TABLE "Token" ADD CONSTRAINT "Token_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -356,6 +379,9 @@ ALTER TABLE "profiles" ADD CONSTRAINT "profiles_user_id_fkey" FOREIGN KEY ("user
 ALTER TABLE "menu_items" ADD CONSTRAINT "menu_items_category_id_fkey" FOREIGN KEY ("category_id") REFERENCES "menu_categories"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "stock_adjustments" ADD CONSTRAINT "stock_adjustments_menu_item_id_fkey" FOREIGN KEY ("menu_item_id") REFERENCES "menu_items"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "daily_menu_options" ADD CONSTRAINT "daily_menu_options_menu_item_id_fkey" FOREIGN KEY ("menu_item_id") REFERENCES "menu_items"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -365,7 +391,7 @@ ALTER TABLE "orders" ADD CONSTRAINT "orders_table_id_fkey" FOREIGN KEY ("table_i
 ALTER TABLE "orders" ADD CONSTRAINT "orders_waiter_id_fkey" FOREIGN KEY ("waiter_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "orders" ADD CONSTRAINT "orders_costumer_id_fkey" FOREIGN KEY ("costumer_id") REFERENCES "costumers"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "orders" ADD CONSTRAINT "orders_customerId_fkey" FOREIGN KEY ("customerId") REFERENCES "customers"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "order_items" ADD CONSTRAINT "order_items_order_id_fkey" FOREIGN KEY ("order_id") REFERENCES "orders"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -374,7 +400,7 @@ ALTER TABLE "order_items" ADD CONSTRAINT "order_items_order_id_fkey" FOREIGN KEY
 ALTER TABLE "order_items" ADD CONSTRAINT "order_items_menu_item_id_fkey" FOREIGN KEY ("menu_item_id") REFERENCES "menu_items"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "ticket_books" ADD CONSTRAINT "ticket_books_costumer_id_fkey" FOREIGN KEY ("costumer_id") REFERENCES "costumers"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "ticket_books" ADD CONSTRAINT "ticket_books_customerId_fkey" FOREIGN KEY ("customerId") REFERENCES "customers"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "ticket_book_usages" ADD CONSTRAINT "ticket_book_usages_ticket_book_id_fkey" FOREIGN KEY ("ticket_book_id") REFERENCES "ticket_books"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -398,4 +424,4 @@ ALTER TABLE "expenses" ADD CONSTRAINT "expenses_recorded_by_id_fkey" FOREIGN KEY
 ALTER TABLE "expenses" ADD CONSTRAINT "expenses_category_id_fkey" FOREIGN KEY ("category_id") REFERENCES "expense_categories"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "daily_ticket_book_codes" ADD CONSTRAINT "daily_ticket_book_codes_costumer_id_fkey" FOREIGN KEY ("costumer_id") REFERENCES "costumers"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "daily_ticket_book_codes" ADD CONSTRAINT "daily_ticket_book_codes_customerId_fkey" FOREIGN KEY ("customerId") REFERENCES "customers"("id") ON DELETE SET NULL ON UPDATE CASCADE;

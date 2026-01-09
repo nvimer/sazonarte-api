@@ -33,7 +33,8 @@ components:
       required:
         - email
         - password
-        - name
+        - firstName
+        - lastName
         - roleIds
       properties:
         email:
@@ -46,10 +47,14 @@ components:
           format: password
           description: User's password
           example: "StrongP@ssw0rd"
-        name:
+        firstName:
           type: string
-          description: User's full name
-          example: "John Doe"
+          description: User's first name
+          example: "John"
+        lastName:
+          type: string
+          description: User's last name
+          example: "Doe"
         roleIds:
           type: array
           description: User's role ids
@@ -71,10 +76,14 @@ components:
           format: email
           description: User's email address
           example: "newuser@example.com"
-        name:
+        firstName:
           type: string
-          description: User's full name
-          example: "John Doe"
+          description: User's first name
+          example: "John"
+        lastName:
+          type: string
+          description: User's last name
+          example: "Doe"
         createdAt:
           type: string
           format: date-time
