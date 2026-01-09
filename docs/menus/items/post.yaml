@@ -7,23 +7,23 @@ paths:
       summary: Create a new menu item
       description: |
         Creates a new menu item with specified details.
-        
+
         **Key Features:**
         - Item name must be unique within its category
         - Price is required and must be positive
         - Inventory type defaults to UNLIMITED if not specified
         - Stock fields only relevant for TRACKED items
-        
+
         **Inventory Configuration:**
         - **UNLIMITED** (default): Always available, no stock tracking
         - **TRACKED**: Requires daily stock management
-        
+
         **Required Permissions:**
         - ADMIN or MANAGER role
-      
+
       security:
         - BearerAuth: []
-      
+
       requestBody:
         required: true
         description: Menu item data
@@ -41,9 +41,9 @@ paths:
                   price: 3000.00
                   isExtra: false
                   isAvailable: true
-                  imageUrl: "https://cloudinary.com/sazonarte/items/coca-cola.jpg"
+                  imageUrl: "https://cloudinary.com/plaet/items/coca-cola.jpg"
                   inventoryType: "UNLIMITED"
-              
+
               trackedItem:
                 summary: Tracked item (prepared dish)
                 value:
@@ -53,11 +53,11 @@ paths:
                   price: 25000.00
                   isExtra: false
                   isAvailable: true
-                  imageUrl: "https://cloudinary.com/sazonarte/items/bandeja-paisa.jpg"
+                  imageUrl: "https://cloudinary.com/plaet/items/bandeja-paisa.jpg"
                   inventoryType: "TRACKED"
                   lowStockAlert: 5
                   autoMarkUnavailable: true
-              
+
               extraItem:
                 summary: Extra/Add-on item
                 value:
@@ -68,7 +68,7 @@ paths:
                   isExtra: true
                   isAvailable: true
                   inventoryType: "UNLIMITED"
-      
+
       responses:
         201:
           description: Item created successfully
@@ -87,7 +87,7 @@ paths:
                   price: 25000.00
                   isExtra: false
                   isAvailable: true
-                  imageUrl: "https://cloudinary.com/sazonarte/items/bandeja-paisa.jpg"
+                  imageUrl: "https://cloudinary.com/plaet/items/bandeja-paisa.jpg"
                   inventoryType: "TRACKED"
                   stockQuantity: null
                   initialStock: null
@@ -97,7 +97,7 @@ paths:
                   updatedAt: "2025-11-17T10:00:00.000Z"
                   deleted: false
                   deletedAt: null
-        
+
         400:
           description: Bad Request - Validation errors
           content:
@@ -115,7 +115,7 @@ paths:
                     errors:
                       - field: "name"
                         message: "Name must be at least 3 characters"
-                
+
                 invalidPrice:
                   summary: Negative price
                   value:
@@ -126,7 +126,7 @@ paths:
                     errors:
                       - field: "price"
                         message: "Price must be positive"
-                
+
                 invalidCategoryId:
                   summary: Invalid category ID
                   value:
@@ -137,7 +137,7 @@ paths:
                     errors:
                       - field: "categoryId"
                         message: "Category ID must be positive"
-        
+
         401:
           description: Unauthorized - Missing or invalid JWT token
           content:
@@ -149,7 +149,7 @@ paths:
                 status: 401
                 message: "Authentication required"
                 code: "UNAUTHORIZED"
-        
+
         403:
           description: Forbidden - User lacks permission to create items
           content:
@@ -161,7 +161,7 @@ paths:
                 status: 403
                 message: "You don't have permission to create menu items"
                 code: "FORBIDDEN"
-        
+
         404:
           description: Not Found - Category doesn't exist
           content:
@@ -173,7 +173,7 @@ paths:
                 status: 404
                 message: "Category with ID 1 not found"
                 code: "CATEGORY_NOT_FOUND"
-        
+
         409:
           description: Conflict - Item with this name already exists in the category
           content:

@@ -1,7 +1,7 @@
 {
-  "name": "sazonarte-api",
+  "name": "plaet-api",
   "version": "1.0.0",
-  "description": "API para administración y contabilidad de restaurante Sazonarte. ",
+  "description": "Plaet API para administración y contabilidad de restaurantes. ",
   "main": "src/server.ts",
   "scripts": {
     "start": "node dist/server.js",
@@ -22,7 +22,7 @@
   },
   "keywords": [
     "api",
-    "sazonarte",
+    "plaet",
     "backend",
     "management",
     "restaurant"

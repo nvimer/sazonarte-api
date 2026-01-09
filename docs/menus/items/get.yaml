@@ -45,7 +45,7 @@ paths:
                         price: 25000.00
                         isExtra: false
                         isAvailable: true
-                        imageUrl: "https://cloudinary.com/sazonarte/items/bandeja-paisa.jpg"
+                        imageUrl: "https://cloudinary.com/plaet/items/bandeja-paisa.jpg"
                         inventoryType: "TRACKED"
                         stockQuantity: 18
                         initialStock: 30
@@ -62,7 +62,7 @@ paths:
                         price: 3000.00
                         isExtra: false
                         isAvailable: true
-                        imageUrl: "https://cloudinary.com/sazonarte/items/coca-cola.jpg"
+                        imageUrl: "https://cloudinary.com/plaet/items/coca-cola.jpg"
                         inventoryType: "UNLIMITED"
                         stockQuantity: null
                         initialStock: null
@@ -137,7 +137,7 @@ paths:
                   price: 3000.00
                   isExtra: false
                   isAvailable: true
-                  imageUrl: "https://cloudinary.com/sazonarte/items/coca-cola.jpg"
+                  imageUrl: "https://cloudinary.com/plaet/items/coca-cola.jpg"
                   inventoryType: "UNLIMITED"
                   stockQuantity: null
                   initialStock: null

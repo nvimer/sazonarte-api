@@ -161,7 +161,7 @@ components:
           type: string
           nullable: true
           description: Item image URL
-          example: "https://cloudinary.com/sazonarte/items/bandeja-paisa.jpg"
+          example: "https://cloudinary.com/plaet/items/bandeja-paisa.jpg"
         isAvailable:
           type: boolean
           description: Item availability status
@@ -195,11 +195,11 @@ components:
       type: object
       description: |
         Request body for creating a new order.
-        
+
         **Authentication Required:** The waiter ID is automatically extracted 
         from the JWT token of the authenticated user. Do not include waiterId 
         in the request body.
-        
+
         **Automatic Operations:**
         - Waiter ID extracted from JWT token
         - Prices locked at order time

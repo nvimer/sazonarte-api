@@ -1,4 +1,4 @@
-# SazonArte Restaurant Management API
+# Plaet Restaurant Management API
 
 A robust backend API for managing restaurant operations, built with Node.js, Express, TypeScript, and Prisma.
 
@@ -24,25 +24,29 @@ A robust backend API for managing restaurant operations, built with Node.js, Exp
 ## 🔧 Installation
 
 1. Clone the repository:
+
 ```bash
-git clone [https://github.com/niccommit/sazonarte-api]
-cd sazonarteApp/server
+git clone [https://github.com/niccommit/plaet-api]
+cd plaetApp/server
 ```
 
 2. Install dependencies:
+
 ```bash
 npm install
 ```
 
 3. Set up environment variables:
-Create a `.env` file in the root directory.
+   Create a `.env` file in the root directory.
 
 4. Generate Prisma client:
+
 ```bash
 npm run prisma:generate
 ```
 
 5. Start the development server:
+
 ```bash
 npm run dev
 ```
@@ -87,6 +91,7 @@ The API is versioned (v1) and follows RESTful principles. Base URL: `http://loca
 ### Authentication
 
 All protected routes require a valid JWT token in the Authorization header:
+
 ```
 Authorization: Bearer <your-token>
 ```

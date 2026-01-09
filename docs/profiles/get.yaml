@@ -30,6 +30,6 @@ paths:
                   profile:
                     userId: "123e4567-e89b-12d3-a456-426614174000"
                     address: "Calle 123 #45-67, Ipiales"
-                    photoUrl: "https://cloudinary.com/sazonarte/profiles/user.jpg"
+                    photoUrl: "https://cloudinary.com/plaet/profiles/user.jpg"
                     birthDate: "1990-05-13T00:00:00.000Z"
                     identification: "123786284"

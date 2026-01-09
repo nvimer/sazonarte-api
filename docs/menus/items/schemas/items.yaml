@@ -41,7 +41,7 @@ components:
           format: uri
           nullable: true
           description: URL of the item's image
-          example: "https://cloudinary.com/sazonarte/items/bandeja-paisa.jpg"
+          example: "https://cloudinary.com/plaet/items/bandeja-paisa.jpg"
         inventoryType:
           type: string
           enum:

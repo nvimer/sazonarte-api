@@ -8,7 +8,7 @@ export const usersData = [
     {
         firstName: "Admin",
         lastName: "User",
-        email: "admin@sazonarte.com",
+        email: "admin@plaet.com",
         phone: "3001234567",
         password: "admin123",
         roles: [RoleName.ADMIN],
@@ -19,7 +19,7 @@ export const usersData = [
     {
         firstName: "Nicolas",
         lastName: "Pantoja",
-        email: "mesero@sazonarte.com",
+        email: "mesero@plaet.com",
         phone: "3007890123",
         password: "mesero123",
         roles: [RoleName.WAITER],
@@ -30,7 +30,7 @@ export const usersData = [
     {
         firstName: "Janneth",
         lastName: "Díaz",
-        email: "cajera@sazonarte.com",
+        email: "cajera@plaet.com",
         phone: "3008765432",
         password: "cajero123",
         roles: [RoleName.CASHIER],
@@ -41,7 +41,7 @@ export const usersData = [
     {
         firstName: "Cesar",
         lastName: "Pantoja",
-        email: "cocina@sazonarte.com",
+        email: "cocina@plaet.com",
         phone: "3134568765",
         password: "cocina123",
         roles: [RoleName.KITCHEN_MANAGER],

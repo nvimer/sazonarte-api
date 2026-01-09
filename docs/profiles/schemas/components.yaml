@@ -27,7 +27,7 @@ components:
           type: string
           format: email
           description: User's email. (Unique value)
-          example: "juan.perez@sazonarte.com"
+          example: "juan.perez@plaet.com"
         phone:
           type: string
           pattern: '^\d{10}$'
@@ -41,7 +41,7 @@ components:
           type: string
           format: uri
           description: URL Photo user profile
-          example: "https://cloudinary.com/sazonarte/profiles/juan-perez.jpg"
+          example: "https://cloudinary.com/plaet/profiles/juan-perez.jpg"
         birthDate:
           type: string
           format: date
@@ -75,7 +75,7 @@ components:
           type: string
           format: email
           description: Correo electrónico del usuario
-          example: "juan.perez@sazonarte.com"
+          example: "juan.perez@plaet.com"
         phone:
           type: string
           nullable: true

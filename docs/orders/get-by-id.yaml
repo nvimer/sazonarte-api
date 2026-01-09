@@ -13,7 +13,7 @@ paths:
         - Waiter information
         - Customer information (if available)
         - Payment records (if any)
-        
+
         **Use Cases:**
         - Order detail page
         - Order receipt generation
@@ -21,14 +21,14 @@ paths:
         - Customer service inquiries
         - Order audit trail
         - Kitchen order display
-        
+
         **Required Permissions:**
         - WAITER: Can view their own orders
         - MANAGER/ADMIN: Can view all orders
-      
+
       security:
         - BearerAuth: []
-      
+
       parameters:
         - in: path
           name: id
@@ -38,7 +38,7 @@ paths:
             format: uuid
           description: Order identifier
           example: "123e4567-e89b-12d3-a456-426614174000"
-      
+
       responses:
         200:
           description: Order details retrieved successfully
@@ -77,7 +77,7 @@ paths:
                         description: "Traditional Colombian platter"
                         price: 25000.00
                         isAvailable: true
-                        imageUrl: "https://cloudinary.com/sazonarte/items/bandeja-paisa.jpg"
+                        imageUrl: "https://cloudinary.com/plaet/items/bandeja-paisa.jpg"
                         inventoryType: "TRACKED"
                     - id: 2
                       orderId: "123e4567-e89b-12d3-a456-426614174000"
@@ -94,9 +94,9 @@ paths:
                         description: "Traditional Colombian soup"
                         price: 25000.00
                         isAvailable: true
-                        imageUrl: "https://cloudinary.com/sazonarte/items/ajiaco.jpg"
+                        imageUrl: "https://cloudinary.com/plaet/items/ajiaco.jpg"
                         inventoryType: "TRACKED"
-        
+
         400:
           description: Bad Request - Invalid order ID format
           content:
@@ -111,7 +111,7 @@ paths:
                 errors:
                   - field: "id"
                     message: "ID must be a valid UUID"
-        
+
         401:
           description: Unauthorized - Missing or invalid JWT token
           content:
@@ -123,7 +123,7 @@ paths:
                 status: 401
                 message: "Authentication required"
                 code: "UNAUTHORIZED"
-        
+
         403:
           description: Forbidden - User lacks permission to view this order
           content:
@@ -135,7 +135,7 @@ paths:
                 status: 403
                 message: "You don't have permission to view this order"
                 code: "FORBIDDEN"
-        
+
         404:
           description: Not Found - Order doesn't exist
           content:

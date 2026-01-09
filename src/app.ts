@@ -29,12 +29,12 @@ app.use(express.urlencoded({ extended: true }));
 // cors config
 const whitelist = [
   `http://localhost:${port}`,
-  "https://sazonarte-api.onrender.com",
-  "https://sazonarte-api.onrender.com/api/v1",
+  "https://plaet-api.onrender.com",
+  "https://plaet-api.onrender.com/api/v1",
 ];
 
 const corsOptions: CorsOptions = {
-  origin: function (
+  origin: function(
     origin: string | undefined,
     callback: (err: Error | null, origin?: boolean) => void,
   ) {
@@ -80,7 +80,7 @@ app.use("/api/v1", apiV1Router);
 
 app.get("/api/v1", (_: Request, res: Response) => {
   logger.info("GET / request received");
-  res.send("Restaurant SazonArte API");
+  res.send("Plaet Restaurants API");
 });
 
 // Health check endpoint

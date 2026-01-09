@@ -11,13 +11,12 @@ const options: swaggerJsdoc.Options = {
   definition: {
     openapi: "3.0.0",
     info: {
-      title: "SazonArte Restaurant Management API",
+      title: "Plaet Restaurant Management API",
       version,
-      description:
-        "API documentation for SazonArte Restaurant Management System",
+      description: "API documentation for Plaet Restaurant Management System",
       contact: {
-        name: "Sazonarte Repo",
-        url: "https://github.com/niccommit/sazonarte-api",
+        name: "Plaet Repo",
+        url: "https://github.com/niccommit/plaet-api",
       },
     },
     servers: [
@@ -44,7 +43,7 @@ export default function swaggerDocs(app: Application, port: number) {
     swaggerUi.setup(swaggerSpec, {
       explorer: true,
       customCss: ".swagger-ui .topbar { display: none }",
-      customSiteTitle: "SazonArte API Documentation",
+      customSiteTitle: "Plaet API Documentation",
     }),
   );
 

@@ -269,7 +269,7 @@ paths:
                   price: 25000.00
                   isExtra: false
                   isAvailable: true
-                  imageUrl: "https://cloudinary.com/sazonarte/items/bandeja-paisa.jpg"
+                  imageUrl: "https://cloudinary.com/plaet/items/bandeja-paisa.jpg"
                   inventoryType: "TRACKED"
                   stockQuantity: 33
                   initialStock: 30
@@ -452,7 +452,7 @@ paths:
                   price: 25000.00
                   isExtra: false
                   isAvailable: true
-                  imageUrl: "https://cloudinary.com/sazonarte/items/bandeja-paisa.jpg"
+                  imageUrl: "https://cloudinary.com/plaet/items/bandeja-paisa.jpg"
                   inventoryType: "TRACKED"
                   stockQuantity: 15
                   initialStock: 30
@@ -986,7 +986,7 @@ paths:
                   price: 25000.00
                   isExtra: false
                   isAvailable: true
-                  imageUrl: "https://cloudinary.com/sazonarte/items/bandeja-paisa.jpg"
+                  imageUrl: "https://cloudinary.com/plaet/items/bandeja-paisa.jpg"
                   inventoryType: "TRACKED"
                   stockQuantity: null
                   initialStock: null

@@ -40,14 +40,14 @@ paths:
               updateContact:
                 summary: Update contact fields
                 value:
-                  email: "nuevo.email@sazonarte.com"
+                  email: "nuevo.email@plaet.com"
                   phone: "3009876543"
 
               updateProfile:
                 summary: Update personal information.
                 value:
                   address: "Carrera 7 #100-50, Ipiales"
-                  photoUrl: "https://cloudinary.com/sazonarte/profiles/juan.jpg"
+                  photoUrl: "https://cloudinary.com/plaet/profiles/juan.jpg"
                   birthDate: "1990-05-15"
                   identification: "1234567890"
 
@@ -55,10 +55,10 @@ paths:
                 summary: Update complete profile
                 value:
                   name: "Juan Carlos Pérez González"
-                  email: "juan.perez@sazonarte.com"
+                  email: "juan.perez@plaet.com"
                   phone: "3001234567"
                   address: "Calle 123 #45-67, Apartamento 301, Ipiales"
-                  photoUrl: "https://cloudinary.com/sazonarte/profiles/juan-perez.jpg"
+                  photoUrl: "https://cloudinary.com/plaet/profiles/juan-perez.jpg"
                   birthDate: "1990-05-15"
                   identification: "1234567890"
 
@@ -75,7 +75,7 @@ paths:
                 data:
                   id: "123e4567-e89b-12d3-a456-426614174000"
                   name: "Juan Carlos Pérez González"
-                  email: "juan.perez@sazonarte.com"
+                  email: "juan.perez@plaet.com"
                   phone: "3001234567"
                   createdAt: "2025-01-15T10:30:00.000Z"
                   updatedAt: "2025-10-14T15:45:30.000Z"
@@ -85,7 +85,7 @@ paths:
                     id: "550e8400-e29b-41d4-a716-446655440001"
                     userId: "123e4567-e89b-12d3-a456-426614174000"
                     address: "Calle 123 #45-67, Ipiales"
-                    photoUrl: "https://cloudinary.com/sazonarte/profiles/juan-perez.jpg"
+                    photoUrl: "https://cloudinary.com/plaet/profiles/juan-perez.jpg"
                     birthDate: "1990-05-15T00:00:00.000Z"
                     identification: "1234567890"
                     createdAt: "2025-01-15T10:30:00.000Z"
@@ -181,7 +181,7 @@ paths:
                   value:
                     success: false
                     status: 409
-                    message: "Email juan.perez@sazonarte.com has already been taken. Please use another email."
+                    message: "Email juan.perez@plaet.com has already been taken. Please use another email."
                     code: "EMAIL_CONFLICT"
 
                 phoneConflict:
