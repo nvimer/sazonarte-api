@@ -6,9 +6,12 @@ components:
         id:
           type: string
           description: Unique identifier for the user
-        name:
+        firstName:
           type: string
-          description: User's full name
+          description: User's first name
+        lastName:
+          type: string
+          description: User's last name
         email:
           type: string
           format: email
@@ -52,8 +55,9 @@ components:
                               type: string
       required:
         - id
-        - name
+        - firstName
+        - lastName
         - email
         - createdAt
         - updatedAt
-        - deleted 
+        - deleted

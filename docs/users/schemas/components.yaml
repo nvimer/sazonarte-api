@@ -53,10 +53,14 @@ components:
     UpdateUserRequest:
       type: object
       properties:
-        name:
+        firstName:
           type: string
-          description: User's full name
-          example: "John Doe"
+          description: User's first name
+          example: "John"
+        lastName:
+          type: string
+          description: User's last name
+          example: "Doe"
         email:
           type: string
           format: email
@@ -98,4 +102,4 @@ components:
               message:
                 type: string
                 description: Error message for the field
-                example: "Invalid email format" 
+                example: "Invalid email format"
