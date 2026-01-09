@@ -122,11 +122,12 @@ model RolePermission {
 }
 
 model User {
-  id       String  @id @default(uuid())
-  name     String
-  email    String  @unique
-  phone    String? @unique
-  password String
+  id        String  @id @default(uuid())
+  firstName String
+  lastName  String
+  email     String  @unique
+  phone     String? @unique
+  password  String
 
   roles UserRole[]
 
@@ -329,10 +330,11 @@ model OrderItem {
 }
 
 model Customer {
-  id    String  @id @default(uuid())
-  name  String
-  phone String  @unique
-  email String?
+  id        String  @id @default(uuid())
+  firstName String
+  lastName  String
+  phone     String  @unique
+  email     String?
 
   orders      Order[]
   ticketBooks TicketBook[]
