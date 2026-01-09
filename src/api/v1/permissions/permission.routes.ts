@@ -10,31 +10,11 @@ import {
 } from "./permission.validator";
 import { paginationQuerySchema } from "../../../utils/pagination.schema";
 
-/**
- * Express Router for Permission endpoints.
- *
- * This router defines all CRUD operations for permissions:
- * - GET / - Retrieve paginated list of permissions
- * - GET /search - Search permissions with filtering
- * - POST / - Create a new permission
- * - GET /:id - Retrieve a specific permission by ID
- * - PATCH /:id - Update an existing permission
- * - DELETE /:id - Soft delete a permission
- * - DELETE /bulk - Bulk soft delete permissions
- *
- * All routes include appropriate validation middleware to ensure
- * data integrity and proper error handling.
- */
 const router = Router();
 
 /**
  * GET /permissions
- *
  * Retrieves a paginated list of all non-deleted permissions.
- *
- * Query Parameters:
- * - page: Page number for pagination (optional, defaults to 1)
- * - limit: Number of items per page (optional, defaults to 10)
  */
 router.get(
   "/",
@@ -44,7 +24,6 @@ router.get(
 
 /**
  * GET /permissions/search
- *
  * Searches for permissions with optional filtering and pagination.
  */
 router.get(
@@ -56,7 +35,6 @@ router.get(
 
 /**
  * POST /permissions
- *
  * Creates a new permission.
  */
 router.post(
@@ -67,7 +45,6 @@ router.post(
 
 /**
  * GET /permissions/:id
- *
  * Retrieves a specific permission by its ID.
  */
 router.get(
@@ -88,7 +65,6 @@ router.patch(
 
 /**
  * DELETE /permissions/:id
- *
  * Soft deletes a permission by setting the deleted flag to true.
  */
 router.delete(
@@ -99,7 +75,6 @@ router.delete(
 
 /**
  * DELETE /permissions/bulk
- *
  * Soft deletes multiple permissions in bulk.
  */
 router.delete(

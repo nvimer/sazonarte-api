@@ -96,4 +96,4 @@ paths:
                 message: "One or more permissions not found"
                 errors:
                   - field: "ids"
-                    message: "Permission with ID 999 does not exist" 
+                    message: "Permission with ID 999 does not exist"

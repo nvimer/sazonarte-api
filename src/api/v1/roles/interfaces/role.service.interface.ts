@@ -18,4 +18,3 @@ export interface RoleServiceInterface {
   deleteRole(id: number): Promise<Role>;
   bulkDeleteRoles(ids: number[]): Promise<{ deletedCount: number }>;
 }
-

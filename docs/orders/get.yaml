@@ -7,14 +7,14 @@ paths:
       summary: List orders with filtering
       description: |
         Retrieves a paginated list of orders with optional filtering.
-        
+
         This endpoint supports filtering by:
         - Order status (e.g., IN_KITCHEN for kitchen display)
         - Order type (DINE_IN, TAKE_OUT, DELIVERY, WHATSAPP)
         - Waiter (for waiter performance tracking)
         - Table (for table order tracking)
         - Date (for daily reports)
-        
+
         **Common Use Cases:**
         - Active orders dashboard
         - Kitchen display system (filter by status=IN_KITCHEN)
@@ -22,14 +22,14 @@ paths:
         - Table order tracking (filter by tableId)
         - Daily sales reports (filter by date)
         - Order history
-        
+
         **Required Permissions:**
         - WAITER: Can view their own orders
         - MANAGER/ADMIN: Can view all orders
-      
+
       security:
         - BearerAuth: []
-      
+
       parameters:
         - in: query
           name: page
@@ -41,7 +41,7 @@ paths:
             default: 1
           description: Page number for pagination
           example: 1
-        
+
         - in: query
           name: limit
           required: false
@@ -53,7 +53,7 @@ paths:
             default: 20
           description: Number of records per page
           example: 20
-        
+
         - in: query
           name: status
           required: false
@@ -69,7 +69,7 @@ paths:
               - CANCELLED
           description: Filter by order status
           example: "IN_KITCHEN"
-        
+
         - in: query
           name: type
           required: false
@@ -82,7 +82,7 @@ paths:
               - WHATSAPP
           description: Filter by order type
           example: "DINE_IN"
-        
+
         - in: query
           name: waiterId
           required: false
@@ -91,7 +91,7 @@ paths:
             format: uuid
           description: Filter by waiter UUID
           example: "550e8400-e29b-41d4-a716-446655440001"
-        
+
         - in: query
           name: tableId
           required: false
@@ -101,7 +101,7 @@ paths:
             minimum: 1
           description: Filter by table number
           example: 5
-        
+
         - in: query
           name: date
           required: false
@@ -110,7 +110,7 @@ paths:
             format: date
           description: Filter by order creation date (YYYY-MM-DD)
           example: "2025-11-17"
-      
+
       responses:
         200:
           description: Orders retrieved successfully
@@ -156,7 +156,7 @@ paths:
                       page: 1
                       limit: 20
                       totalPages: 8
-                
+
                 kitchenOrders:
                   summary: Kitchen orders only (filter by status)
                   value:
@@ -177,7 +177,7 @@ paths:
                       page: 1
                       limit: 20
                       totalPages: 1
-        
+
         400:
           description: Bad Request - Invalid query parameters
           content:
@@ -195,7 +195,7 @@ paths:
                     errors:
                       - field: "page"
                         message: "Page must be positive"
-                
+
                 invalidLimit:
                   summary: Limit exceeds maximum
                   value:
@@ -206,7 +206,7 @@ paths:
                     errors:
                       - field: "limit"
                         message: "Limit cannot exceed 100"
-                
+
                 invalidStatus:
                   summary: Invalid status value
                   value:
@@ -217,7 +217,7 @@ paths:
                     errors:
                       - field: "status"
                         message: "Invalid enum value"
-        
+
         401:
           description: Unauthorized - Missing or invalid JWT token
           content:
@@ -229,7 +229,7 @@ paths:
                 status: 401
                 message: "Authentication required"
                 code: "UNAUTHORIZED"
-        
+
         403:
           description: Forbidden - User lacks permission to view orders
           content:

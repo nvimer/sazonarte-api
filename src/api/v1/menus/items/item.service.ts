@@ -46,7 +46,7 @@ import {
  * - Data integrity maintenance
  */
 class ItemService implements ItemServiceInteface {
-  constructor(private itemRepository: ItemRepositoryInterface) { }
+  constructor(private itemRepository: ItemRepositoryInterface) {}
 
   /**
    * Private helper method to find a menu item by id and throw an error if not found.
@@ -213,7 +213,7 @@ class ItemService implements ItemServiceInteface {
 
     // Validate that all items are TRACKED type
     const nonTracked = existingItems.filter(
-      (item, idx) => item && item.inventoryType !== InventoryType.TRACKED,
+      (item, _idx) => item && item.inventoryType !== InventoryType.TRACKED,
     );
 
     if (nonTracked.length > 0) {

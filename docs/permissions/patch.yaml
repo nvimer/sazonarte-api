@@ -91,4 +91,4 @@ paths:
                 message: "Permission name already exists"
                 errors:
                   - field: "name"
-                    message: "A permission with this name already exists" 
+                    message: "A permission with this name already exists"

@@ -7,22 +7,6 @@ import { logger } from "../../../config/logger";
 
 /**
  * Role Permission Controller
- *
- * Handles HTTP requests for role permission management operations.
- * This controller is responsible for:
- * - Processing incoming HTTP requests for role-permission operations
- * - Extracting and validating request data
- * - Delegating business logic to the role permission service
- * - Formatting and returning HTTP responses
- *
- * All methods use asyncHandler for consistent error handling
- * and are designed to work with the role permission service layer.
- *
- * Role permission management includes:
- * - Retrieving roles with their associated permissions
- * - Assigning permissions to roles (replacement strategy)
- * - Removing specific permissions from roles
- * - Paginated listing of roles with permissions
  */
 class RolePermissionController {
   /**
@@ -36,12 +20,6 @@ class RolePermissionController {
    * - 200: Role with permissions found and returned
    * - 400: Invalid ID format
    * - 404: Role not found
-   *
-   * Returns complete role information including all associated permissions.
-   * This data is typically used for:
-   * - Role editing interfaces
-   * - Permission auditing and review
-   * - Access control verification
    */
   getRoleWithPermissions = asyncHandler(async (req: Request, res: Response) => {
     const id = parseInt(req.params.id);
@@ -65,12 +43,6 @@ class RolePermissionController {
    * - 400: Invalid request body or ID format
    * - 404: Role not found
    * - 409: Invalid permission IDs provided
-   *
-   * Assignment Behavior:
-   * - Replaces all existing permissions with the new set
-   * - Validates that all permission IDs exist
-   * - Returns updated role with new permission assignments
-   * - Maintains referential integrity
    */
   assignPermissionsToRole = asyncHandler(
     async (req: Request, res: Response) => {
@@ -100,12 +72,6 @@ class RolePermissionController {
    * - 202: Permissions removed from role successfully
    * - 400: Invalid request body or ID format
    * - 404: Role not found
-   *
-   * Removal Behavior:
-   * - Only removes the specified permissions
-   * - Preserves other existing permissions
-   * - Returns updated role with remaining permissions
-   * - Safe operation (no effect if permission not assigned)
    */
   removePermissionsFromRole = asyncHandler(
     async (req: Request, res: Response) => {
@@ -134,12 +100,6 @@ class RolePermissionController {
    * Response:
    * - 200: Success with paginated roles and permissions data
    * - 400: Invalid pagination parameters
-   *
-   * The response includes pagination metadata and role data with permissions.
-   * This data is typically used for:
-   * - Administrative role management
-   * - Permission auditing and review
-   * - Access control overview
    */
   getRolesWithPermissions = asyncHandler(
     async (req: Request, res: Response) => {

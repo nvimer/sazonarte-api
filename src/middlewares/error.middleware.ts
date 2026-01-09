@@ -10,7 +10,7 @@ import { HttpStatus } from "../utils/httpStatus.enum";
 
 export const errorHandler = (
   err: Error | ZodError | PrismaClientKnownRequestError,
-  req: Request,
+  _req: Request,
   res: Response,
   _next: NextFunction,
 ) => {
@@ -28,21 +28,20 @@ export const errorHandler = (
 
   if (err instanceof PrismaClientKnownRequestError) {
     switch (err.code) {
-      case "P2002": // Violación de restricción única (ej. email ya existe)
+      case "P2002":
         return res.status(HttpStatus.CONFLICT).json({
           success: false,
           message: "Resource with this unique identifier already exists.",
           errorCode: "DUPLICATE_ENTRY",
-          meta: err.meta, // Puede contener información del campo duplicado
+          meta: err.meta,
         });
-      case "P2025": // Registro no encontrado para operaciones como update o delete (con rejectOnNotFound)
+      case "P2025":
         return res.status(HttpStatus.NOT_FOUND).json({
           success: false,
           message: "Record not found.",
           errorCode: "RECORD_NOT_FOUND",
         });
       default:
-        // Para otros errores conocidos de Prisma que no necesiten un manejo específico al cliente
         logger.error("Unhandled Prisma Client Known Request Error:", err);
         return res.status(HttpStatus.BAD_REQUEST).json({
           success: false,
@@ -52,7 +51,6 @@ export const errorHandler = (
     }
   }
 
-  // 3. Manejo de errores de validación de Prisma (argumentos incorrectos a Prisma Client)
   if (err instanceof PrismaClientValidationError) {
     logger.error("Prisma Client Validation Error:", err.message);
     return res.status(HttpStatus.BAD_REQUEST).json({

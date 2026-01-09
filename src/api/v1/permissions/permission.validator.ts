@@ -89,7 +89,6 @@ export const bulkPermissionSchema = z.object({
   }),
 });
 
-// Type definitions for TypeScript
 export type PermissionIdParam = z.infer<typeof permissionIdSchema>["params"];
 export type CreatePermissionInput = z.infer<
   typeof createPermissionSchema

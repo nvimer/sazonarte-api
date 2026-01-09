@@ -12,17 +12,6 @@ import { createPaginatedResponse } from "../../../utils/pagination.helper";
 
 /**
  * User Repository
- *
- * Data access layer for user-related database operations.
- * This repository is responsible for:
- * - Direct database interactions using Prisma ORM
- * - User CRUD operations
- * - Complex queries with role and permission relationships
- * - Pagination support for large datasets
- * - Soft delete handling (deleted: false filter)
- *
- * The repository implements the UserRepositoryInterface for
- * consistency and follows the repository pattern for data access.
  */
 class BasicUserRepository implements UserRepositoryInterface {
   /**
@@ -38,11 +27,6 @@ class BasicUserRepository implements UserRepositoryInterface {
    * - Orders results by name ascending
    * - Excludes soft-deleted users (deleted: false)
    * - Counts total users for pagination metadata
-   *
-   * Performance Considerations:
-   * - Uses Promise.all for concurrent queries
-   * - Implements proper indexing on name and deleted fields
-   * - Returns only necessary user fields (excludes password)
    */
   async findAll(params: PaginationParams): Promise<PaginatedResponse<User>> {
     const { page, limit } = params;
@@ -74,10 +58,6 @@ class BasicUserRepository implements UserRepositoryInterface {
    * - Uses findUnique for optimal performance
    * - Searches by email index
    * - Returns null if no user found
-   *
-   * Note: This method doesn't filter by deleted status as it's
-   * typically used for authentication where we need to find
-   * the user regardless of deletion status.
    */
   async findByEmail(email: string): Promise<User | null> {
     return prisma.user.findUnique({ where: { email } });
@@ -94,9 +74,6 @@ class BasicUserRepository implements UserRepositoryInterface {
    * - Uses findUnique for optimal performance
    * - Searches by primary key (id)
    * - Returns null if no user found
-   *
-   * Note: This method doesn't filter by deleted status as it's
-   * used for validation and lookup operations.
    */
   async findById(id: string): Promise<User | null> {
     return prisma.user.findUnique({ where: { id } });
@@ -117,16 +94,6 @@ class BasicUserRepository implements UserRepositoryInterface {
    * - Creates user-role relationships for each provided role ID
    * - Creates associated profile record
    * - Returns user with role information included
-   *
-   * Transaction Safety:
-   * - All operations are performed in a single transaction
-   * - Ensures data consistency across user, roles, and profile
-   * - Rolls back all changes if any operation fails
-   *
-   * Role Assignment:
-   * - Supports multiple role assignments
-   * - Creates UserRole junction table records
-   * - Connects to existing roles by ID
    */
   async create(data: RegisterInput): Promise<User> {
     const { roleIds, ...userData } = data;
@@ -165,11 +132,6 @@ class BasicUserRepository implements UserRepositoryInterface {
    * - Updates only provided fields
    * - Uses optimistic locking for concurrency control
    * - Returns updated user data
-   *
-   * Update Behavior:
-   * - Supports partial updates (only provided fields are modified)
-   * - Maintains data integrity and constraints
-   * - Preserves existing data for non-provided fields
    */
   async update(id: string, data: UpdateUserInput): Promise<User> {
     return prisma.user.update({
@@ -190,23 +152,6 @@ class BasicUserRepository implements UserRepositoryInterface {
    * - Fetches user with nested role relationships
    * - Includes all permissions from assigned roles
    * - Uses complex join operations for efficiency
-   *
-   * Response Structure:
-   * - User basic information
-   * - UserRole relationships with role details
-   * - RolePermission relationships with permission details
-   * - Complete permission hierarchy for access control
-   *
-   * Use Cases:
-   * - JWT token generation with permissions
-   * - Access control decisions in middleware
-   * - UI permission rendering
-   * - Security audits and logging
-   *
-   * Performance Considerations:
-   * - Uses include for eager loading of relationships
-   * - Minimizes N+1 query problems
-   * - Optimized for authentication workflows
    */
   async findUserWithPermissions(id: string): Promise<AuthenticatedUser | null> {
     return prisma.user.findUnique({

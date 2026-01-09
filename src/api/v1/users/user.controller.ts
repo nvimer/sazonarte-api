@@ -33,8 +33,6 @@ class UserController {
    * Response:
    * - 200: Success with paginated users data
    * - 400: Invalid pagination parameters
-   *
-   * The response includes pagination metadata and user data.
    */
   getUsers = asyncHandler(async (req: Request, res: Response) => {
     const page = parseInt(req.query.page as string);
@@ -65,8 +63,6 @@ class UserController {
    * - 200: User found and returned
    * - 400: Invalid ID format
    * - 404: User not found
-   *
-   * Returns complete user information excluding sensitive data like password.
    */
   getUserById = asyncHandler(async (req: Request, res: Response) => {
     const id = req.params.id;
@@ -95,9 +91,6 @@ class UserController {
    * Response:
    * - 200: User found and returned
    * - 404: User not found
-   *
-   * Note: This endpoint does not validate email format as it's
-   * expected to be used with pre-validated email addresses.
    */
   getUserByEmail = asyncHandler(async (req: Request, res: Response) => {
     const email = req.params.email;

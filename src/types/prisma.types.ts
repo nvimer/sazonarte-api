@@ -1,4 +1,4 @@
-import { MenuItem, Prisma, StockAdjustment, User } from "@prisma/client";
+import { MenuItem, Prisma, StockAdjustment } from "@prisma/client";
 
 export type UserWithProfile = Prisma.UserGetPayload<{
   include: { profile: true };

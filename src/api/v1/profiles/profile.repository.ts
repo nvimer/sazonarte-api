@@ -10,31 +10,12 @@ import { UserWithProfile } from "../../../types/prisma.types";
 
 /**
  * Profile Repository
- *
- * Data access layer for user profile-related database operations.
- * This repository is responsible for:
- * - Direct database interactions using Prisma ORM
- * - Profile CRUD operations (working with User  & Profile entities)
- * - Pagination support for large datasets
- * - Soft delete handling (deleted: false filter)
  */
 class ProfileRepository implements ProfileRepositoryInterface {
   /**
    * Retrieves a paginated list of all active user profiles from the database.
    * This method supports efficient pagination for large user datasets
    * and excludes soft-deleted users from the results.
-   *
-   * Database Operations:
-   * - Fetches users with pagination (skip/take)
-   * - Orders results by name ascending
-   * - Excludes soft-deleted users (deleted: false)
-   * - Counts total users for pagination metadata
-   *
-   * Performance Considerations:
-   * - Uses Promise.all for concurrent queries
-   * - Implements proper indexing on name and deleted fields
-   * - Returns only necessary user fields (excludes password)
-   *
    */
   async findAll(
     params: PaginationParams,
@@ -69,11 +50,6 @@ class ProfileRepository implements ProfileRepositoryInterface {
    * - Uses findUnique for optimal performance
    * - Searches by primary key (id)
    * - Returns null if no user found
-   *
-   * Note: This method doesn't filter by deleted status as it's
-   * used for validation and lookup operations where we need to
-   * find the user regardless of deletion status.
-   *
    */
   async findById(id: string): Promise<UserWithProfile | null> {
     return prisma.user.findUnique({
@@ -91,13 +67,6 @@ class ProfileRepository implements ProfileRepositoryInterface {
    * - Updates only provided fields
    * - Uses optimistic locking for concurrency control
    * - Returns updated user data
-   *
-   * Update Behavior:
-   * - Supports partial updates (only provided fields are modified)
-   * - Maintains data integrity and constraints
-   * - Preserves existing data for non-provided fields
-   * - Handles both user and profile-specific field updates
-   *
    */
   async update(id: string, data: UpdateProfileInput): Promise<UserWithProfile> {
     const { firstName, lastName, password, email, phone, ...profileData } =

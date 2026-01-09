@@ -3,9 +3,10 @@ import swaggerUi from "swagger-ui-express";
 import { version } from "../../package.json";
 import { Application, Request, Response } from "express";
 import { logger } from "./logger";
+import { config } from ".";
 
-const PORT = process.env.PORT;
-const APP_URL = process.env.APP_URL;
+const PORT = config.port;
+const APP_URL = config.appUrl;
 
 const options: swaggerJsdoc.Options = {
   definition: {

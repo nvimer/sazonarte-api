@@ -115,15 +115,6 @@ export const bulkRoleSchema = z.object({
  * Validation Rules:
  * - permissionIds: Must be an array of positive integers
  * - At least one permission ID is required
- *
- * Error Messages:
- * - "At least one permission ID is required" if array is empty
- * - "Permission ID must be a positive integer" for invalid IDs
- *
- * Use Cases:
- * - POST /roles/permissions/:id/assign endpoint
- * - Role permission management interfaces
- * - Access control configuration
  */
 export const assignPermissionsSchema = z.object({
   body: z.object({
@@ -143,15 +134,6 @@ export const assignPermissionsSchema = z.object({
  * Validation Rules:
  * - permissionIds: Must be an array of positive integers
  * - At least one permission ID is required
- *
- * Error Messages:
- * - "At least one permission ID is required" if array is empty
- * - "Permission ID must be a positive integer" for invalid IDs
- *
- * Use Cases:
- * - DELETE /roles/permissions/:id/remove endpoint
- * - Selective permission removal
- * - Access control refinement
  */
 export const removePermissionsSchema = z.object({
   body: z.object({

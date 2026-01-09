@@ -7,7 +7,6 @@ import {
 import userService from "../api/v1/users/user.service";
 import { PayloadInput } from "../api/v1/auth/tokens/token.validation";
 import { config } from "../config";
-import { logger } from "../config/logger";
 
 // define the options for strategy jwt
 // extract the jwt form header

@@ -7,19 +7,6 @@ import { PaginationParams } from "../../../interfaces/pagination.interfaces";
 
 /**
  * Role Controller
- *
- * Handles HTTP requests for role management operations.
- * This controller is responsible for:
- * - Processing incoming HTTP requests for role CRUD operations
- * - Extracting and validating request data
- * - Delegating business logic to the role service
- * - Formatting and returning HTTP responses
- *
- * Role management includes:
- * - Basic CRUD operations (Create, Read, Update, Delete)
- * - Search and filtering capabilities
- * - Bulk operations for efficiency
- * - Pagination support for large datasets
  */
 class RoleController {
   /**
@@ -36,8 +23,6 @@ class RoleController {
    * Response:
    * - 200: Success with paginated roles data
    * - 400: Invalid pagination parameters
-   *
-   * The response includes pagination metadata and role data.
    */
   getRoles = asyncHandler(async (req: Request, res: Response) => {
     const page = parseInt(req.query.page as string);
@@ -69,11 +54,6 @@ class RoleController {
    * Response:
    * - 200: Success with filtered and paginated roles data
    * - 400: Invalid search parameters
-   *
-   * Search functionality includes:
-   * - Text-based search in role names and descriptions
-   * - Active status filtering
-   * - Combined pagination and filtering
    */
   searchRoles = asyncHandler(async (req: Request, res: Response) => {
     const page = parseInt(req.query.page as string);
@@ -106,8 +86,6 @@ class RoleController {
    * - 200: Role found and returned
    * - 400: Invalid ID format
    * - 404: Role not found
-   *
-   * Returns complete role information including associated permissions.
    */
   getRoleById = asyncHandler(async (req: Request, res: Response) => {
     const id = parseInt(req.params.id);
@@ -131,8 +109,6 @@ class RoleController {
    * - 201: Role created successfully
    * - 400: Invalid request data
    * - 409: Role name already exists
-   *
-   * The response includes the created role with assigned permissions.
    */
   postRole = asyncHandler(async (req: Request, res: Response) => {
     const data: CreateRoleInput = req.body;
@@ -157,8 +133,6 @@ class RoleController {
    * - 400: Invalid request data
    * - 404: Role not found
    * - 409: Role name already exists (if name is being changed)
-   *
-   * Only the fields provided in the request body will be updated.
    */
   patchRole = asyncHandler(async (req: Request, res: Response) => {
     const id = parseInt(req.params.id);
@@ -184,11 +158,6 @@ class RoleController {
    * - 400: Invalid ID format
    * - 404: Role not found
    * - 409: Role cannot be deleted (has active users)
-   *
-   * Deletion Behavior:
-   * - Performs soft delete (marks as deleted)
-   * - Validates no active users are assigned to the role
-   * - Maintains referential integrity
    */
   deleteRole = asyncHandler(async (req: Request, res: Response) => {
     const id = parseInt(req.params.id);
@@ -212,17 +181,6 @@ class RoleController {
    * - 200: Bulk deletion completed
    * - 400: Invalid request data
    * - 409: Some roles cannot be deleted (have active users)
-   *
-   * Bulk Operation Features:
-   * - Processes multiple roles in a single request
-   * - Returns count of successfully deleted roles
-   * - Handles partial failures gracefully
-   * - Maintains data integrity across all operations
-   *
-   * Use Cases:
-   * - Administrative cleanup
-   * - Bulk role management
-   * - System maintenance operations
    */
   bulkDeleteRoles = asyncHandler(async (req: Request, res: Response) => {
     const { ids } = req.body;

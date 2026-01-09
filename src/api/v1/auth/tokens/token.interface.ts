@@ -18,16 +18,6 @@ export interface TokenServiceInterface {
 
 /**
  * Token Repository Interface
- *
- * Defines the contract for token repository implementations.
- * This interface ensures consistency across different token repository
- * implementations and provides clear documentation of expected methods.
- *
- * The interface defines core token persistence operations:
- * - Token storage and retrieval
- * - Token lifecycle management
- * - Database interaction for tokens
- * - Token security and tracking
  */
 export interface TokenRepositoryInterface {
   saveToken(

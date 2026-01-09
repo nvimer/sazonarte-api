@@ -15,34 +15,14 @@ import { UserWithProfile } from "../../../types/prisma.types";
  * Profile Service
  *
  * Core business logic layer for user profile management operations.
- * This service is responsible for:
- * - Profile CRUD operations with business rules
- * - Data validation and integrity checks
- * - Error handling and custom error creation
- * - Delegating data access to the profile repository
- *
- * The service follows the dependency injection pattern and
- * implements the ProfileServiceInterface for consistency.
- *
- * Profile management includes:
- * - Profile retrieval and listing
- * - Profile updates and modifications
- * - User data validation and integrity
- * - Pagination support for large datasets
  */
 class ProfileServices implements ProfileServiceInterface {
-  constructor(private profileRepository: ProfileRepositoryInterface) { }
+  constructor(private profileRepository: ProfileRepositoryInterface) {}
 
   /**
    * Validates that a user/profile exists by ID and returns the user if found.
    * This method is used across multiple operations to ensure
    * the user exists before performing any modifications.
-   *
-   * Error Codes:
-   * - ID_NOT_FOUND: User with the specified ID doesn't exist
-   *
-   * This method is private as it's an internal validation helper
-   * used by other service methods to ensure data integrity.
    */
   private async findByIdOrFail(id: string): Promise<UserWithProfile> {
     const user = await this.profileRepository.findById(id);
@@ -60,16 +40,6 @@ class ProfileServices implements ProfileServiceInterface {
    * Retrieves a paginated list of all user profiles in the system.
    * This method supports pagination for efficient data retrieval
    * and is typically used for administrative interfaces.
-   *
-   * The response includes:
-   * - Users array with profile information
-   * - Pagination metadata (total, page, limit, etc.)
-   * - Excludes soft-deleted users
-   *
-   * Profile data typically includes:
-   * - Basic user information (firstName, lastName, email, phone)
-   * - Profile-specific fields
-   * - Associated user relationships
    */
   async findAll(params: PaginationParams): Promise<PaginatedResponse<User>> {
     return this.profileRepository.findAll(params);
@@ -78,11 +48,6 @@ class ProfileServices implements ProfileServiceInterface {
   /**
    * Retrieves a specific user profile by their unique identifier.
    * This method validates the user exists before returning the data.
-   *
-   * Error Codes:
-   * - ID_NOT_FOUND: User with the specified ID doesn't exist
-   *
-   * Returns complete user information including profile data.
    */
   async findById(id: string): Promise<UserWithProfile> {
     return this.findByIdOrFail(id);
@@ -92,23 +57,6 @@ class ProfileServices implements ProfileServiceInterface {
    * Updates an existing user's profile information.
    * This method supports partial updates and includes validation
    * to ensure data integrity and uniqueness.
-   *
-   * Error Codes:
-   * - ID_NOT_FOUND: User with the specified ID doesn't exist
-   * - EMAIL_CONFLICT: Email already exists (if email is being changed)
-   *
-   * Validation:
-   * - Ensures user exists before update
-   * - Validates email uniqueness if email is being changed
-   * - Supports partial updates (only provided fields are updated)
-   *
-   * Update Behavior:
-   * - Only the fields provided in the request body will be updated
-   *
-   * Use Cases:
-   * - User profile editing
-   * - Administrative profile management
-   * - Profile information updates
    */
   async updateUser(
     id: string,
@@ -124,13 +72,6 @@ class ProfileServices implements ProfileServiceInterface {
    *
    *  @param id - ID from the authenticated token (req.user.id)
    *  @returs Promise<UserWithProfile> - User's complete profile
-   *
-   *  Error Codes:
-   *  - ID_NOT_FOUND: User not found (shouldn't happen if token is valid)
-   *
-   *  Security:
-   *  - Only accessible by authenticated users
-   *  - User can only see their own profile
    */
 
   async getMyProfile(id: string): Promise<UserWithProfile> {

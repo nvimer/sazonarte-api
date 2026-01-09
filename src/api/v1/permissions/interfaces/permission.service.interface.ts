@@ -14,19 +14,6 @@ import {
  * Permission Service Interface
  *
  * Defines the contract for permission business logic operations.
- *
- * The service layer handles:
- * - Business logic validation
- * - Data transformation
- * - Error handling and custom exceptions
- * - Duplicate checking and constraints
- * - Transaction management
- *
- * All methods throw CustomError for business logic failures:
- * - 404: Resource not found
- * - 409: Conflict (duplicate names, etc.)
- * - 400: Validation errors
- * - 500: Unexpected server errors
  */
 export interface PermissionServiceInterface {
   /**

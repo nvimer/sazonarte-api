@@ -84,4 +84,4 @@ paths:
                 message: "Permission not found"
                 errors:
                   - field: "id"
-                    message: "Permission with ID 999 does not exist" 
+                    message: "Permission with ID 999 does not exist"

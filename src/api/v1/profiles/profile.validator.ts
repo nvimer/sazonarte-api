@@ -13,25 +13,6 @@ export const profileIdSchema = z.object({
 
 /**
  * Profile update validation schema
- *
- * Validates the request body for profile update operations.
- * All fields are optional to support partial updates, but when
- * provided, they must meet specific validation criteria.
- *
- * Validation Rules:
- * - firstName: If provided, must be 2-50 characters
- * - lastName: If provided, must be 2-50 characters
- * - name: If provided, must be a non-empty string
- * - email: If provided, must be a valid email format
- * - phone: If provided, must be a string (no specific format validation)
- *
- * Error Messages:
- * - firstName: "Name is required" (if provided but empty)
- * - lastName: "Name is required" (if provided but empty)
- * - email: "Invalid email format" (if provided but invalid)
- *
- * Note: This schema supports partial updates, allowing clients
- * to update only specific fields without affecting others.
  */
 export const updateProfileSchema = z.object({
   body: z.object({
@@ -65,11 +46,4 @@ export const updateProfileSchema = z.object({
   }),
 });
 
-/**
- * Type Structure:
- * - firstName?: string - Optional user first name
- * - lastName?: string - Optional user last name
- * - email?: string - Optional email address
- * - phone?: string - Optional phone number
- */
 export type UpdateProfileInput = z.infer<typeof updateProfileSchema>["body"];

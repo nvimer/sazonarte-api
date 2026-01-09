@@ -3,7 +3,7 @@ import { AnyZodObject } from "zod";
 import { asyncHandler } from "../utils/asyncHandler";
 
 export const validate = (schema: AnyZodObject) =>
-  asyncHandler(async (req: Request, _res: Response, next: NextFunction) => {
+  asyncHandler(async (req: Request, _res: Response, _next: NextFunction) => {
     await schema.parseAsync({
       body: req.body,
       query: req.query,

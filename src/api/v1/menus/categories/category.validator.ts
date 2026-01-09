@@ -116,10 +116,6 @@ export const bulkCategorySchema = z.object({
   }),
 });
 
-/**
- * TypeScript type definitions derived from the validation schemas.
- * These types ensure type safety throughout the application.
- */
 export type MenuCategoryIdParams = z.infer<typeof categoryIdSchema>["params"];
 export type CreateMenuCategoryInput = z.infer<
   typeof createMenuCategorySchema

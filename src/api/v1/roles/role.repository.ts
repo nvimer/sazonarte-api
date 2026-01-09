@@ -10,35 +10,12 @@ import { createPaginatedResponse } from "../../../utils/pagination.helper";
 
 /**
  * Role Repository
- *
- * Data access layer for role-related database operations.
- * This repository is responsible for:
- * - Direct database interactions using Prisma ORM
- * - Role CRUD operations
- * - Complex queries with permission relationships
- * - Pagination support for large datasets
- * - Soft delete handling (deleted: false filter)
- * - Permission assignment and management
- *
- * The repository implements the RoleRepositoryInterface for
- * consistency and follows the repository pattern for data access.
  */
 class RoleRepository implements RoleRepositoryInterface {
   /**
    * Retrieves a paginated list of all active roles from the database.
    * This method supports efficient pagination for large role datasets
    * and excludes soft-deleted roles from the results.
-   *
-   * Database Operations:
-   * - Fetches roles with pagination (skip/take)
-   * - Orders results by name ascending
-   * - Excludes soft-deleted roles (deleted: false)
-   * - Counts total roles for pagination metadata
-   *
-   * Performance Considerations:
-   * - Uses Promise.all for concurrent queries
-   * - Implements proper indexing on name and deleted fields
-   * - Returns only necessary role fields
    */
   async findAll(params: PaginationParams): Promise<PaginatedResponse<Role>> {
     const { page, limit } = params;
@@ -69,10 +46,6 @@ class RoleRepository implements RoleRepositoryInterface {
    * - Filters by active status if provided
    * - Excludes soft-deleted roles
    * - Supports pagination with search results
-   *
-   * Search Features:
-   * - Case-insensitive search using PostgreSQL ILIKE
-   * - Combined filtering (search + active status)
    */
   async searchRoles(
     params: PaginationParams,
@@ -82,7 +55,7 @@ class RoleRepository implements RoleRepositoryInterface {
     const { page, limit } = params;
     const skip = (page - 1) * limit;
 
-    const whereClause: any = {
+    const whereClause: Record<string, unknown> = {
       deleted: false,
       name: {
         contains: search,
@@ -117,9 +90,6 @@ class RoleRepository implements RoleRepositoryInterface {
    * - Uses findUnique for optimal performance
    * - Searches by primary key (id)
    * - Returns null if no role found
-   *
-   * Note: This method doesn't filter by deleted status as it's
-   * used for validation and lookup operations.
    */
   async findById(id: number): Promise<Role | null> {
     return prisma.role.findUnique({
@@ -137,16 +107,6 @@ class RoleRepository implements RoleRepositoryInterface {
    * - Creates role record with basic information
    * - Creates role-permission relationships for each provided permission ID
    * - Returns role with permission information included
-   *
-   * Transaction Safety:
-   * - All operations are performed in a single transaction
-   * - Ensures data consistency across role and permissions
-   * - Rolls back all changes if any operation fails
-   *
-   * Permission Assignment:
-   * - Supports multiple permission assignments
-   * - Creates RolePermission junction table records
-   * - Connects to existing permissions by ID
    */
   async createRole(data: CreateRoleInput): Promise<Role> {
     const { permissionIds, ...roleData } = data;
@@ -173,18 +133,6 @@ class RoleRepository implements RoleRepositoryInterface {
    * Updates an existing role's information in the database.
    * This method supports partial updates and can handle permission
    * reassignment when permission IDs are provided.
-   *
-   * Database Operations:
-   * - Updates only provided role fields
-   * - Replaces all permissions if permissionIds provided
-   * - Uses optimistic locking for concurrency control
-   * - Returns updated role with permission information
-   *
-   * Permission Management:
-   * - If permissionIds provided, removes all existing permissions
-   * - Assigns new permissions based on provided IDs
-   * - Maintains referential integrity
-   * - Supports complete permission replacement
    */
   async updateRole(id: number, data: UpdateRoleInput): Promise<Role> {
     const { permissionIds, ...roleData } = data;
@@ -225,12 +173,6 @@ class RoleRepository implements RoleRepositoryInterface {
    * - Updates deleted flag to true
    * - Sets deletedAt timestamp
    * - Preserves all role data and relationships
-   *
-   * Soft Delete Benefits:
-   * - Maintains referential integrity
-   * - Preserves historical data
-   * - Allows for potential recovery
-   * - Maintains audit trails
    */
   async deleteRole(id: number): Promise<Role> {
     return await prisma.role.update({
@@ -249,12 +191,6 @@ class RoleRepository implements RoleRepositoryInterface {
    * - Only affects non-deleted roles
    * - Sets deleted flag and timestamp for all affected roles
    * - Returns count of affected records
-   *
-   * Bulk Operation Features:
-   * - Efficient single-query operation
-   * - Atomic operation (all or nothing)
-   * - Only processes non-deleted roles
-   * - Returns accurate deletion count
    */
   async bulkDeleteRoles(ids: number[]): Promise<{ deletedCount: number }> {
     const result = await prisma.role.updateMany({
@@ -277,17 +213,6 @@ class RoleRepository implements RoleRepositoryInterface {
    * - Fetches role with nested permission relationships
    * - Uses complex join operations for efficiency
    * - Returns null if role not found
-   *
-   * Response Structure:
-   * - Role basic information
-   * - RolePermission relationships with permission details
-   * - Complete permission hierarchy for access control
-   *
-   * Use Cases:
-   * - Access control decisions
-   * - UI permission rendering
-   * - Security audits and logging
-   * - Role management interfaces
    */
   async findRoleWithPermissions(id: number): Promise<Role | null> {
     return prisma.role.findUnique({
@@ -309,12 +234,6 @@ class RoleRepository implements RoleRepositoryInterface {
    * - Removes all existing role-permission relationships
    * - Creates new role-permission relationships for provided IDs
    * - Returns role with updated permission information
-   *
-   * Assignment Behavior:
-   * - Complete replacement of existing permissions
-   * - Atomic operation (all or nothing)
-   * - Maintains referential integrity
-   * - Supports empty permission array (removes all permissions)
    */
   async assignPermissionsToRole(
     roleId: number,
@@ -353,12 +272,6 @@ class RoleRepository implements RoleRepositoryInterface {
    * - Removes specific role-permission relationships
    * - Preserves other assigned permissions
    * - Returns role with updated permission information
-   *
-   * Removal Behavior:
-   * - Selective removal of specified permissions
-   * - Preserves other existing permissions
-   * - Safe operation (no effect if permission not assigned)
-   * - Maintains referential integrity
    */
   async removePermissionsFromRole(
     roleId: number,

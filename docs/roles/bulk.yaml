@@ -96,4 +96,4 @@ paths:
                 message: "One or more roles not found"
                 errors:
                   - field: "ids"
-                    message: "Role with ID 999 does not exist" 
+                    message: "Role with ID 999 does not exist"

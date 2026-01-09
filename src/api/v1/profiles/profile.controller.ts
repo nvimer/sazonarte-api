@@ -8,19 +8,6 @@ import { logger } from "../../../config/logger";
 
 /**
  * Profile Controller
- *
- * Handles HTTP requests for user profile management operations.
- * This controller is responsible for:
- * - Processing incoming HTTP requests for profile operations
- * - Extracting and validating request data
- * - Delegating business logic to the profile service
- * - Formatting and returning HTTP responses
- *
- * Profile management includes:
- * - Profile retrieval and listing
- * - Profile updates and modifications
- * - Pagination support for large datasets
- * - User-specific profile operations
  */
 class ProfileController {
   /**
@@ -66,12 +53,6 @@ class ProfileController {
    * - 200: Profile found and returned
    * - 400: Invalid ID format
    * - 404: Profile not found
-   *
-   * Returns complete profile information including associated user data.
-   * This endpoint is commonly used for:
-   * - Profile viewing and editing
-   * - User dashboard displays
-   * - Administrative user management
    */
   getProfile = asyncHandler(async (req: Request, res: Response) => {
     const id = req.params.id;
@@ -106,17 +87,6 @@ class ProfileController {
    * - 400: Invalid request data
    * - 404: Profile not found
    * - 409: Email already exists (if email is being changed)
-   *
-   * Update Behavior:
-   * - Only the fields provided in the request body will be updated
-   * - Maintains data integrity and validation
-   * - Supports profile-specific and user-related updates
-   * - Preserves existing data for non-provided fields
-   *
-   * Use Cases:
-   * - User profile editing
-   * - Administrative profile management
-   * - Profile information updates
    */
   updateProfile = asyncHandler(async (req: Request, res: Response) => {
     const id = req.params.id;
@@ -144,22 +114,13 @@ class ProfileController {
    * - 200: Profile found and returned (without password)
    * - 401: Not authenticated
    * - 404: Profile not found
-   *
-   * Returns complete profile information for the authenticated user:
-   * - User basic information (firstName, lastName, email, phone)
-   * - Profile details (address, photoUrl, birthDate, identification)
-   *
-   * Use Cases:
-   * - User dashboard
-   * - Profile viewing page
-   * - My account settings
    */
   getMyProfile = asyncHandler(async (req: Request, res: Response) => {
     // req.user comes to middleware of authentication (authJwt)
     const id = req.user.id;
     const profile = await profileService.getMyProfile(id);
 
-    const { password, ...data } = profile;
+    const { password: _password, ...data } = profile;
     res.status(HttpStatus.OK).json({
       success: true,
       message: "Profile fetched successfully",

@@ -52,7 +52,7 @@ import {
  * - Bulk operations for efficiency
  */
 class CategoryController {
-  constructor(private categoryService: CategoryServiceInterface) { }
+  constructor(private categoryService: CategoryServiceInterface) {}
 
   /**
    * GET /categories

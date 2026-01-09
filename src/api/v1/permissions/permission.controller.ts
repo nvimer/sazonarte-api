@@ -17,33 +17,6 @@ import {
 
 /**
  * Permission Controller
- *
- * This controller is responsible for:
- * - Processing incoming HTTP requests for permission operations
- * - Permission CRUD operations (Create, Read, Update, Delete)
- * - Permission search and filtering
- * - Bulk permission operations
- * - Delegating business logic to permission service layer
- *
- * Permission operations include:
- * - Retrieving permissions with pagination
- * - Searching permissions with filters
- * - Getting individual permission details
- * - Creating new permissions
- * - Updating existing permissions
- * - Deleting permissions (soft delete)
- * - Bulk deletion operations
- *
- * Response Format:
- * - success: Boolean indicating operation success
- * - message: Descriptive message about the operation
- * - data: Permission data or array of permissions
- * - meta: Pagination metadata (for list operations)
- *
- * Security Features:
- * - Input validation and sanitization
- * - Role-based access control
- * - Audit trail maintenance
  */
 class PermissionController {
   constructor(private permissionService: PermissionServiceInterface) {}
@@ -63,18 +36,6 @@ class PermissionController {
    * - 200: Permissions retrieved successfully with pagination metadata
    * - 400: Invalid pagination parameters
    * - 500: Server error during retrieval
-   *
-   * Pagination Features:
-   * - Configurable page size
-   * - Page number tracking
-   * - Metadata for client-side pagination
-   * - Default values for missing parameters
-   *
-   * Use Cases:
-   * - Permission management dashboard
-   * - Role assignment interface
-   * - Administrative permission overview
-   * - Data export and reporting
    */
   getPermissions = asyncHandler(async (req: Request, res: Response) => {
     const page = parseInt(req.query.page as string) || DEFAULT_PAGE;
@@ -107,18 +68,6 @@ class PermissionController {
    * - 200: Filtered permissions retrieved successfully
    * - 400: Invalid search parameters
    * - 500: Server error during search
-   *
-   * Search Features:
-   * - Text-based search in name and description
-   * - Boolean filtering by active status
-   * - Pagination support for large result sets
-   * - Case-insensitive search
-   *
-   * Use Cases:
-   * - Permission search interface
-   * - Role assignment workflows
-   * - Administrative filtering
-   * - Permission discovery
    */
   searchPermissions = asyncHandler(async (req: Request, res: Response) => {
     const page = parseInt(req.query.page as string) || DEFAULT_PAGE;
@@ -162,12 +111,6 @@ class PermissionController {
    * - Active status and availability
    * - Creation and modification timestamps
    * - Associated roles and users
-   *
-   * Use Cases:
-   * - Individual permission details view
-   * - Permission editing interface
-   * - Role assignment verification
-   * - Permission audit and review
    */
   getPermissionById = asyncHandler(async (req: Request, res: Response) => {
     const id = parseInt(req.params.id, 10);
@@ -198,18 +141,6 @@ class PermissionController {
    * - 400: Invalid request data or validation errors
    * - 409: Permission with same name already exists
    * - 500: Server error during creation
-   *
-   * Validation:
-   * - Permission name uniqueness
-   * - Required fields validation
-   * - Name format and length validation
-   * - Resource and action validation
-   *
-   * Use Cases:
-   * - System permission setup
-   * - Adding new permissions to the system
-   * - Permission management during system expansion
-   * - Initial system configuration
    */
   postPermission = asyncHandler(async (req: Request, res: Response) => {
     const data: CreatePermissionInput = req.body;
@@ -245,18 +176,6 @@ class PermissionController {
    * - 404: Permission not found
    * - 409: Name conflict with existing permission
    * - 500: Server error during update
-   *
-   * Update Features:
-   * - Partial updates supported
-   * - Validation of updated fields
-   * - Conflict detection for unique fields
-   * - Timestamp updates for modification tracking
-   *
-   * Use Cases:
-   * - Permission information updates
-   * - Description modifications
-   * - Status changes (activate/deactivate)
-   * - Resource and action updates
    */
   patchPermission = asyncHandler(async (req: Request, res: Response) => {
     const id = parseInt(req.params.id, 10);
@@ -286,18 +205,6 @@ class PermissionController {
    * - 404: Permission not found
    * - 409: Permission cannot be deleted (e.g., has active role assignments)
    * - 500: Server error during deletion
-   *
-   * Deletion Features:
-   * - Soft delete implementation
-   * - Checks for active role assignments
-   * - Validates permission existence
-   * - Preserves data for audit trails
-   *
-   * Use Cases:
-   * - Permission removal from system
-   * - System cleanup and maintenance
-   * - Permission deprecation
-   * - Audit trail maintenance
    */
   deletePermission = asyncHandler(async (req: Request, res: Response) => {
     const id = parseInt(req.params.id, 10);
@@ -329,18 +236,6 @@ class PermissionController {
    * - 404: One or more permissions not found
    * - 409: Some permissions cannot be deleted
    * - 500: Server error during bulk deletion
-   *
-   * Bulk Deletion Features:
-   * - Multiple permission deletion in single operation
-   * - Validation of all permission IDs
-   * - Transaction-based operation for consistency
-   * - Detailed error reporting for failed deletions
-   *
-   * Use Cases:
-   * - Mass permission cleanup
-   * - System maintenance operations
-   * - Permission deprecation workflows
-   * - Administrative bulk operations
    */
   bulkDeletePermissions = asyncHandler(async (req: Request, res: Response) => {
     const data: BulkPermissionInput = req.body;

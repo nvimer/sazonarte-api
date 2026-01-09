@@ -122,7 +122,7 @@ class PermissionRepository implements PermissionRepositoryInterface {
     const skip = (page - 1) * limit;
 
     // Build where clause
-    const where: any = { deleted: false };
+    const where: Record<string, unknown> = { deleted: false };
 
     // Add search filter if provided
     if (search) {

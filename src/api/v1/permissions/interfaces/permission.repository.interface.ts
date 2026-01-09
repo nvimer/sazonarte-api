@@ -21,21 +21,11 @@ export interface PermissionRepositoryInterface {
    * - Applies ORDER BY name ASC for consistent sorting
    * - Uses LIMIT and OFFSET for pagination
    * - Performs COUNT query for total records
-   *
-   * Performance Considerations:
-   * - Uses indexed columns for filtering and sorting
-   * - Implements efficient pagination with skip/take
-   * - Parallel execution of data and count queries
    */
   findAll(params: PaginationParams): Promise<PaginatedResponse<Permission>>;
 
   /**
    * Finds a permission by its unique ID
-   
-   * Database Operations:
-   * - Executes SELECT query with WHERE id = ?
-   * - Uses primary key index for optimal performance
-   * - Returns null for non-existent records
    */
   findById(id: number): Promise<Permission | null>;
 

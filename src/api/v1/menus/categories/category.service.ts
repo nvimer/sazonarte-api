@@ -67,9 +67,6 @@ class CategoryService implements CategoryServiceInterface {
   /**
    * Retrieves a paginated list of all menu categories.
    * This method handles the business logic for fetching categories with pagination support.
-   * The response includes:
-   * - data: Array of MenuCategory objects
-   * - pagination: Metadata about the pagination (total, page, limit, etc.)
    */
   async findCategories(
     params: PaginationParams,
@@ -90,11 +87,6 @@ class CategoryService implements CategoryServiceInterface {
   /**
    * Creates a new menu category.
    * This method handles the business logic for category creation.
-   *
-   * Business Logic:
-   * 1. Check for duplicate category names
-   * 2. Create the category if name is unique
-   * 3. Return the created category
    */
   async createCategory(data: CreateMenuCategoryInput): Promise<MenuCategory> {
     // Check for duplicate category names before creation
@@ -110,12 +102,6 @@ class CategoryService implements CategoryServiceInterface {
    *
    * @throws CustomError with HTTP 404 status if category is not found
    * @throws CustomError with HTTP 409 status if update would create duplicate name
-   *
-   * Business Logic:
-   * 1. First verifies the category exists using findCategoryByIdOrFail
-   * 2. Check for duplicate names if name is being updated
-   * 3. If category exists and no conflicts, proceeds with the update
-   * 4. Returns the updated category data
    */
   async updateCategory(
     id: number,
@@ -136,12 +122,6 @@ class CategoryService implements CategoryServiceInterface {
   /**
    * Soft deletes a menu category.
    * This method implements soft delete to preserve data integrity.
-   *
-   * Business Logic:
-   * 1. Verify the category exists
-   * 2. Check if category is already deleted
-   * 3. Perform soft delete operation
-   * 4. Return the deleted category
    */
   async deleteCategory(id: number): Promise<MenuCategory> {
     // Verify the category exists
@@ -163,11 +143,6 @@ class CategoryService implements CategoryServiceInterface {
   /**
    * Soft deletes multiple menu categories in bulk.
    * This method provides efficient batch deletion capabilities.
-   *
-   * Business Logic:
-   * 1. Validate that at least one ID is provided
-   * 2. Perform bulk soft delete operation
-   * 3. Return count of successfully deleted categories
    */
   async bulkDeleteCategories(data: BulkCategoryInput): Promise<number> {
     // Validate that at least one ID is provided
@@ -186,12 +161,6 @@ class CategoryService implements CategoryServiceInterface {
   /**
    * Searches for menu categories with optional filtering and pagination.
    * This method provides flexible search capabilities for finding categories.
-   *
-   * Search Features:
-   * - Name-based search using case-insensitive contains
-   * - Active/inactive filtering
-   * - Pagination support
-   * - Alphabetical ordering
    */
   async searchCategories(
     params: PaginationParams & CategorySearchParams,

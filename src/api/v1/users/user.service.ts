@@ -17,17 +17,6 @@ import {
 
 /**
  * User Service
- *
- * Core business logic layer for user management operations.
- * This service is responsible for:
- * - User CRUD operations with business rules
- * - Data validation and integrity checks
- * - Password hashing and security
- * - Role assignment and validation
- * - Error handling and custom error creation
- *
- * The service follows the dependency injection pattern and
- * implements the UserServiceInterface for consistency.
  */
 class UserServices implements UserServiceInterface {
   constructor(
@@ -46,8 +35,6 @@ class UserServices implements UserServiceInterface {
    *
    * Error Codes:
    * - EMAIL_CONFLICT: Email already exists in the system
-   *
-   * This method is private as it's an internal validation helper.
    */
   private async findByEmailOrFail(email: string): Promise<boolean> {
     const user = await this.userRepository.findByEmail(email);
@@ -71,8 +58,6 @@ class UserServices implements UserServiceInterface {
    *
    * Error Codes:
    * - ID_NOT_FOUND: User with the specified ID doesn't exist
-   *
-   * This method is private as it's an internal validation helper.
    */
   private async findByIdOrFail(id: string): Promise<User> {
     const user = await this.userRepository.findById(id);
@@ -97,8 +82,6 @@ class UserServices implements UserServiceInterface {
    *
    * Error Codes:
    * - INVALID_ROLE_IDS: One or more role IDs don't exist
-   *
-   * The method removes duplicates and validates each unique role ID.
    */
   private async validateRoleIds(roleIds: number[]) {
     const uniqueRoleIds = [...new Set(roleIds)];
@@ -128,11 +111,6 @@ class UserServices implements UserServiceInterface {
    *
    * @param params - Pagination parameters (page, limit)
    * @returns Promise<PaginatedResponse<User>> - Paginated user data
-   *
-   * The response includes:
-   * - Users array with basic user information
-   * - Pagination metadata (total, page, limit, etc.)
-   * - Excludes sensitive data like passwords
    */
   async findAll(params: PaginationParams): Promise<PaginatedResponse<User>> {
     return this.userRepository.findAll(params);
@@ -148,8 +126,6 @@ class UserServices implements UserServiceInterface {
    *
    * Error Codes:
    * - ID_NOT_FOUND: User with the specified ID doesn't exist
-   *
-   * Returns complete user information excluding sensitive data.
    */
   async findById(id: string): Promise<User> {
     return this.findByIdOrFail(id);
@@ -166,9 +142,6 @@ class UserServices implements UserServiceInterface {
    *
    * Error Codes:
    * - NOT_FOUND: User with the specified email doesn't exist
-   *
-   * Note: This method throws an error if the user is not found,
-   * unlike findByEmailOrFail which is used for validation.
    */
   async findByEmail(email: string): Promise<User> {
     const user = await this.userRepository.findByEmail(email);
@@ -195,11 +168,6 @@ class UserServices implements UserServiceInterface {
    *
    * Error Codes:
    * - EMAIL_CONFLICT: Email already exists in the system
-   *
-   * Security Features:
-   * - Password is hashed using bcrypt
-   * - Password is excluded from the response
-   * - Email uniqueness is enforced
    */
   async register(data: RegisterInput): Promise<User> {
     await this.findByEmailOrFail(data.email);
@@ -229,11 +197,6 @@ class UserServices implements UserServiceInterface {
    * Error Codes:
    * - ID_NOT_FOUND: User with the specified ID doesn't exist
    * - EMAIL_CONFLICT: Email already exists (if email is being changed)
-   *
-   * Validation:
-   * - Ensures user exists before update
-   * - Validates email uniqueness if email is being changed
-   * - Supports partial updates (only provided fields are updated)
    */
   async updateUser(id: string, data: UpdateUserInput): Promise<User> {
     await this.findByIdOrFail(id);
@@ -254,17 +217,6 @@ class UserServices implements UserServiceInterface {
    *
    * Error Codes:
    * - ID_NOT_FOUND: User with the specified ID doesn't exist
-   *
-   * Response includes:
-   * - User basic information
-   * - All assigned roles with their details
-   * - All permissions from assigned roles
-   *
-   * This data is typically used for:
-   * - JWT token generation
-   * - Access control decisions
-   * - UI permission rendering
-   * - Security audits and logging
    */
   async findUserWithRolesAndPermissions(
     id: string,

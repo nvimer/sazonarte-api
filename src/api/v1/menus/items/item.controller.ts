@@ -15,9 +15,6 @@ import {
   DEFAULT_PAGE,
   PaginationParams,
 } from "../../../../interfaces/pagination.interfaces";
-import { IdParam } from "../../../../utils/params.schema";
-import { parse } from "path";
-import { http } from "winston";
 
 /**
  * Menu Item Controller
@@ -42,7 +39,7 @@ import { http } from "winston";
  * - Menu organization
  */
 class ItemController {
-  constructor(private itemService: ItemServiceInteface) { }
+  constructor(private itemService: ItemServiceInteface) {}
 
   /**
    * GET /menu-items

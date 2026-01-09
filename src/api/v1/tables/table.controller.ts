@@ -11,31 +11,9 @@ import {
 
 /**
  * Table Controller
- *
- * Handles HTTP requests for table management operations.
- * This controller is responsible for:
- * - Processing incoming HTTP requests for table operations
- * - Table CRUD operations (Create, Read, Update, Delete)
- * - Table status management
- * - Pagination and data retrieval
- * - Delegating business logic to table service layer
- *
- * Table operations include:
- * - Retrieving tables with pagination
- * - Getting individual table details
- * - Creating new tables
- * - Updating existing tables
- * - Deleting tables
- * - Managing table status (available/occupied)
- *
- * Response Format:
- * - success: Boolean indicating operation success
- * - message: Descriptive message about the operation
- * - data: Table data or array of tables
- * - meta: Pagination metadata (for list operations)
  */
 class TableController {
-  constructor(private tableService: TableServiceInterface) { }
+  constructor(private tableService: TableServiceInterface) {}
 
   /**
    * GET /tables
@@ -48,18 +26,6 @@ class TableController {
    * - 200: Tables retrieved successfully with pagination metadata
    * - 400: Invalid pagination parameters
    * - 500: Server error during retrieval
-   *
-   * Pagination Features:
-   * - Configurable page size
-   * - Page number tracking
-   * - Metadata for client-side pagination
-   * - Default values for missing parameters
-   *
-   * Use Cases:
-   * - Restaurant table management dashboard
-   * - Table availability overview
-   * - Administrative table listing
-   * - Data export and reporting
    */
   getTables = asyncHandler(async (req: Request, res: Response) => {
     const page = parseInt(req.query.page as string) || DEFAULT_PAGE;
@@ -89,18 +55,6 @@ class TableController {
    * - 404: Table not found
    * - 500: Server error during retrieval
    *
-   * Table Information:
-   * - Table ID and name
-   * - Capacity and seating arrangement
-   * - Current status (available/occupied)
-   * - Location and description
-   * - Creation and update timestamps
-   *
-   * Use Cases:
-   * - Individual table details view
-   * - Table reservation system
-   * - Table management interface
-   * - Status checking for specific tables
    */
   getTableById = asyncHandler(async (req: Request, res: Response) => {
     const id = parseInt(req.params.id, 10);
@@ -124,18 +78,6 @@ class TableController {
    * - 400: Invalid request data or validation errors
    * - 409: Table with same name already exists
    * - 500: Server error during creation
-   *
-   * Validation:
-   * - Table name uniqueness
-   * - Capacity must be positive integer
-   * - Status must be valid enum value
-   * - Required fields validation
-   *
-   * Use Cases:
-   * - Restaurant setup and configuration
-   * - Adding new tables to the system
-   * - Table management during expansion
-   * - Initial system setup
    */
   postTable = asyncHandler(async (req: Request, res: Response) => {
     const data = req.body;
@@ -160,18 +102,6 @@ class TableController {
    * - 404: Table not found
    * - 409: Name conflict with existing table
    * - 500: Server error during update
-   *
-   * Update Features:
-   * - Partial updates supported
-   * - Validation of updated fields
-   * - Conflict detection for unique fields
-   * - Timestamp updates for modification tracking
-   *
-   * Use Cases:
-   * - Table information updates
-   * - Capacity adjustments
-   * - Location changes
-   * - Description modifications
    */
   updateTable = asyncHandler(async (req: Request, res: Response) => {
     const id = parseInt(req.params.id, 10);
@@ -198,17 +128,6 @@ class TableController {
    * - 409: Table cannot be deleted (e.g., has active reservations)
    * - 500: Server error during deletion
    *
-   * Deletion Constraints:
-   * - Checks for active reservations
-   * - Validates table existence
-   * - Ensures no dependent records
-   * - Soft delete option available
-   *
-   * Use Cases:
-   * - Table removal from system
-   * - Restaurant layout changes
-   * - System cleanup and maintenance
-   * - Table replacement scenarios
    */
   deleteTable = asyncHandler(async (req: Request, res: Response) => {
     const id = parseInt(req.params.id, 10);
@@ -231,19 +150,6 @@ class TableController {
    * - 400: Invalid status value or table ID
    * - 404: Table not found
    * - 500: Server error during status update
-   *
-   * Status Management:
-   * - Real-time status updates
-   * - Status validation
-   * - Timestamp tracking for status changes
-   * - Integration with reservation system
-   *
-   * Use Cases:
-   * - Real-time table availability updates
-   * - Reservation management
-   * - Restaurant floor management
-   * - Table status monitoring
-   * - Integration with POS systems
    */
   updateTableStatus = asyncHandler(async (req: Request, res: Response) => {
     const id = parseInt(req.params.id, 10);

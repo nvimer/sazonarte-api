@@ -15,4 +15,3 @@ export interface UserRepositoryInterface {
   update(id: string, data: UpdateUserInput): Promise<User>;
   findUserWithPermissions(id: string): Promise<AuthenticatedUser | null>;
 }
-

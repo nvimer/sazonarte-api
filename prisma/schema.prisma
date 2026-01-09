@@ -231,7 +231,6 @@ model MenuItem {
   lowStockAlert       Int?    @default(5) @map("low_stock_alert")
   autoMarkUnavailable Boolean @default(true) @map("auto_mark_unavailable)")
 
-  // Relaciones inversas para saber dónde se usa este items
   dailyMenuOptions DailyMenuOption[]
   orderItems       OrderItem[]
   stockAdjustments StockAdjustment[]

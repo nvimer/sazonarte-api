@@ -12,19 +12,6 @@ import {
 
 /**
  * Role Service
- *
- * Core business logic layer for role management operations.
- * This service is responsible for:
- * - Role CRUD operations with business rules
- * - Data validation and integrity checks
- * - Error handling and custom error creation
- * - Delegating data access to the repository layer
- *
- * Role management includes:
- * - Basic CRUD operations (Create, Read, Update, Delete)
- * - Search and filtering capabilities
- * - Bulk operations for efficiency
- * - Validation of role existence and constraints
  */
 class RoleService implements RoleServiceInterface {
   constructor(private roleRepository: RoleRepositoryInterface) {}
@@ -53,11 +40,6 @@ class RoleService implements RoleServiceInterface {
    * Retrieves a paginated list of all roles in the system.
    * This method supports pagination for efficient data retrieval
    * and is typically used for role management interfaces.
-   *
-   * The response includes:
-   * - Roles array with basic role information
-   * - Pagination metadata (total, page, limit, etc.)
-   * - Excludes soft-deleted roles
    */
   async findAll(params: PaginationParams): Promise<PaginatedResponse<Role>> {
     return this.roleRepository.findAll(params);
@@ -111,11 +93,6 @@ class RoleService implements RoleServiceInterface {
    * Updates an existing role's information.
    * This method supports partial updates and includes validation
    * to ensure data integrity and uniqueness.
-   *
-   * Validation:
-   * - Ensures role exists before update
-   * - Validates name uniqueness if name is being changed
-   * - Supports partial updates (only provided fields are updated)
    */
   async updateRole(id: number, data: UpdateRoleInput): Promise<Role> {
     await this.findByIdOrFail(id);
@@ -126,12 +103,6 @@ class RoleService implements RoleServiceInterface {
    * Deletes a specific role from the system.
    * This method performs soft deletion to maintain data integrity
    * and preserve historical relationships.
-   *
-   * Deletion Behavior:
-   * - Performs soft delete (marks as deleted)
-   * - Validates no active users are assigned to the role
-   * - Maintains referential integrity
-   * - Preserves historical data
    */
   async deleteRole(id: number): Promise<Role> {
     await this.findByIdOrFail(id);
@@ -142,17 +113,6 @@ class RoleService implements RoleServiceInterface {
    * Deletes multiple roles in a single operation.
    * This method provides efficient bulk deletion for administrative
    * operations and cleanup tasks.
-   *
-   * Bulk Operation Features:
-   * - Processes multiple roles in a single request
-   * - Returns count of successfully deleted roles
-   * - Handles partial failures gracefully
-   * - Maintains data integrity across all operations
-   *
-   * Use Cases:
-   * - Administrative cleanup
-   * - Bulk role management
-   * - System maintenance operations
    */
   async bulkDeleteRoles(ids: number[]): Promise<{ deletedCount: number }> {
     return this.roleRepository.bulkDeleteRoles(ids);

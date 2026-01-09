@@ -12,32 +12,11 @@ import tokenRepository from "./token.repository";
 /**
  * Token Service
  *
- * Core business logic layer for JWT token management operations.
- * This service is responsible for:
- * - JWT token generation and signing
- * - Token expiration management
- * - Access and refresh token creation
- * - Token storage and persistence
- * - Token security and validation
- *
  * The service follows the dependency injection pattern and
  * implements the TokenServiceInterface for consistency.
- *
- * Token management includes:
- * - Access token generation for API authentication
- * - Refresh token generation for session renewal
- * - Token expiration configuration
- * - Token storage in database for tracking
- *
- * Security Features:
- * - JWT signing with secret key
- * - Configurable token expiration times
- * - Token blacklisting support
- * - Secure payload structure
- *
  */
 class TokenService implements TokenServiceInterface {
-  constructor(private tokenRepository: TokenRepositoryInterface) { }
+  constructor(private tokenRepository: TokenRepositoryInterface) {}
 
   /**
    * Generates a JWT token with the specified parameters.
@@ -50,12 +29,6 @@ class TokenService implements TokenServiceInterface {
    * - iat: Issued at timestamp (Unix timestamp)
    * - exp: Expiration timestamp (Unix timestamp)
    * - type: Token type (ACCESS/REFRESH)
-   *
-   * Security Features:
-   * - Uses environment variable for secret key
-   * - Includes token type for validation
-   * - Timestamp-based expiration
-   * - JWT standard compliance
    */
   private generateToken(
     id: string,
@@ -84,12 +57,6 @@ class TokenService implements TokenServiceInterface {
    * - Records token type and expiration
    * - Tracks blacklist status
    * - Associates token with user
-   *
-   * Use Cases:
-   * - Token revocation and blacklisting
-   * - Session tracking and management
-   * - Security audit and monitoring
-   * - Token lifecycle management
    */
   private async saveToken(
     id: string,
@@ -124,22 +91,6 @@ class TokenService implements TokenServiceInterface {
    * - Refresh token: Long-lived for session renewal
    * - Expiration times configured via environment variables
    * - Refresh tokens stored for revocation capability
-   *
-   * Response Structure:
-   * - access: Access token with expiration
-   * - refresh: Refresh token with expiration
-   *
-   * Security Features:
-   * - Separate expiration times for different token types
-   * - Refresh token persistence for management
-   * - Environment-based configuration
-   * - Token type differentiation
-   *
-   * Use Cases:
-   * - User login and authentication
-   * - Session establishment
-   * - API access authorization
-   * - Token-based security
    */
   async generateAuthToken(id: string): Promise<AuthTokenResponseInput> {
     const accessTokenExpires = moment().add(

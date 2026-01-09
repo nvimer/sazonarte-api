@@ -27,14 +27,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // cors config
-const whitelist = [
-  `http://localhost:${port}`,
-  "https://plaet-api.onrender.com",
-  "https://plaet-api.onrender.com/api/v1",
-];
+const whitelist = [`http://localhost:${port}`, config.allowedOrigins];
 
 const corsOptions: CorsOptions = {
-  origin: function(
+  origin: function (
     origin: string | undefined,
     callback: (err: Error | null, origin?: boolean) => void,
   ) {
@@ -88,10 +84,11 @@ app.get("/api/health", (_: Request, res: Response) => {
   res.status(200).json({
     status: "ok",
     timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV,
+    environment: config.nodeEnv,
     cors: {
       whitelist,
-      origin: process.env.CORS_ORIGIN,
+      origin: config.allowedOrigins,
+      // origin: process.env.CORS_ORIGIN,
     },
   });
 });

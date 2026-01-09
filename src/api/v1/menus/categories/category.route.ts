@@ -11,26 +11,11 @@ import {
 } from "./category.validator";
 import { paginationQuerySchema } from "../../../../utils/pagination.schema";
 
-/**
- * Express Router for Menu Category endpoints.
- *
- * This router defines all CRUD operations for menu categories:
- * - GET / - Retrieve paginated list of categories
- * - GET /search - Search categories with filtering
- * - POST / - Create a new category
- * - GET /:id - Retrieve a specific category by ID
- * - PATCH /:id - Update an existing category
- * - DELETE /:id - Soft delete a category
- * - DELETE /bulk - Bulk soft delete categories
- *
- */
 const router = Router();
 
 /**
  * GET /categories
- *
  * Retrieves a paginated list of all menu categories.
- *
  */
 router.get(
   "/",
@@ -40,7 +25,6 @@ router.get(
 
 /**
  * GET /categories/search
- *
  * Searches for menu categories with optional filtering and pagination.
  *
  * Query Parameters:
@@ -48,7 +32,6 @@ router.get(
  * - limit: Number of items per page (optional, defaults to 10)
  * - search: Search term for name-based filtering (optional)
  * - active: Filter by active status (true/false, optional)
- *
  */
 router.get(
   "/search",
@@ -59,7 +42,6 @@ router.get(
 
 /**
  * POST /categories
- *
  * Creates a new menu category.
  */
 router.post(
@@ -70,14 +52,12 @@ router.post(
 
 /**
  * GET /categories/:id
- *
  * Retrieves a specific menu category by its ID.
  */
 router.get("/:id", validate(categoryIdSchema), categoryController.getCategory);
 
 /**
  * PATCH /categories/:id
- *
  * Updates an existing menu category.
  *
  */
@@ -90,7 +70,6 @@ router.patch(
 
 /**
  * DELETE /categories/:id
- *
  * Soft deletes a menu category by setting the deleted flag to true.
  */
 router.delete(
@@ -101,7 +80,6 @@ router.delete(
 
 /**
  * DELETE /categories/bulk
- *
  * Soft deletes multiple menu categories in bulk.
  */
 router.delete(

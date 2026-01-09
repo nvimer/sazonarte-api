@@ -1,22 +1,30 @@
 import { PrismaClient } from "@prisma/client";
 import { logger } from "../config/logger";
 
-// Tipos para soft delete
-type SoftDeleteModel = {
+interface SoftDeleteWhere {
   deleted: boolean;
-  deletedAt: Date | null;
-};
+  [key: string]: unknown;
+}
 
-// Tipo para los parámetros de query de Prisma
-type PrismaQueryParams = {
+interface SoftDeleteData {
+  deleted: boolean;
+  deletedAt: Date;
+  [key: string]: unknown;
+}
+
+interface SoftDeleteArgs {
+  where?: Record<string, unknown> & { id?: unknown };
+  data?: Record<string, unknown>;
+}
+
+interface PrismaQueryParams<TArgs = SoftDeleteArgs> {
   model: string;
   operation: string;
-  args: Record<string, any>;
-  query: (args: Record<string, any>) => Promise<any>;
-};
+  args: TArgs;
+  query: (args: TArgs) => Promise<unknown>;
+}
 
-// Lista de modelos que soportan soft delete
-const SOFT_DELETE_MODELS = [
+const _SOFT_DELETE_MODELS = [
   "Permission",
   "Role",
   "MenuCategory",
@@ -25,47 +33,80 @@ const SOFT_DELETE_MODELS = [
   "Table",
 ] as const;
 
-type SoftDeleteModelName = (typeof SOFT_DELETE_MODELS)[number];
+type SoftDeleteModelName = (typeof _SOFT_DELETE_MODELS)[number];
 
 // Función helper para crear soft delete handlers con tipos estrictos
 const createSoftDeleteHandlers = (modelName: SoftDeleteModelName) => ({
-  async delete({ model, operation, args, query }: PrismaQueryParams) {
+  async delete({
+    model: _model,
+    operation: _operation,
+    args,
+    query,
+  }: PrismaQueryParams) {
     logger.info(`Soft deleting ${modelName} with ID: ${args.where?.id}`);
     return query({
       ...args,
-      data: { ...args.data, deleted: true, deletedAt: new Date() },
+      data: {
+        ...args.data,
+        deleted: true,
+        deletedAt: new Date(),
+      } as SoftDeleteData,
     });
   },
 
-  async deleteMany({ model, operation, args, query }: PrismaQueryParams) {
+  async deleteMany({
+    model: _model,
+    operation: _operation,
+    args,
+    query,
+  }: PrismaQueryParams) {
     logger.info(`Soft deleting multiple ${modelName}s`);
     return query({
       ...args,
-      data: { ...args.data, deleted: true, deletedAt: new Date() },
+      data: {
+        ...args.data,
+        deleted: true,
+        deletedAt: new Date(),
+      } as SoftDeleteData,
     });
   },
 
-  async findMany({ model, operation, args, query }: PrismaQueryParams) {
+  async findMany({
+    model: _model,
+    operation: _operation,
+    args,
+    query,
+  }: PrismaQueryParams) {
     const where = args.where || {};
     return query({
       ...args,
-      where: { ...where, deleted: false },
+      where: { ...where, deleted: false } as SoftDeleteWhere,
     });
   },
 
-  async findFirst({ model, operation, args, query }: PrismaQueryParams) {
+  async findFirst({
+    model: _model,
+    operation: _operation,
+    args,
+    query,
+  }: PrismaQueryParams) {
     const where = args.where || {};
     return query({
       ...args,
-      where: { ...where, deleted: false },
+      where: { ...where, deleted: false } as SoftDeleteWhere,
     });
   },
 
-  async findUnique({ model, operation, args, query }: PrismaQueryParams) {
+  async findUnique({
+    model: _model,
+    operation: _operation,
+    args,
+    query,
+  }: PrismaQueryParams) {
     const where = args.where || {};
     return query({
       ...args,
-      where: { ...where, deleted: false },
+      where: { ...where, deleted: false } as SoftDeleteWhere,
     });
   },
 });
