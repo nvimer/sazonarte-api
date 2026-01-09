@@ -26,8 +26,12 @@ class CategoryRepository implements CategoryRepositoryInterface {
    * Database Operations:
    * - Uses Prisma's findMany with skip/take for pagination
    * - Filters out deleted categories (deleted: false)
-   * - Orders results alphabetically by name (ascending)
+   * - Orders results by display order (ascending), then alphabetically by name
    * - Fetches total count in parallel for pagination metadata
+   *
+   * Ordering:
+   * - Primary sort: order field (ascending) - for manual display ordering
+   * - Secondary sort: name field (ascending) - for categories with same order
    */
   async findAll(
     params: PaginationParams,
@@ -43,7 +47,7 @@ class CategoryRepository implements CategoryRepositoryInterface {
       // Fetch paginated categories with filtering and ordering
       prisma.menuCategory.findMany({
         where: { deleted: false }, // Only include non-deleted categories
-        orderBy: { name: "asc" }, // Sort alphabetically by name
+        orderBy: { order: "asc", name: "asc" }, // Sort alphabetically by name
         skip, // Skip records for pagination
         take: limit, // Limit number of records returned
       }),
@@ -185,7 +189,7 @@ class CategoryRepository implements CategoryRepositoryInterface {
    * - Name-based search using case-insensitive contains
    * - Active/inactive filtering
    * - Pagination support
-   * - Alphabetical ordering
+   * - Ordered by display order (primary), then alphabetically (secondary)
    */
   async search(
     params: PaginationParams & CategorySearchParams,
@@ -215,7 +219,7 @@ class CategoryRepository implements CategoryRepositoryInterface {
     const [menuCategories, total] = await Promise.all([
       prisma.menuCategory.findMany({
         where: whereConditions,
-        orderBy: { name: "asc" },
+        orderBy: { order: "asc", name: "asc" },
         skip,
         take: limit,
       }),
