@@ -121,7 +121,8 @@ class UserController {
    * @param res - Express response object
    *
    * Request Body:
-   * - name: User's full name (required)
+   * - firstName: User's last name (required)
+   * - lastName: User's last name (required)
    * - email: User's email address (required, must be unique)
    * - password: User's password (required, will be hashed)
    * - phone: User's phone number (optional)
@@ -159,7 +160,8 @@ class UserController {
    * - id: User ID (UUID string)
    *
    * Request Body (all fields optional):
-   * - name: User's full name
+   * - firstName: User's first name
+   * - lastName: User's last name
    * - email: User's email address (must be unique if changed)
    * - phone: User's phone number
    *

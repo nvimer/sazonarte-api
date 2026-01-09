@@ -95,7 +95,8 @@ class ProfileController {
    * - id: Profile ID (UUID string)
    *
    * Request Body (all fields optional):
-   * - name: User's full name
+   * - firstName: User's first name
+   * - lastName: User's last name
    * - email: User's email address (must be unique if changed)
    * - phone: User's phone number
    * - Additional profile-specific fields
@@ -145,7 +146,7 @@ class ProfileController {
    * - 404: Profile not found
    *
    * Returns complete profile information for the authenticated user:
-   * - User basic information (name, email, phone)
+   * - User basic information (firstName, lastName, email, phone)
    * - Profile details (address, photoUrl, birthDate, identification)
    *
    * Use Cases:

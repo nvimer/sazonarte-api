@@ -77,7 +77,8 @@ router.get("/email/:email", userController.getUserByEmail);
  * Registers a new user in the system.
  *
  * Request Body:
- * - name: User's full name (string, required)
+ * - firstName: User's first name (string, required)
+ * - lastName: User's last name (string, required)
  * - email: User's email address (string, required, must be unique)
  * - password: User's password (string, required, min 6 characters)
  * - phone: User's phone number (string, optional)
@@ -103,7 +104,8 @@ router.post("/register", userController.registerUser);
  * - id: User ID (UUID string)
  *
  * Request Body (all fields optional):
- * - name: User's full name (string)
+ * - firstName: User's first name (string)
+ * - lastName: User's last name (string)
  * - email: User's email address (string, must be unique if changed)
  * - phone: User's phone number (string)
  *

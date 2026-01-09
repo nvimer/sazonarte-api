@@ -67,7 +67,7 @@ class ProfileServices implements ProfileServiceInterface {
    * - Excludes soft-deleted users
    *
    * Profile data typically includes:
-   * - Basic user information (name, email, phone)
+   * - Basic user information (firstName, lastName, email, phone)
    * - Profile-specific fields
    * - Associated user relationships
    */

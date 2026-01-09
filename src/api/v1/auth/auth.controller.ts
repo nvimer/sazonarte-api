@@ -40,7 +40,8 @@ class AuthController {
    * validation, account creation, and initial setup.
    *
    * Request Body:
-   * - name: User's full name (string, required)
+   * - firstName: User's first name (string, required)
+   * - lastName: User's last name (string, required)
    * - email: User's email address (string, required, must be unique)
    * - password: User's password (string, required, min 6 characters)
    * - phone: User's phone number (string, optional)
