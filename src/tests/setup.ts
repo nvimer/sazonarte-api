@@ -1,34 +1,33 @@
 import { PrismaClient } from "@prisma/client";
 import { execSync } from "child_process";
+import { logger } from "../config/logger";
+import { config } from "../config";
 
 // Test database client
 const testDatabaseClient = new PrismaClient({
   datasources: {
     db: {
-      url:
-        process.env.TEST_DATABASE_URL ||
-        "postgresql://test:test@localhost:5432/sazonarte_test",
+      url: config.testDatabaseUrl,
     },
   },
-  log:
-    process.env.NODE_ENV === "test" ? [] : ["query", "info", "warn", "error"],
+  log: config.nodeEnv === "test" ? [] : ["query", "info", "warn", "error"],
 });
 
 // Global test setup
 beforeAll(async () => {
   try {
     // Reset database before all tests
-    if (process.env.NODE_ENV === "test") {
+    if (config.nodeEnv === "test") {
       execSync("npx prisma migrate reset --force --skip-seed", {
-        env: { ...process.env, DATABASE_URL: process.env.TEST_DATABASE_URL },
+        env: { ...process.env, DATABASE_URL: config.testDatabaseUrl },
         stdio: "pipe",
       });
     }
 
     await testDatabaseClient.$connect();
-    console.log("✅ Test database connected");
+    logger.info("✅ Test database connected");
   } catch (error) {
-    console.error("❌ Failed to setup test database:", error);
+    logger.error("❌ Failed to setup test database:", error);
     throw error;
   }
 });
@@ -36,15 +35,15 @@ beforeAll(async () => {
 afterAll(async () => {
   try {
     await testDatabaseClient.$disconnect();
-    console.log("✅ Test database disconnected");
+    logger.info("✅ Test database disconnected");
   } catch (error) {
-    console.error("❌ Error disconnecting test database:", error);
+    logger.error("❌ Error disconnecting test database:", error);
   }
 });
 
 // Clean up database before each test
 beforeEach(async () => {
-  if (process.env.NODE_ENV === "test") {
+  if (config.nodeEnv === "test") {
     // Delete in correct order due to foreign key constraints
     await testDatabaseClient.orderItem.deleteMany();
     await testDatabaseClient.order.deleteMany();

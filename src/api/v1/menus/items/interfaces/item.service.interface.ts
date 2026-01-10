@@ -20,7 +20,7 @@ import {
  * This interface ensures consistency across different menu item service
  * implementations and provides clear documentation of expected methods.
  */
-export interface ItemServiceInteface {
+export interface ItemServiceInterface {
   findAllMenuItems(
     params: PaginationParams,
   ): Promise<PaginatedResponse<MenuItem>>;

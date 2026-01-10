@@ -1,5 +1,5 @@
 import { MenuItem, StockAdjustment } from "@prisma/client";
-import { ItemServiceInteface } from "./interfaces/item.service.interface";
+import { ItemServiceInterface } from "./interfaces/item.service.interface";
 import {
   AddStockBodyInput,
   CreateItemInput,
@@ -45,8 +45,8 @@ import {
  * - Item status management
  * - Data integrity maintenance
  */
-class ItemService implements ItemServiceInteface {
-  constructor(private itemRepository: ItemRepositoryInterface) {}
+class ItemService implements ItemServiceInterface {
+  constructor(private itemRepository: ItemRepositoryInterface) { }
 
   /**
    * Private helper method to find a menu item by id and throw an error if not found.

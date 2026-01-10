@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { asyncHandler } from "../../../../utils/asyncHandler";
-import { ItemServiceInteface } from "./interfaces/item.service.interface";
+import { ItemServiceInterface } from "./interfaces/item.service.interface";
 import {
   AddStockBodyInput,
   CreateItemInput,
@@ -39,7 +39,7 @@ import {
  * - Menu organization
  */
 class ItemController {
-  constructor(private itemService: ItemServiceInteface) {}
+  constructor(private itemService: ItemServiceInterface) { }
 
   /**
    * GET /menu-items

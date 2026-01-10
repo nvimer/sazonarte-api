@@ -25,14 +25,14 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/32</span>
+                <span class='fraction'>0/34</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/8</span>
+                <span class='fraction'>0/6</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/29</span>
+                <span class='fraction'>0/31</span>
             </div>
         
             
@@ -126,15 +126,13 @@
 <a name='L61'></a><a href='#L61'>61</a>
 <a name='L62'></a><a href='#L62'>62</a>
 <a name='L63'></a><a href='#L63'>63</a>
-<a name='L64'></a><a href='#L64'>64</a>
-<a name='L65'></a><a href='#L65'>65</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
+<a name='L64'></a><a href='#L64'>64</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -193,35 +191,34 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js"><span class="cstat-no" title="statement not covered" >import { PrismaClient } from "@prisma/client";</span>
 <span class="cstat-no" title="statement not covered" >import { execSync } from "child_process";</span>
+<span class="cstat-no" title="statement not covered" >import { logger } from "../config/logger";</span>
+<span class="cstat-no" title="statement not covered" >import { config } from "../config";</span>
 &nbsp;
 // Test database client
 const testDatabaseClient = <span class="cstat-no" title="statement not covered" >new PrismaClient({</span>
   datasources: {
     db: {
-      url:
-        process.env.TEST_DATABASE_URL ||
-        "postgresql://test:test@localhost:5432/sazonarte_test",
+      url: config.testDatabaseUrl,
     },
   },
-  log:
-    process.env.NODE_ENV === "test" ? [] : ["query", "info", "warn", "error"],
+  log: config.nodeEnv === "test" ? [] : ["query", "info", "warn", "error"],
 });
 &nbsp;
 // Global test setup
 <span class="cstat-no" title="statement not covered" >beforeAll(<span class="fstat-no" title="function not covered" >async () =</span>&gt;<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" > {</span></span></span>
 <span class="cstat-no" title="statement not covered" >  try {</span>
     // Reset database before all tests
-<span class="cstat-no" title="statement not covered" >    if (process.env.NODE_ENV === "test") {</span>
+<span class="cstat-no" title="statement not covered" >    if (config.nodeEnv === "test") {</span>
 <span class="cstat-no" title="statement not covered" >      execSync("npx prisma migrate reset --force --skip-seed", {</span>
-        env: { ...process.env, DATABASE_URL: process.env.TEST_DATABASE_URL },
+        env: { ...process.env, DATABASE_URL: config.testDatabaseUrl },
         stdio: "pipe",
       });
     }
 &nbsp;
 <span class="cstat-no" title="statement not covered" >    await testDatabaseClient.$connect();</span>
-<span class="cstat-no" title="statement not covered" >    console.log("✅ Test database connected");</span>
+<span class="cstat-no" title="statement not covered" >    logger.info("✅ Test database connected");</span>
   } catch (error) {
-<span class="cstat-no" title="statement not covered" >    console.error("❌ Failed to setup test database:", error);</span>
+<span class="cstat-no" title="statement not covered" >    logger.error("❌ Failed to setup test database:", error);</span>
 <span class="cstat-no" title="statement not covered" >    throw error;</span>
   }
 });
@@ -229,15 +226,15 @@ const testDatabaseClient = <span class="cstat-no" title="statement not covered" 
 <span class="cstat-no" title="statement not covered" >afterAll(<span class="fstat-no" title="function not covered" >async () =</span>&gt;<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" > {</span></span></span>
 <span class="cstat-no" title="statement not covered" >  try {</span>
 <span class="cstat-no" title="statement not covered" >    await testDatabaseClient.$disconnect();</span>
-<span class="cstat-no" title="statement not covered" >    console.log("✅ Test database disconnected");</span>
+<span class="cstat-no" title="statement not covered" >    logger.info("✅ Test database disconnected");</span>
   } catch (error) {
-<span class="cstat-no" title="statement not covered" >    console.error("❌ Error disconnecting test database:", error);</span>
+<span class="cstat-no" title="statement not covered" >    logger.error("❌ Error disconnecting test database:", error);</span>
   }
 });
 &nbsp;
 // Clean up database before each test
 <span class="cstat-no" title="statement not covered" >beforeEach(<span class="fstat-no" title="function not covered" >async () =</span>&gt;<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" > {</span></span></span>
-<span class="cstat-no" title="statement not covered" >  if (process.env.NODE_ENV === "test") {</span>
+<span class="cstat-no" title="statement not covered" >  if (config.nodeEnv === "test") {</span>
     // Delete in correct order due to foreign key constraints
 <span class="cstat-no" title="statement not covered" >    await testDatabaseClient.orderItem.deleteMany();</span>
 <span class="cstat-no" title="statement not covered" >    await testDatabaseClient.order.deleteMany();</span>
@@ -262,7 +259,7 @@ export { <span class="cstat-no" title="statement not covered" >testDatabaseClien
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-01-09T17:59:53.968Z
+                at 2026-01-09T23:55:12.208Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

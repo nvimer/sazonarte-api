@@ -9,6 +9,7 @@ const envSchema = z.object({
     .default("development"),
   APP_URL: z.string(),
   DATABASE_URL: z.string(),
+  TEST_DATABASE_URL: z.string(),
   JWT_SECRET: z.string(), // Añade si planeas usar JWT
   SALT_ROUNDS: z.coerce.number(),
   JWT_ACCESS_EXPIRATION_MINUTES: z.coerce.number(),
@@ -31,6 +32,7 @@ export const config = {
   nodeEnv: parsedEnv.data.NODE_ENV,
   appUrl: parsedEnv.data.APP_URL,
   databaseUrl: parsedEnv.data.DATABASE_URL,
+  testDatabaseUrl: parsedEnv.data.TEST_DATABASE_URL,
   jwtSecret: parsedEnv.data.JWT_SECRET,
   saltRounds: parsedEnv.data.SALT_ROUNDS,
   jwtAccessExpirationMinutes: parsedEnv.data.JWT_ACCESS_EXPIRATION_MINUTES,
