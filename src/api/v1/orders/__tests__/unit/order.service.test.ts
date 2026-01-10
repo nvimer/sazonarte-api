@@ -1,5 +1,4 @@
-// Simple test without complex types or fixtures
-import OrderService from "../../order.service";
+import { OrderStatus, OrderType } from "../../../../../types/prisma.types";
 import { OrderRepositoryInterface } from "../../interfaces/order.repository.interface";
 
 describe("OrderService - Basic Tests", () => {
@@ -56,11 +55,11 @@ describe("OrderService - Basic Tests", () => {
       const waiterId = "waiter-123";
       const orderData = {
         tableId: 1,
-        type: "DINE_IN",
+        type: OrderType.DINE_IN,
         items: [{ menuItemId: 1, quantity: 2 }],
       };
 
-      const expectedOrder = { id: "order-123", status: "PENDING" };
+      const expectedOrder = { id: "order-123", status: OrderStatus.PENDING };
       orderService.createOrder = jest.fn().mockResolvedValue(expectedOrder);
 
       // Act
@@ -79,7 +78,7 @@ describe("OrderService - Basic Tests", () => {
       const waiterId = "waiter-123";
       const orderData = {
         tableId: 1,
-        type: "DINE_IN",
+        type: OrderType.DINE_IN,
         items: [{ menuItemId: 1, quantity: 2 }],
       };
 
@@ -101,7 +100,7 @@ describe("OrderService - Basic Tests", () => {
     test("should call repository findById with correct parameters", async () => {
       // Arrange
       const orderId = "order-123";
-      const expectedOrder = { id: orderId, status: "PENDING" };
+      const expectedOrder = { id: orderId, status: OrderStatus.PENDING };
       orderService.findOrderById = jest.fn().mockResolvedValue(expectedOrder);
 
       // Act
@@ -130,7 +129,7 @@ describe("OrderService - Basic Tests", () => {
     test("should call repository updateStatus with correct parameters", async () => {
       // Arrange
       const orderId = "order-123";
-      const newStatus = "IN_KITCHEN";
+      const newStatus = OrderStatus.IN_KITCHEN;
       const expectedOrder = { id: orderId, status: newStatus };
       orderService.updateOrderStatus = jest
         .fn()
@@ -152,7 +151,7 @@ describe("OrderService - Basic Tests", () => {
     test("should call repository cancel with correct parameters", async () => {
       // Arrange
       const orderId = "order-123";
-      const expectedOrder = { id: orderId, status: "CANCELLED" };
+      const expectedOrder = { id: orderId, status: OrderStatus.CANCELLED };
       orderService.cancelOrder = jest.fn().mockResolvedValue(expectedOrder);
 
       // Act

@@ -1,14 +1,9 @@
+import { CustomError } from "../../../../types/custom-errors";
+import { OrderType } from "../../../../types/prisma.types";
+import { UserRepositoryInterface } from "../../users/interfaces/user.repository.interface";
+import { UserServiceInterface } from "../../users/interfaces/user.service.interface";
 import { OrderRepositoryInterface } from "../interfaces/order.repository.interface";
-import { UserServiceInterface } from "../users/interfaces/user.service.interface";
 import { OrderServiceInterface } from "../interfaces/order.service.interface";
-import { UserRepositoryInterface } from "../users/interfaces/user.repository.interface";
-import { CustomError } from "../../types/custom-errors";
-import {
-  OrderStatus,
-  OrderType,
-  InventoryType,
-} from "../../types/prisma.types";
-import { Prisma } from "@prisma/client";
 
 // Mock factory for OrderRepository
 export const createMockOrderRepository =
@@ -55,7 +50,7 @@ export const createMockUserService = (): jest.Mocked<UserServiceInterface> => ({
 // Test payload builders
 export const createValidOrderPayload = () => ({
   tableId: 1,
-  type: "DINE_IN" as OrderType,
+  type: OrderType.DINE_IN,
   items: [
     {
       menuItemId: 1,
@@ -68,7 +63,7 @@ export const createValidOrderPayload = () => ({
 export const createInvalidOrderPayload = () => ({
   tableId: "invalid", // Should be number
   type: "INVALID_TYPE", // Invalid enum
-  items: [], // Empty array
+  items: [],
 });
 
 // Error helpers

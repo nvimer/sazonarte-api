@@ -2,6 +2,10 @@ import request from "supertest";
 import { testDatabaseClient } from "../../../../../tests/setup";
 import { createValidOrderPayload } from "../mocks";
 import app from "../../../../../app";
+import {
+  setupTestMenuItem,
+  setupTestUser,
+} from "../../../../../tests/helpers/database-helpers";
 
 describe("Orders API - E2E Tests", () => {
   let authToken: string;
