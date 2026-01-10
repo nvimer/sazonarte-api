@@ -8,7 +8,9 @@ const config: Config = {
   testMatch: ["**/?(*.)+(spec|test).ts"],
   moduleNameMapper: {
     "^@/(.*)$": "<rootDir>/src/$1",
+    "@faker-js/faker": "<rootDir>/src/__mocks__/faker.js",
   },
+  transformIgnorePatterns: ["node_modules/(?!(.*\\.mjs$))"],
   collectCoverageFrom: [
     "src/**/*.ts",
     "!src/**/index.ts",

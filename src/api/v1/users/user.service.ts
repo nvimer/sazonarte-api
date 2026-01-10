@@ -18,11 +18,11 @@ import {
 /**
  * User Service
  */
-class UserServices implements UserServiceInterface {
+export class UserServices implements UserServiceInterface {
   constructor(
     private userRepository: UserRepositoryInterface,
     private roleService: RoleServiceInterface,
-  ) {}
+  ) { }
 
   /**
    * Validates that an email is not already taken by another user.

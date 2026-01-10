@@ -26,8 +26,8 @@ import orderRepository from "./order.repository";
  *
  * Core business logic layer for order management operations
  */
-class OrderService implements OrderServiceInterface {
-  constructor(private orderRepository: OrderRepositoryInterface) {}
+export class OrderService implements OrderServiceInterface {
+  constructor(private orderRepository: OrderRepositoryInterface) { }
 
   /**
    * Private Helper: Find Order by ID or Fail

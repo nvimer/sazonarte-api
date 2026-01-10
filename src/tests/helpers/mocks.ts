@@ -1,17 +1,19 @@
 import { createValidOrderPayload } from "../../api/v1/orders/__tests__/mocks";
 import { OrderRepositoryInterface } from "../../api/v1/orders/interfaces/order.repository.interface";
-import { OrderServiceInterface } from "../../api/v1/orders/interfaces/order.service.interface";
+import { OrderRepository } from "../../api/v1/orders/order.repository";
+import { OrderService } from "../../api/v1/orders/order.service";
 import { OrderStatus } from "../../types/prisma.types";
 import { testDatabaseClient } from "../setup";
+import { setupTestMenuItem, setupTestUser } from "./database-helpers";
 
 describe("OrderService - Integration Tests", () => {
-  let orderService: OrderServiceInterface;
-  let orderRepository: OrderRepositoryInterface;
+  let orderService: OrderService;
+  let orderRepository: OrderRepository;
   let testUser: any;
   let testMenuItem: any;
 
   beforeAll(async () => {
-    orderRepository = new OrderRepository(testDatabaseClient);
+    orderRepository = new OrderRepository();
     orderService = new OrderService(orderRepository);
 
     // Setup test data
@@ -127,10 +129,9 @@ describe("OrderService - Integration Tests", () => {
       );
 
       // Act
-      const result = await orderService.updateOrderStatus(
-        createdOrder.id,
-        OrderStatus.IN_KITCHEN,
-      );
+      const result = await orderService.updateOrderStatus(createdOrder.id, {
+        status: OrderStatus.IN_KITCHEN,
+      });
 
       // Assert
       expect(result.status).toBe(OrderStatus.IN_KITCHEN);
@@ -154,38 +155,33 @@ describe("OrderService - Integration Tests", () => {
       expect(order.status).toBe(OrderStatus.PENDING);
 
       // Act - Send to cashier
-      const sentToCashier = await orderService.updateOrderStatus(
-        order.id,
-        OrderStatus.SENT_TO_CASHIER,
-      );
+      const sentToCashier = await orderService.updateOrderStatus(order.id, {
+        status: OrderStatus.SENT_TO_CASHIER,
+      });
       expect(sentToCashier.status).toBe(OrderStatus.SENT_TO_CASHIER);
 
       // Act - Mark as paid
-      const paid = await orderService.updateOrderStatus(
-        order.id,
-        OrderStatus.PAID,
-      );
+      const paid = await orderService.updateOrderStatus(order.id, {
+        status: OrderStatus.PAID,
+      });
       expect(paid.status).toBe(OrderStatus.PAID);
 
       // Act - Send to kitchen
-      const inKitchen = await orderService.updateOrderStatus(
-        order.id,
-        OrderStatus.IN_KITCHEN,
-      );
+      const inKitchen = await orderService.updateOrderStatus(order.id, {
+        status: OrderStatus.IN_KITCHEN,
+      });
       expect(inKitchen.status).toBe(OrderStatus.IN_KITCHEN);
 
       // Act - Mark as ready
-      const ready = await orderService.updateOrderStatus(
-        order.id,
-        OrderStatus.READY,
-      );
+      const ready = await orderService.updateOrderStatus(order.id, {
+        status: OrderStatus.READY,
+      });
       expect(ready.status).toBe(OrderStatus.READY);
 
       // Act - Deliver
-      const delivered = await orderService.updateOrderStatus(
-        order.id,
-        OrderStatus.DELIVERED,
-      );
+      const delivered = await orderService.updateOrderStatus(order.id, {
+        status: OrderStatus.DELIVERED,
+      });
       expect(delivered.status).toBe(OrderStatus.DELIVERED);
 
       // Assert - Final state in database

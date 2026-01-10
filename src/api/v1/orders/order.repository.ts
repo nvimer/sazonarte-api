@@ -19,7 +19,7 @@ import { createPaginatedResponse } from "../../../utils/pagination.helper";
  * Data access layer for order-related database operations.
  * This repository handles all interactions with the Order and Orderitm tables.
  */
-class OrderRepository implements OrderRepositoryInterface {
+export class OrderRepository implements OrderRepositoryInterface {
   /**
    * Retrieves Paginated List of Orders with Filtering
    *
