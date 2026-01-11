@@ -1,4 +1,3 @@
-// Test básico para verificar configuración de Jest
 describe("Configuration Tests", () => {
   test("should have Jest properly configured", () => {
     expect(true).toBe(true);

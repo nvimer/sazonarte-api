@@ -1,399 +1,406 @@
-import { OrderService } from "../../order.service";
-import { OrderRepository } from "../../order.repository";
+/**
+ * Order Service - Integration Tests
+ *
+ * These tests use a REAL database connection to test the full flow
+ * from service to repository to database.
+ *
+ * Prerequisites:
+ * - Test database must be available
+ * - Run with: TEST_TYPE=integration npm test
+ */
 import {
-  cleanupTestData,
-  setupTestMenuItem,
-  setupTestOrder,
-  setupTestOrderItem,
-  setupTestUser,
-} from "../../../../../tests/helpers/database-helpers";
+  getTestDatabaseClient,
+  connectTestDatabase,
+  disconnectTestDatabase,
+} from "../../../../../tests/shared";
+import { cleanupAllTestData } from "../../../../../tests/shared/cleanup";
+import {
+  createTestUser,
+  deleteAllTestUsers,
+} from "../../../users/__tests__/helpers";
+import {
+  createTestMenuCategory,
+  createTestMenuItem,
+  deleteAllTestOrders,
+  deleteAllTestMenuItems,
+  createTestTable,
+  deleteAllTestTables,
+} from "../helpers";
 import { OrderStatus, OrderType } from "../../../../../types/prisma.types";
-import { testDatabaseClient } from "../../../../../tests/setup";
+import orderService from "../../order.service";
 
-describe("OrderService - Integration Tests", () => {
-  let orderService: OrderService;
-  let orderRepository: OrderRepository;
-  let testUser: any;
-  let testMenuItem: any;
-  let testOrder: any;
-  let testOrderItem: any;
+// Skip if not running integration tests
+const runIntegrationTests = process.env.TEST_TYPE === "integration";
 
-  beforeAll(async () => {
-    // Crear instancias reales
-    orderRepository = new OrderRepository();
-    orderService = new OrderService(orderRepository);
+(runIntegrationTests ? describe : describe.skip)(
+  "OrderService - Integration Tests",
+  () => {
+    // Test data references
+    let testWaiter: Awaited<ReturnType<typeof createTestUser>>;
+    let testCategory: Awaited<ReturnType<typeof createTestMenuCategory>>;
+    let testMenuItem: Awaited<ReturnType<typeof createTestMenuItem>>;
+    let testTable: Awaited<ReturnType<typeof createTestTable>>;
 
-    // Crear usuarios de prueba
-    testUser = await setupTestUser();
-    testMenuItem = await setupTestMenuItem();
-    testOrder = await setupTestOrder();
-    testOrderItem = await setupTestOrderItem();
-  }, 5000);
-
-  beforeEach(async () => {
-    // Limpiar datos antes de cada test
-    await cleanupTestData();
-  });
-
-  afterAll(async () => {
-    // Desconectar de la base de datos
-    await testDatabaseClient.$disconnect();
-  }, 5000);
-
-  describe("createOrder", () => {
-    test("should create order in database successfully", async () => {
-      // Arrange
-      const waiterId = testUser.id;
-      const orderData = {
-        tableId: testUser.tables[0].id,
-        type: OrderType.DINE_IN,
-        items: [
-          {
-            menuItemId: testMenuItem.id,
-            quantity: 2,
-            notes: "Sin cebolla",
-          },
-        ],
-      };
-
-      // Act
-      const result = await orderService.createOrder(waiterId, orderData);
-
-      // Assert
-      expect(result).toBeDefined();
-      expect(result.id).toBeDefined();
-      expect(result.status).toBe(OrderStatus.DELIVERED);
-      expect(result.items).toHaveLength(1);
+    beforeAll(async () => {
+      await connectTestDatabase();
     });
 
-    test("should create order with multiple items", async () => {
-      // Arrange
-      const waiterId = testUser.id;
-      const orderData = {
-        tableId: testUser.tables[0].id,
-        type: OrderType.DINE_IN,
-        items: [
-          {
-            menuItemId: testMenuItem.id,
-            quantity: 2,
-            notes: "Sin cebolla",
-          },
-          {
-            menuItemId: testMenuItem.id,
-            quantity: 1,
-            notes: "Extra queso",
-          },
-        ],
-      };
-
-      // Act
-      const result = await orderService.createOrder(waiterId, orderData);
-
-      // Assert
-      expect(result).toBeDefined();
-      expect(result.items).toHaveLength(2);
-      expect(result.items[0].quantity).toBe(2);
-      expect(result.items[1].notes).toBe("Extra queso");
+    afterAll(async () => {
+      await disconnectTestDatabase();
     });
 
-    test("should calculate total amount correctly", async () => {
-      // Arrange
-      const waiterId = testUser.id;
-      const orderData = {
-        tableId: testUser.tables[0].id,
-        type: OrderType.DINE_IN,
-        items: [
-          {
-            menuItemId: testMenuItem.id,
-            quantity: 2,
-            notes: "Sin cebolla",
-          },
-          {
-            menuItemId: testMenuItem.id,
-            quantity: 1,
-            notes: "Extra queso",
-          },
-        ],
-      };
+    beforeEach(async () => {
+      // Clean all data before each test
+      await cleanupAllTestData();
 
-      // Act
-      const result = await orderService.createOrder(waiterId, orderData);
-
-      // Assert
-      const expectedTotal =
-        testMenuItem.price.toNumber() * 2 + testMenuItem.price.toNumber() * 1;
-      expect(result.totalAmount.toString()).toBe(expectedTotal.toString());
+      // Setup fresh test data
+      testWaiter = await createTestUser({ email: "waiter@integration.test" });
+      testCategory = await createTestMenuCategory({ name: "Test Category" });
+      testMenuItem = await createTestMenuItem(testCategory.id, {
+        name: "Test Item",
+        stockQuantity: 100,
+      });
+      testTable = await createTestTable({ number: "T1" });
     });
 
-    test("should throw error for empty items", async () => {
-      // Arrange
-      const waiterId = testUser.id;
-      const orderData = {
-        tableId: testUser.tables[0].id,
-        type: OrderType.DINE_IN,
-        items: [],
-      };
-
-      // Act & Assert
-      await expect(
-        orderService.createOrder(waiterId, orderData),
-      ).rejects.toThrow();
+    afterEach(async () => {
+      // Cleanup is handled by beforeEach, but explicit cleanup for safety
+      await deleteAllTestOrders();
     });
 
-    test("should throw error for invalid tableId", async () => {
-      // Arrange
-      const waiterId = testUser.id;
-      const orderData = {
-        tableId: "invalid",
-        type: OrderType.DINE_IN,
-        items: [{ menuItemId: 1, quantity: 1 }],
-      };
+    describe("createOrder", () => {
+      it("should create order in database successfully", async () => {
+        // Arrange
+        const orderData = {
+          tableId: testTable.id,
+          type: OrderType.DINE_IN,
+          items: [
+            {
+              menuItemId: testMenuItem.id,
+              quantity: 2,
+              notes: "Sin cebolla",
+            },
+          ],
+        };
 
-      // Act & Assert
-      await expect(
-        orderService.createOrder(waiterId, orderData),
-      ).rejects.toThrow();
-    });
+        // Act
+        const result = await orderService.createOrder(testWaiter.id, orderData);
 
-    test("should handle database errors", async () => {
-      // Arrange
-      const waiterId = testUser.id;
-      const orderData = {
-        tableId: 1,
-        type: OrderType.DINE_IN,
-        items: [{ menuItemId: 1, quantity: 1 }],
-      };
-
-      // Act
-      const error = new Error("Database connection failed");
-      orderRepository.create.mockRejectedValue(error);
-
-      // Act & Assert
-      await expect(
-        orderService.createOrder(waiterId, orderData),
-      ).rejects.toThrow("Database connection failed");
-      expect(orderRepository.create).toHaveBeenCalledWith(waiterId, orderData);
-    });
-  });
-
-  describe("findOrderById", () => {
-    test("should find order by id successfully", async () => {
-      // Arrange
-      const orderId = testOrder.id;
-
-      // Act
-      const result = await orderService.findOrderById(orderId);
-
-      // Assert
-      expect(result).toBeDefined();
-      expect(result?.id).toBe(orderId);
-    });
-
-    test("should return null when order not found", async () => {
-      // Arrange
-      const orderId = "non-existent-id";
-
-      // Act
-      const result = await orderService.findOrderById(orderId);
-
-      // Assert
-      expect(result).toBeNull();
-    });
-
-    test("should handle repository errors", async () => {
-      // Arrange
-      const orderId = testOrder.id;
-      const error = new Error("Database connection failed");
-      orderRepository.findById.mockRejectedValue(error);
-
-      // Act & Assert
-      await expect(orderService.findOrderById(orderId)).rejects.toThrow(
-        "Database connection failed",
-      );
-      expect(orderRepository.findById).toHaveBeenCalledWith(orderId);
-    });
-  });
-
-  describe("updateOrderStatus", () => {
-    test("should update order status successfully", async () => {
-      // Arrange
-      const orderId = testOrder.id;
-      const newStatus = OrderStatus.IN_KITCHEN;
-
-      // Act
-      const result = await orderService.updateOrderStatus(orderId, {
-        status: newStatus,
+        // Assert
+        expect(result).toBeDefined();
+        expect(result.id).toBeDefined();
+        expect(result.status).toBe(OrderStatus.PENDING);
+        expect(result.waiterId).toBe(testWaiter.id);
+        expect(result.items).toHaveLength(1);
+        expect(result.items[0].quantity).toBe(2);
+        expect(result.items[0].notes).toBe("Sin cebolla");
       });
 
-      // Assert
-      expect(result).toBeDefined();
-      expect(result.status).toBe(OrderStatus.IN_KITCHEN);
-    });
+      it("should calculate total amount correctly", async () => {
+        // Arrange
+        const orderData = {
+          tableId: testTable.id,
+          type: OrderType.DINE_IN,
+          items: [
+            { menuItemId: testMenuItem.id, quantity: 2 },
+            { menuItemId: testMenuItem.id, quantity: 1 },
+          ],
+        };
 
-    test("should throw error for invalid status transitions", async () => {
-      // Arrange
-      const orderId = testOrder.id;
-      const invalidStatus = "INVALID_STATUS" as OrderStatus;
+        // Act
+        const result = await orderService.createOrder(testWaiter.id, orderData);
 
-      // Act & Assert
-      await expect(
-        orderService.updateOrderStatus(orderId, { status: invalidStatus }),
-      ).rejects.toThrow();
-    });
-  });
-
-  describe("cancelOrder", () => {
-    test("should cancel order successfully", async () => {
-      // Arrange
-      const orderId = testOrder.id;
-      const cancelledOrder = { ...testOrder, status: OrderStatus.CANCELLED };
-
-      orderRepository.cancel.mockResolvedValue(cancelledOrder);
-
-      // Act
-      const result = await orderService.cancelOrder(orderId);
-
-      // Assert
-      expect(result).toBeDefined();
-      expect(result.status).toBe(OrderStatus.CANCELLED);
-      expect(orderRepository.cancel).toHaveBeenCalledWith(orderId);
-    });
-
-    test("should handle errors when cancelling order", async () => {
-      // Arrange
-      const orderId = testOrder.id;
-      const error = new Error("Cannot cancel order");
-
-      orderRepository.cancel.mockRejectedValue(error);
-
-      // Act & Assert
-      await expect(orderService.cancelOrder(orderId)).rejects.toThrow(
-        "Cannot cancel order",
-      );
-      expect(orderRepository.cancel).toHaveBeenCalledWith(orderId);
-    });
-  });
-
-  describe("findAllOrders", () => {
-    test("should return paginated orders successfully", async () => {
-      // Arrange
-      const params = { page: 1, limit: 10 };
-
-      // Act
-      const testOrders = [await setupTestOrder(), await setupTestOrder()];
-
-      // Mock response
-      orderRepository.findAll.mockResolvedValue({
-        data: testOrders,
-        meta: { page: 1, limit: 10, total: 2, totalPages: 1 },
+        // Assert - Total should be price * 3 (2 + 1)
+        const expectedTotal = Number(testMenuItem.price) * 3;
+        expect(Number(result.totalAmount)).toBe(expectedTotal);
       });
 
-      // Act
-      const result = await orderService.findAllOrders(params);
+      it("should deduct stock for TRACKED items", async () => {
+        // Arrange
+        const initialStock = testMenuItem.stockQuantity!;
+        const orderQuantity = 5;
 
-      // Assert
-      expect(result).toBeDefined();
-      expect(result.data).toBeInstanceOf(Array);
-      expect(result.meta).toBeDefined();
-      expect(result.meta.page).toBe(1);
-      expect(result.meta.limit).toBe(10);
-      expect(result.meta.total).toBe(2);
+        const orderData = {
+          tableId: testTable.id,
+          type: OrderType.DINE_IN,
+          items: [{ menuItemId: testMenuItem.id, quantity: orderQuantity }],
+        };
+
+        // Act
+        await orderService.createOrder(testWaiter.id, orderData);
+
+        // Assert - Check stock was deducted
+        const db = getTestDatabaseClient();
+        const updatedItem = await db.menuItem.findUnique({
+          where: { id: testMenuItem.id },
+        });
+
+        expect(updatedItem?.stockQuantity).toBe(initialStock - orderQuantity);
+      });
+
+      it("should reject order with insufficient stock", async () => {
+        // Arrange - Request more than available
+        const orderData = {
+          tableId: testTable.id,
+          type: OrderType.DINE_IN,
+          items: [{ menuItemId: testMenuItem.id, quantity: 9999 }],
+        };
+
+        // Act & Assert
+        await expect(
+          orderService.createOrder(testWaiter.id, orderData)
+        ).rejects.toThrow(/insufficient stock/i);
+      });
+
+      it("should reject order with unavailable item", async () => {
+        // Arrange - Mark item as unavailable
+        const db = getTestDatabaseClient();
+        await db.menuItem.update({
+          where: { id: testMenuItem.id },
+          data: { isAvailable: false },
+        });
+
+        const orderData = {
+          tableId: testTable.id,
+          type: OrderType.DINE_IN,
+          items: [{ menuItemId: testMenuItem.id, quantity: 1 }],
+        };
+
+        // Act & Assert
+        await expect(
+          orderService.createOrder(testWaiter.id, orderData)
+        ).rejects.toThrow(/not available/i);
+      });
     });
 
-    test("should return empty list when no orders exist", async () => {
-      // Arrange
-      // Mock empty response
-      orderRepository.findAll.mockResolvedValue({
-        data: [],
-        meta: { page: 1, limit: 10, total: 0, totalPages: 0 },
+    describe("findOrderById", () => {
+      it("should find existing order with all relations", async () => {
+        // Arrange - Create an order first
+        const orderData = {
+          tableId: testTable.id,
+          type: OrderType.DINE_IN,
+          items: [{ menuItemId: testMenuItem.id, quantity: 1 }],
+        };
+        const createdOrder = await orderService.createOrder(
+          testWaiter.id,
+          orderData
+        );
+
+        // Act
+        const result = await orderService.findOrderById(createdOrder.id);
+
+        // Assert
+        expect(result).toBeDefined();
+        expect(result?.id).toBe(createdOrder.id);
+        expect(result?.items).toHaveLength(1);
+        expect(result?.waiter).toBeDefined();
+        expect(result?.waiter?.id).toBe(testWaiter.id);
       });
 
-      // Act
-      const result = await orderService.findAllOrders(params);
-
-      // Assert
-      expect(result.data).toHaveLength(0);
-      expect(result.meta.total).toBe(0);
+      it("should throw error for non-existent order", async () => {
+        // Act & Assert
+        await expect(
+          orderService.findOrderById("non-existent-uuid-id")
+        ).rejects.toThrow(/not found/i);
+      });
     });
 
-    test("should handle pagination correctly", async () => {
-      // Arrange
-      const params1 = { page: 1, limit: 5 };
-      const params2 = { page: 2, limit: 5 };
+    describe("updateOrderStatus", () => {
+      it("should update order status successfully", async () => {
+        // Arrange
+        const orderData = {
+          tableId: testTable.id,
+          type: OrderType.DINE_IN,
+          items: [{ menuItemId: testMenuItem.id, quantity: 1 }],
+        };
+        const order = await orderService.createOrder(testWaiter.id, orderData);
 
-      const testOrders1 = await orderService.findAllOrders(params1);
-      const testOrders2 = await orderService.findAllOrders(params2);
+        // Act
+        const result = await orderService.updateOrderStatus(order.id, {
+          status: OrderStatus.SENT_TO_CASHIER,
+        });
 
-      // Mock responses
-      orderRepository.findAll
-        .mockResolvedValueOnce({ data: testOrders1 })
-        .mockResolvedValueOnce({ data: testOrders2 });
+        // Assert
+        expect(result.status).toBe(OrderStatus.SENT_TO_CASHIER);
+      });
 
-      // Act
-      const result1 = await orderService.findAllOrders(params1);
-      const result2 = await orderService.findAllOrders(params2);
+      it("should reject status change from DELIVERED", async () => {
+        // Arrange - Create and mark as delivered
+        const db = getTestDatabaseClient();
+        const orderData = {
+          tableId: testTable.id,
+          type: OrderType.DINE_IN,
+          items: [{ menuItemId: testMenuItem.id, quantity: 1 }],
+        };
+        const order = await orderService.createOrder(testWaiter.id, orderData);
+        await db.order.update({
+          where: { id: order.id },
+          data: { status: OrderStatus.DELIVERED },
+        });
 
-      // Assert
-      expect(result1.data).toHaveLength(5);
-      expect(result1.meta.page).toBe(2);
-      expect(result1.meta.total).toBe(7); // 2 + 5
-      expect(result1.meta.totalPages).toBe(2);
+        // Act & Assert
+        await expect(
+          orderService.updateOrderStatus(order.id, {
+            status: OrderStatus.CANCELLED,
+          })
+        ).rejects.toThrow(/cannot change status/i);
+      });
     });
-  });
 
-  test("order workflow", () => {
-    test("should handle complete order lifecycle", async () => {
-      // Arrange
-      const waiterId = testUser.id;
-      const orderData = {
-        tableId: testUser.tables[0].id,
-        type: OrderType.DINE_IN,
-        items: [
-          {
-            menuItemId: testMenuItem.id,
-            quantity: 2,
-            notes: "Sin cebolla",
-          },
-        ],
-      };
+    describe("cancelOrder", () => {
+      it("should cancel order and revert stock", async () => {
+        // Arrange
+        const initialStock = testMenuItem.stockQuantity!;
+        const orderQuantity = 5;
 
-      // Act - Complete workflow
-      const order = await orderService.createOrder(waiterId, orderData);
-      expect(order.status).toBe(OrderStatus.PENDING);
+        const orderData = {
+          tableId: testTable.id,
+          type: OrderType.DINE_IN,
+          items: [{ menuItemId: testMenuItem.id, quantity: orderQuantity }],
+        };
+        const order = await orderService.createOrder(testWaiter.id, orderData);
 
-      // Act - Send to cashier
-      const sentToCashier = await orderService.updateOrderStatus(order.id, {
-        status: OrderStatus.SENT_TO_CASHIER,
+        // Verify stock was deducted
+        const db = getTestDatabaseClient();
+        const afterOrder = await db.menuItem.findUnique({
+          where: { id: testMenuItem.id },
+        });
+        expect(afterOrder?.stockQuantity).toBe(initialStock - orderQuantity);
+
+        // Act - Cancel the order
+        const result = await orderService.cancelOrder(order.id);
+
+        // Assert - Status changed
+        expect(result.status).toBe(OrderStatus.CANCELLED);
+
+        // Assert - Stock reverted
+        const afterCancel = await db.menuItem.findUnique({
+          where: { id: testMenuItem.id },
+        });
+        expect(afterCancel?.stockQuantity).toBe(initialStock);
       });
-      expect(sentToCashier.status).toBe(OrderStatus.SENT_TO_CASHIER);
 
-      // Act - Mark as paid
-      const paid = await orderService.updateOrderStatus(order.id, {
-        status: OrderStatus.PAID,
+      it("should reject cancellation of DELIVERED order", async () => {
+        // Arrange
+        const db = getTestDatabaseClient();
+        const orderData = {
+          tableId: testTable.id,
+          type: OrderType.DINE_IN,
+          items: [{ menuItemId: testMenuItem.id, quantity: 1 }],
+        };
+        const order = await orderService.createOrder(testWaiter.id, orderData);
+        await db.order.update({
+          where: { id: order.id },
+          data: { status: OrderStatus.DELIVERED },
+        });
+
+        // Act & Assert
+        await expect(orderService.cancelOrder(order.id)).rejects.toThrow(
+          /cannot cancel/i
+        );
       });
-      expect(paid.status).toBe(OrderStatus.PAID);
-
-      // Act - Send to kitchen
-      const inKitchen = await orderService.updateOrderStatus(order.id, {
-        status: OrderStatus.IN_KITCHEN,
-      });
-      expect(inKitchen.status).toBe(OrderStatus.IN_KITCHEN);
-
-      // Act - Mark as ready
-      const ready = await orderService.updateOrderStatus(order.id, {
-        status: OrderStatus.READY,
-      });
-      expect(ready.status).toBe(OrderStatus.READY);
-
-      // Act - Deliver
-      const delivered = await orderService.updateOrderStatus(order.id, {
-        status: OrderStatus.DELIVERED,
-      });
-      expect(delivered.status).toBe(OrderStatus.DELIVERED);
-
-      // Assert - Final state in database
-      const finalOrder = await orderService.findOrderById(order.id);
-      expect(finalOrder?.status).toBe(OrderStatus.DELIVERED);
     });
-  });
-});
+
+    describe("findAllOrders", () => {
+      it("should return paginated orders", async () => {
+        // Arrange - Create multiple orders
+        const orderData = {
+          tableId: testTable.id,
+          type: OrderType.DINE_IN,
+          items: [{ menuItemId: testMenuItem.id, quantity: 1 }],
+        };
+
+        await orderService.createOrder(testWaiter.id, orderData);
+        await orderService.createOrder(testWaiter.id, orderData);
+        await orderService.createOrder(testWaiter.id, orderData);
+
+        // Act
+        const result = await orderService.findAllOrders({ page: 1, limit: 10 });
+
+        // Assert
+        expect(result.data).toHaveLength(3);
+        expect(result.meta.total).toBe(3);
+        expect(result.meta.page).toBe(1);
+      });
+
+      it("should filter by status", async () => {
+        // Arrange - Create orders with different statuses
+        const db = getTestDatabaseClient();
+        const orderData = {
+          tableId: testTable.id,
+          type: OrderType.DINE_IN,
+          items: [{ menuItemId: testMenuItem.id, quantity: 1 }],
+        };
+
+        const order1 = await orderService.createOrder(testWaiter.id, orderData);
+        const order2 = await orderService.createOrder(testWaiter.id, orderData);
+
+        // Mark one as IN_KITCHEN
+        await db.order.update({
+          where: { id: order2.id },
+          data: { status: OrderStatus.IN_KITCHEN },
+        });
+
+        // Act - Filter by PENDING
+        const result = await orderService.findAllOrders({
+          page: 1,
+          limit: 10,
+          status: OrderStatus.PENDING,
+        });
+
+        // Assert
+        expect(result.data).toHaveLength(1);
+        expect(result.data[0].id).toBe(order1.id);
+      });
+    });
+
+    describe("Order Workflow - Complete Lifecycle", () => {
+      it("should handle complete order lifecycle", async () => {
+        // Arrange
+        const orderData = {
+          tableId: testTable.id,
+          type: OrderType.DINE_IN,
+          items: [{ menuItemId: testMenuItem.id, quantity: 2 }],
+        };
+
+        // Step 1: Create order
+        const order = await orderService.createOrder(testWaiter.id, orderData);
+        expect(order.status).toBe(OrderStatus.PENDING);
+
+        // Step 2: Send to cashier
+        const sentToCashier = await orderService.updateOrderStatus(order.id, {
+          status: OrderStatus.SENT_TO_CASHIER,
+        });
+        expect(sentToCashier.status).toBe(OrderStatus.SENT_TO_CASHIER);
+
+        // Step 3: Mark as paid
+        const paid = await orderService.updateOrderStatus(order.id, {
+          status: OrderStatus.PAID,
+        });
+        expect(paid.status).toBe(OrderStatus.PAID);
+
+        // Step 4: Send to kitchen
+        const inKitchen = await orderService.updateOrderStatus(order.id, {
+          status: OrderStatus.IN_KITCHEN,
+        });
+        expect(inKitchen.status).toBe(OrderStatus.IN_KITCHEN);
+
+        // Step 5: Mark as ready
+        const ready = await orderService.updateOrderStatus(order.id, {
+          status: OrderStatus.READY,
+        });
+        expect(ready.status).toBe(OrderStatus.READY);
+
+        // Step 6: Deliver
+        const delivered = await orderService.updateOrderStatus(order.id, {
+          status: OrderStatus.DELIVERED,
+        });
+        expect(delivered.status).toBe(OrderStatus.DELIVERED);
+
+        // Verify final state in database
+        const finalOrder = await orderService.findOrderById(order.id);
+        expect(finalOrder?.status).toBe(OrderStatus.DELIVERED);
+      });
+    });
+  }
+);

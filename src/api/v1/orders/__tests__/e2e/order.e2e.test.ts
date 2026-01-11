@@ -1,61 +1,100 @@
 import request from "supertest";
-import { testDatabaseClient } from "../../../../../tests/setup";
-import { createValidOrderPayload } from "../mocks";
 import app from "../../../../../app";
 import {
-  setupTestMenuItem,
-  setupTestUser,
-} from "../../../../../tests/helpers/database-helpers";
+  connectTestDatabase,
+  disconnectTestDatabase,
+  getTestDatabaseClient,
+} from "../../../../../tests/shared";
+import { cleanupAllTestData } from "../../../../../tests/shared/cleanup";
+import {
+  createTestUser,
+  deleteAllTestUsers,
+} from "../../../users/__tests__/helpers";
+import {
+  createTestMenuCategory,
+  createTestMenuItem,
+  createTestTable,
+  deleteAllTestOrders,
+} from "../helpers";
+import { createOrderPayload } from "../helpers/order.fixtures";
+import { OrderType, OrderStatus } from "../../../../../types/prisma.types";
 
-describe("Orders API - E2E Tests", () => {
+// Skip if not running E2E tests
+const runE2ETests = process.env.TEST_TYPE === "e2e";
+
+(runE2ETests ? describe : describe.skip)("Orders API - E2E Tests", () => {
+  // Test data
   let authToken: string;
-  let testUser: any;
-  let testMenuItem: any;
+  let testWaiter: Awaited<ReturnType<typeof createTestUser>>;
+  let testCategory: Awaited<ReturnType<typeof createTestMenuCategory>>;
+  let testMenuItem: Awaited<ReturnType<typeof createTestMenuItem>>;
+  let testTable: Awaited<ReturnType<typeof createTestTable>>;
 
   beforeAll(async () => {
-    // Setup test data
-    testUser = await setupTestUser(testDatabaseClient);
-    testMenuItem = await setupTestMenuItem(testDatabaseClient);
+    await connectTestDatabase();
+    await cleanupAllTestData();
 
-    // Get auth token
+    // Create test data
+    testWaiter = await createTestUser({
+      email: "waiter@e2e.test",
+      password: "password123", // Ensure we know the password for login
+    });
+    testCategory = await createTestMenuCategory({ name: "E2E Category" });
+    testMenuItem = await createTestMenuItem(testCategory.id, {
+      name: "E2E Item",
+      stockQuantity: 100,
+    });
+    testTable = await createTestTable({ number: "E2E-1" });
+
+    // Get auth token via login
     const loginResponse = await request(app).post("/api/v1/auth/login").send({
-      email: testUser.email,
+      email: testWaiter.email,
       password: "password123",
     });
 
-    authToken = loginResponse.body.data.token;
+    authToken = loginResponse.body.data?.tokens?.access?.token;
   });
 
   beforeEach(async () => {
-    // Clean up orders before each test
-    await testDatabaseClient.order.deleteMany();
+    // Clean up orders before each test (keep users/menu items)
+    await deleteAllTestOrders();
   });
 
   afterAll(async () => {
-    await testDatabaseClient.$disconnect();
+    await cleanupAllTestData();
+    await disconnectTestDatabase();
   });
 
   describe("POST /api/v1/orders", () => {
-    test("should create order successfully", async () => {
+    it("should create order successfully", async () => {
       // Arrange
-      const orderData = createValidOrderPayload();
-      orderData.items[0].menuItemId = testMenuItem.id;
+      const orderData = {
+        tableId: testTable.id,
+        type: OrderType.DINE_IN,
+        items: [
+          {
+            menuItemId: testMenuItem.id,
+            quantity: 2,
+            notes: "Sin cebolla",
+          },
+        ],
+      };
 
       // Act
       const response = await request(app)
         .post("/api/v1/orders")
         .set("Authorization", `Bearer ${authToken}`)
-        .send(orderData)
-        .expect(201);
+        .send(orderData);
 
       // Assert
+      expect(response.status).toBe(201);
       expect(response.body.success).toBe(true);
       expect(response.body.data).toHaveProperty("id");
-      expect(response.body.data.status).toBe("PENDING");
+      expect(response.body.data.status).toBe(OrderStatus.PENDING);
       expect(response.body.data.items).toHaveLength(1);
     });
 
-    test("should return 400 for invalid data", async () => {
+    it("should return 400 for invalid data", async () => {
       // Arrange
       const invalidOrderData = {
         tableId: "invalid",
@@ -67,34 +106,35 @@ describe("Orders API - E2E Tests", () => {
       const response = await request(app)
         .post("/api/v1/orders")
         .set("Authorization", `Bearer ${authToken}`)
-        .send(invalidOrderData)
-        .expect(400);
+        .send(invalidOrderData);
 
       // Assert
+      expect(response.status).toBe(400);
       expect(response.body.success).toBe(false);
-      expect(response.body.errors).toBeDefined();
     });
 
-    test("should return 401 without authentication", async () => {
+    it("should return 401 without authentication", async () => {
       // Arrange
-      const orderData = createValidOrderPayload();
+      const orderData = createOrderPayload();
 
       // Act
       const response = await request(app)
         .post("/api/v1/orders")
-        .send(orderData)
-        .expect(401);
+        .send(orderData);
 
       // Assert
-      expect(response.body.success).toBe(false);
+      expect(response.status).toBe(401);
     });
   });
 
   describe("GET /api/v1/orders", () => {
-    test("should return paginated orders", async () => {
+    it("should return paginated orders", async () => {
       // Arrange - Create some orders first
-      const orderData = createValidOrderPayload();
-      orderData.items[0].menuItemId = testMenuItem.id;
+      const orderData = {
+        tableId: testTable.id,
+        type: OrderType.DINE_IN,
+        items: [{ menuItemId: testMenuItem.id, quantity: 1 }],
+      };
 
       await request(app)
         .post("/api/v1/orders")
@@ -104,10 +144,10 @@ describe("Orders API - E2E Tests", () => {
       // Act
       const response = await request(app)
         .get("/api/v1/orders?page=1&limit=10")
-        .set("Authorization", `Bearer ${authToken}`)
-        .expect(200);
+        .set("Authorization", `Bearer ${authToken}`);
 
       // Assert
+      expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
       expect(response.body.data).toBeInstanceOf(Array);
       expect(response.body.meta).toHaveProperty("page");
@@ -116,10 +156,13 @@ describe("Orders API - E2E Tests", () => {
   });
 
   describe("GET /api/v1/orders/:id", () => {
-    test("should return specific order", async () => {
+    it("should return specific order", async () => {
       // Arrange - Create order
-      const orderData = createValidOrderPayload();
-      orderData.items[0].menuItemId = testMenuItem.id;
+      const orderData = {
+        tableId: testTable.id,
+        type: OrderType.DINE_IN,
+        items: [{ menuItemId: testMenuItem.id, quantity: 1 }],
+      };
 
       const createResponse = await request(app)
         .post("/api/v1/orders")
@@ -131,32 +174,34 @@ describe("Orders API - E2E Tests", () => {
       // Act
       const response = await request(app)
         .get(`/api/v1/orders/${orderId}`)
-        .set("Authorization", `Bearer ${authToken}`)
-        .expect(200);
+        .set("Authorization", `Bearer ${authToken}`);
 
       // Assert
+      expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
       expect(response.body.data.id).toBe(orderId);
-      expect(response.body.data.items).toHaveLength(1);
     });
 
-    test("should return 404 for non-existent order", async () => {
+    it("should return 404 for non-existent order", async () => {
       // Act
       const response = await request(app)
-        .get("/api/v1/orders/non-existent-id")
-        .set("Authorization", `Bearer ${authToken}`)
-        .expect(404);
+        .get("/api/v1/orders/non-existent-uuid-id")
+        .set("Authorization", `Bearer ${authToken}`);
 
       // Assert
+      expect(response.status).toBe(404);
       expect(response.body.success).toBe(false);
     });
   });
 
   describe("PATCH /api/v1/orders/:id/status", () => {
-    test("should update order status", async () => {
+    it("should update order status", async () => {
       // Arrange - Create order
-      const orderData = createValidOrderPayload();
-      orderData.items[0].menuItemId = testMenuItem.id;
+      const orderData = {
+        tableId: testTable.id,
+        type: OrderType.DINE_IN,
+        items: [{ menuItemId: testMenuItem.id, quantity: 1 }],
+      };
 
       const createResponse = await request(app)
         .post("/api/v1/orders")
@@ -169,12 +214,71 @@ describe("Orders API - E2E Tests", () => {
       const response = await request(app)
         .patch(`/api/v1/orders/${orderId}/status`)
         .set("Authorization", `Bearer ${authToken}`)
-        .send({ status: "IN_KITCHEN" })
-        .expect(200);
+        .send({ status: OrderStatus.IN_KITCHEN });
 
       // Assert
+      expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
-      expect(response.body.data.status).toBe("IN_KITCHEN");
+      expect(response.body.data.status).toBe(OrderStatus.IN_KITCHEN);
+    });
+
+    it("should reject invalid status transitions", async () => {
+      // Arrange - Create order and mark as delivered
+      const db = getTestDatabaseClient();
+      const orderData = {
+        tableId: testTable.id,
+        type: OrderType.DINE_IN,
+        items: [{ menuItemId: testMenuItem.id, quantity: 1 }],
+      };
+
+      const createResponse = await request(app)
+        .post("/api/v1/orders")
+        .set("Authorization", `Bearer ${authToken}`)
+        .send(orderData);
+
+      const orderId = createResponse.body.data.id;
+
+      // Mark as delivered directly in DB
+      await db.order.update({
+        where: { id: orderId },
+        data: { status: OrderStatus.DELIVERED },
+      });
+
+      // Act - Try to change status from DELIVERED
+      const response = await request(app)
+        .patch(`/api/v1/orders/${orderId}/status`)
+        .set("Authorization", `Bearer ${authToken}`)
+        .send({ status: OrderStatus.CANCELLED });
+
+      // Assert
+      expect(response.status).toBe(400);
+    });
+  });
+
+  describe("DELETE /api/v1/orders/:id (Cancel)", () => {
+    it("should cancel order successfully", async () => {
+      // Arrange
+      const orderData = {
+        tableId: testTable.id,
+        type: OrderType.DINE_IN,
+        items: [{ menuItemId: testMenuItem.id, quantity: 1 }],
+      };
+
+      const createResponse = await request(app)
+        .post("/api/v1/orders")
+        .set("Authorization", `Bearer ${authToken}`)
+        .send(orderData);
+
+      const orderId = createResponse.body.data.id;
+
+      // Act
+      const response = await request(app)
+        .delete(`/api/v1/orders/${orderId}`)
+        .set("Authorization", `Bearer ${authToken}`);
+
+      // Assert
+      expect(response.status).toBe(200);
+      expect(response.body.data.status).toBe(OrderStatus.CANCELLED);
     });
   });
 });

@@ -1,63 +1,67 @@
-import { PrismaClient } from "@prisma/client";
-import { execSync } from "child_process";
+/**
+ * Global Jest Setup for Integration/E2E Tests
+ *
+ * This file is automatically loaded by Jest before running tests.
+ * It handles database connection, cleanup, and global configuration.
+ *
+ * For unit tests: No database setup needed, mocks are used instead.
+ * For integration/e2e tests: Database is connected and cleaned.
+ */
+import {
+  connectTestDatabase,
+  disconnectTestDatabase,
+  getTestDatabaseClient,
+} from "./shared/test-database";
+import { cleanupAllTestData } from "./shared/cleanup";
 import { logger } from "../config/logger";
 import { config } from "../config";
-
-// Test database client
-const testDatabaseClient = new PrismaClient({
-  datasources: {
-    db: {
-      url: config.testDatabaseUrl,
-    },
-  },
-  log: config.nodeEnv === "test" ? [] : ["query", "info", "warn", "error"],
-});
-
-// Global test setup
-beforeAll(async () => {
-  try {
-    // Reset database before all tests
-    if (config.nodeEnv === "test") {
-      execSync("npx prisma migrate reset --force --skip-seed", {
-        env: { ...process.env, DATABASE_URL: config.testDatabaseUrl },
-        stdio: "pipe",
-      });
-    }
-
-    await testDatabaseClient.$connect();
-    logger.info("✅ Test database connected");
-  } catch (error) {
-    logger.error("❌ Failed to setup test database:", error);
-    throw error;
-  }
-});
-
-afterAll(async () => {
-  try {
-    await testDatabaseClient.$disconnect();
-    logger.info("✅ Test database disconnected");
-  } catch (error) {
-    logger.error("❌ Error disconnecting test database:", error);
-  }
-});
-
-// Clean up database before each test
-beforeEach(async () => {
-  if (config.nodeEnv === "test") {
-    // Delete in correct order due to foreign key constraints
-    await testDatabaseClient.orderItem.deleteMany();
-    await testDatabaseClient.order.deleteMany();
-    await testDatabaseClient.stockAdjustment.deleteMany();
-    await testDatabaseClient.menuItem.deleteMany();
-    await testDatabaseClient.menuCategory.deleteMany();
-    await testDatabaseClient.user.deleteMany();
-    await testDatabaseClient.role.deleteMany();
-    await testDatabaseClient.permission.deleteMany();
-    await testDatabaseClient.table.deleteMany();
-  }
-});
 
 // Increase timeout for database operations
 jest.setTimeout(30000);
 
-export { testDatabaseClient };
+/**
+ * Global setup - runs once before all tests
+ */
+beforeAll(async () => {
+  // Only connect to database for integration/e2e tests
+  if (process.env.TEST_TYPE === "integration" || process.env.TEST_TYPE === "e2e") {
+    try {
+      await connectTestDatabase();
+      logger.info("✅ Test database connected");
+    } catch (error) {
+      logger.error("❌ Failed to connect test database:", error);
+      throw error;
+    }
+  }
+});
+
+/**
+ * Global teardown - runs once after all tests
+ */
+afterAll(async () => {
+  if (process.env.TEST_TYPE === "integration" || process.env.TEST_TYPE === "e2e") {
+    try {
+      await disconnectTestDatabase();
+      logger.info("✅ Test database disconnected");
+    } catch (error) {
+      logger.error("❌ Error disconnecting test database:", error);
+    }
+  }
+});
+
+/**
+ * Cleanup before each test
+ * Only runs for integration/e2e tests to ensure clean state
+ */
+beforeEach(async () => {
+  if (process.env.TEST_TYPE === "integration" || process.env.TEST_TYPE === "e2e") {
+    try {
+      await cleanupAllTestData();
+    } catch (error) {
+      logger.error("❌ Error cleaning test data:", error);
+    }
+  }
+});
+
+// Re-export for backward compatibility
+export { getTestDatabaseClient as testDatabaseClient };
