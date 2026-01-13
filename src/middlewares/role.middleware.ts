@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { RoleName } from "@prisma/client";
-import userService from "../api/v1/users/user.service";
+import userService from "../api/users/user.service";
 
 export const roleMiddleware = (allowedRoles: RoleName[]) => {
   return async (req: Request, res: Response, next: NextFunction) => {

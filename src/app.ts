@@ -9,7 +9,7 @@ import cors, { CorsOptions } from "cors";
 import { logger } from "./config/logger";
 import { requestLogger } from "./middlewares/morgan.middleware";
 import { errorHandler } from "./middlewares/error.middleware";
-import apiV1Router from "./api/v1/routes";
+import apiRouter from "./api/routes";
 import { notFoundHandler } from "./middlewares/notFound.middleware";
 import passport from "passport";
 import { jwtStrategy } from "./strategies/passport-jwt.strategy";
@@ -72,7 +72,7 @@ passport.use(jwtStrategy);
 app.use(passport.initialize());
 
 // API Routes
-app.use("/api/v1", apiV1Router);
+app.use("/api/v1", apiRouter);
 
 app.get("/api/v1", (_: Request, res: Response) => {
   logger.info("GET / request received");

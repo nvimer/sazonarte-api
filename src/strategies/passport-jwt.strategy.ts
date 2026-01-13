@@ -4,8 +4,8 @@ import {
   StrategyOptions,
   VerifyCallback,
 } from "passport-jwt";
-import userService from "../api/v1/users/user.service";
-import { PayloadInput } from "../api/v1/auth/tokens/token.validation";
+import userService from "../api/users/user.service";
+import { PayloadInput } from "../api/auth/tokens/token.validation";
 import { config } from "../config";
 
 // define the options for strategy jwt
