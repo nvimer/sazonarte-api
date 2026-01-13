@@ -22,11 +22,9 @@ describe("OrderService - Basic Tests", () => {
   >;
 
   beforeEach(() => {
-    // Mock de dependencias (NO del servicio que estás testeando)
     mockOrderRepository = createMockOrderRepository();
     mockItemService = createMockItemService();
 
-    // ✅ Crear instancia REAL del servicio con mocks de dependencias inyectadas
     orderService = new OrderService(mockOrderRepository, mockItemService);
 
     jest.clearAllMocks();
@@ -57,7 +55,6 @@ describe("OrderService - Basic Tests", () => {
         price: new Prisma.Decimal("14000"),
       });
 
-      // Order después de crear (sin items aún)
       const createdOrder = createOrderFixture({
         id: "order-123",
         waiterId,
@@ -67,7 +64,6 @@ describe("OrderService - Basic Tests", () => {
         totalAmount: new Prisma.Decimal("0"),
       });
 
-      // Order completo con items (lo que retorna findById al final)
       const orderWithItems = createOrderWithItemsFixture({
         id: "order-123",
         waiterId,
@@ -77,24 +73,20 @@ describe("OrderService - Basic Tests", () => {
         totalAmount: new Prisma.Decimal("28000"), // 2 * 14000
       });
 
-      // Mock ItemService - ahora inyectado, no necesita jest.mock()
       mockItemService.findMenuItemById.mockResolvedValue(mockMenuItem);
       mockItemService.deductStockForOrder.mockResolvedValue(undefined);
 
-      // Mock Repository - create retorna order básico
       mockOrderRepository.create.mockResolvedValue(createdOrder as any);
-      // updateTotal retorna order actualizado
       mockOrderRepository.updateTotal.mockResolvedValue({
         ...createdOrder,
         totalAmount: new Prisma.Decimal("28000"),
       } as any);
-      // findById retorna order completo con items
       mockOrderRepository.findById.mockResolvedValue(orderWithItems as any);
 
       // Act
       const result = await orderService.createOrder(waiterId, orderData);
 
-      // Assert - Verifica la lógica REAL del servicio
+      // Assert
       expect(mockItemService.findMenuItemById).toHaveBeenCalledWith(1);
       expect(mockItemService.deductStockForOrder).toHaveBeenCalledWith(
         1,
@@ -138,7 +130,7 @@ describe("OrderService - Basic Tests", () => {
       // Act
       const result = await orderService.findOrderById(orderId);
 
-      // Assert - Verifica la lógica REAL
+      // Assert
       expect(mockOrderRepository.findById).toHaveBeenCalledWith(orderId);
       expect(result).toEqual(expectedOrder);
     });
@@ -148,7 +140,7 @@ describe("OrderService - Basic Tests", () => {
       const orderId = "non-existent";
       mockOrderRepository.findById.mockResolvedValue(null);
 
-      // Act & Assert - Verifica que el servicio lanza error real
+      // Act & Assert
       await expect(orderService.findOrderById(orderId)).rejects.toThrow(
         "Order with ID non-existent not found",
       );
@@ -180,7 +172,7 @@ describe("OrderService - Basic Tests", () => {
         status,
       });
 
-      // Assert - Verifica la lógica REAL
+      // Assert
       expect(mockOrderRepository.findById).toHaveBeenCalledWith(orderId);
       expect(mockOrderRepository.updateStatus).toHaveBeenCalledWith(
         orderId,
@@ -230,7 +222,6 @@ describe("OrderService - Basic Tests", () => {
     test("should cancel order when order exists and revert stock", async () => {
       // Arrange
       const orderId = "order-123";
-      // Order debe tener items con menuItem para que el servicio pueda revertir stock
       const existingOrder = createOrderWithItemsFixture({
         id: orderId,
         status: OrderStatus.PENDING,
@@ -249,9 +240,8 @@ describe("OrderService - Basic Tests", () => {
       // Act
       const result = await orderService.cancelOrder(orderId);
 
-      // Assert - Verifica la lógica REAL
+      // Assert
       expect(mockOrderRepository.findById).toHaveBeenCalledWith(orderId);
-      // Verifica que se revierte stock para items TRACKED
       expect(mockItemService.revertStockForOrder).toHaveBeenCalledWith(
         1, // menuItemId
         2, // quantity
@@ -316,7 +306,7 @@ describe("OrderService - Basic Tests", () => {
       // Act
       const result = await orderService.findAllOrders(params);
 
-      // Assert - Verifica que delega al repositorio (lógica REAL)
+      // Assert
       expect(mockOrderRepository.findAll).toHaveBeenCalledWith(params);
       expect(result).toEqual(expectedResponse);
     });

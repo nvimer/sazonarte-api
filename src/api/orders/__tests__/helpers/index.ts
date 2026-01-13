@@ -10,23 +10,6 @@ export {
   invalidStatusTransitions,
 } from "./order.fixtures";
 
-// ============================================
-// MENU ITEM FIXTURES - For order item testing
-// ============================================
-export {
-  createMenuItemFixture,
-  createTrackedMenuItemFixture,
-  createUnlimitedMenuItemFixture,
-  createOutOfStockMenuItemFixture,
-  createUnavailableMenuItemFixture,
-  createLowStockMenuItemFixture,
-  createExtraMenuItemFixture,
-  createBeverageMenuItemFixture,
-} from "../../../menus/items/__tests__/helpers";
-
-// ============================================
-// MOCKS - Jest mock factories for unit tests
-// ============================================
 export {
   createMockOrderRepository,
   createMockOrderService,
@@ -35,9 +18,6 @@ export {
   orderRepositoryScenarios,
 } from "./order.mocks";
 
-// ============================================
-// DATABASE - Real DB operations for integration tests
-// ============================================
 export {
   // Menu category and items
   createTestMenuCategory,
