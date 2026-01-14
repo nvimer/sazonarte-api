@@ -11,7 +11,7 @@ import tableRepository from "./table.repository";
 /**
  * Table Service
  */
-class TableService implements TableServiceInterface {
+export class TableService implements TableServiceInterface {
   constructor(private tableRepository: TableRepositoryInterface) {}
 
   /**
