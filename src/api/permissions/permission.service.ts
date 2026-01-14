@@ -18,7 +18,7 @@ import { CustomError } from "../../types/custom-errors";
  * Service class for Permission business logic
  * Handles all business operations and validation for permissions
  */
-class PermissionService implements PermissionServiceInterface {
+export class PermissionService implements PermissionServiceInterface {
   constructor(
     private readonly permissionRepository: PermissionRepositoryInterface,
   ) {}
