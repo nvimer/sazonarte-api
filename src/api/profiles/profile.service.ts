@@ -16,7 +16,7 @@ import { UserWithProfile } from "../../types/prisma.types";
  *
  * Core business logic layer for user profile management operations.
  */
-class ProfileServices implements ProfileServiceInterface {
+export class ProfileServices implements ProfileServiceInterface {
   constructor(private profileRepository: ProfileRepositoryInterface) {}
 
   /**
