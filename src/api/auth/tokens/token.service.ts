@@ -15,7 +15,7 @@ import tokenRepository from "./token.repository";
  * The service follows the dependency injection pattern and
  * implements the TokenServiceInterface for consistency.
  */
-class TokenService implements TokenServiceInterface {
+export class TokenService implements TokenServiceInterface {
   constructor(private tokenRepository: TokenRepositoryInterface) {}
 
   /**

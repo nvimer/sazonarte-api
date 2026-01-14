@@ -14,7 +14,7 @@ import { HttpStatus } from "../../utils/httpStatus.enum";
  * The service follows the dependency injection pattern and
  * implements the AuthServiceInterface for consistency.
  */
-class AuthService implements AuthServiceInterface {
+export class AuthService implements AuthServiceInterface {
   constructor(private userService: UserServiceInterface) {}
 
   /**
