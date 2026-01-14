@@ -13,7 +13,7 @@ import {
 /**
  * Role Service
  */
-class RoleService implements RoleServiceInterface {
+export class RoleService implements RoleServiceInterface {
   constructor(private roleRepository: RoleRepositoryInterface) {}
 
   /**

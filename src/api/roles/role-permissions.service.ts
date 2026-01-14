@@ -12,7 +12,7 @@ import {
 /**
  * Role Permission Service
  */
-class RolePermissionService implements RolePermissionServiceInterface {
+export class RolePermissionService implements RolePermissionServiceInterface {
   constructor(private roleRepository: RoleRepositoryInterface) {}
 
   /**
