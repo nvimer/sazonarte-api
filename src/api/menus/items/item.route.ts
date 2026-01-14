@@ -110,7 +110,7 @@ router.get(
  * PATCH /items/:id/inventory-type
  * Configure inventory type of item by id
  */
-router.get(
+router.patch(
   "/:id/inventory-type",
   validate(inventoryTypeSchema),
   itemController.setInventoryType,

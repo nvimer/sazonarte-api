@@ -5,7 +5,6 @@ import {
   disconnectTestDatabase,
   getTestDatabaseClient,
 } from "../../../../../tests/shared/test-database";
-import { cleanupAllTestData } from "../../../../../tests/shared/cleanup";
 
 describe("Token Repository Integration Tests", () => {
   let tokenRepository: TestTokenRepository;
