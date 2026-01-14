@@ -21,6 +21,8 @@ import {
 } from "./order.validator";
 import orderRepository from "./order.repository";
 import itemService from "../menus/items/item.service";
+import prisma from "../../database/prisma";
+import { PrismaTransaction } from "../../types/prisma-transaction.types";
 
 export class OrderService implements OrderServiceInterface {
   constructor(
@@ -29,7 +31,7 @@ export class OrderService implements OrderServiceInterface {
       ItemServiceInterface,
       "findMenuItemById" | "deductStockForOrder" | "revertStockForOrder"
     >,
-  ) {}
+  ) { }
 
   /**
    * Private Helper: Find Order by ID or Fail
@@ -98,7 +100,7 @@ export class OrderService implements OrderServiceInterface {
     id: string,
     data: CreateOrderBodyInput,
   ): Promise<OrderWithItems> {
-    // Step 1: Validate and ferch all menu items
+    // Step 1: Validate and fetch all menu items
     const menuItemsPromises = data.items.map((item) =>
       this.itemService.findMenuItemById(item.menuItemId),
     );
@@ -149,27 +151,37 @@ export class OrderService implements OrderServiceInterface {
       0,
     );
 
-    // Step 6: Create order in database
-    let order = await this.orderRepository.create(id, orderDataWithPrices);
-    await this.orderRepository.updateTotal(order.id, totalAmount);
+    // Step 6-8: Create order, update total, and deduct stock in atomic transaction
+    return await prisma.$transaction(async (tx: PrismaTransaction) => {
+      // Create order with items
+      const order = await this.orderRepository.create(
+        id,
+        orderDataWithPrices,
+        tx,
+      );
 
-    // Step 8: Deduct stock for TRACKED items
-    const stockDeductionPromises = data.items.map((item, index) => {
-      const menuItem = menuItems[index];
-      if (menuItem.inventoryType === InventoryType.TRACKED) {
-        return this.itemService.deductStockForOrder(
-          item.menuItemId,
-          item.quantity,
-          order.id,
-        );
-      }
-      return Promise.resolve();
+      // Update total amount
+      await this.orderRepository.updateTotal(order.id, totalAmount, tx);
+
+      // Deduct stock for TRACKED items
+      const stockDeductionPromises = data.items.map((item, index) => {
+        const menuItem = menuItems[index];
+        if (menuItem.inventoryType === InventoryType.TRACKED) {
+          return this.itemService.deductStockForOrder(
+            item.menuItemId,
+            item.quantity,
+            order.id,
+            tx,
+          );
+        }
+        return Promise.resolve();
+      });
+
+      await Promise.all(stockDeductionPromises);
+
+      // Fetch and return complete order with items
+      return (await this.orderRepository.findById(order.id)) as OrderWithItems;
     });
-
-    await Promise.all(stockDeductionPromises);
-
-    // Step 9: Fetch and return complete order with items
-    return (await this.orderRepository.findById(order.id)) as OrderWithItems;
   }
 
   /**
@@ -243,24 +255,28 @@ export class OrderService implements OrderServiceInterface {
       );
     }
 
-    // Step 3: Revert stock for all items
-    const stockReversionPromises = order.items.map((orderItem) => {
-      if (
-        orderItem.menuItem &&
-        orderItem.menuItem.inventoryType === InventoryType.TRACKED
-      ) {
-        return this.itemService.revertStockForOrder(
-          orderItem.menuItemId!,
-          orderItem.quantity,
-          order.id,
-        );
-      }
-      return Promise.resolve();
-    });
-    await Promise.all(stockReversionPromises);
+    // Step 3-4: Revert stock and cancel order in atomic transaction
+    return await prisma.$transaction(async (tx: PrismaTransaction) => {
+      // Revert stock for all TRACKED items
+      const stockReversionPromises = order.items.map((orderItem) => {
+        if (
+          orderItem.menuItem &&
+          orderItem.menuItem.inventoryType === InventoryType.TRACKED
+        ) {
+          return this.itemService.revertStockForOrder(
+            orderItem.menuItemId!,
+            orderItem.quantity,
+            order.id,
+            tx,
+          );
+        }
+        return Promise.resolve();
+      });
+      await Promise.all(stockReversionPromises);
 
-    // Step 4: Update order status to CANCELLED
-    return this.orderRepository.cancel(id);
+      // Update order status to CANCELLED
+      return this.orderRepository.cancel(id, tx);
+    });
   }
 }
 

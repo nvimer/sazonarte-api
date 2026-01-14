@@ -20,6 +20,7 @@ import {
   InventoryType,
   StockAdjustmentType,
 } from "../../../types/prisma.types";
+import { PrismaTransaction } from "../../../types/prisma-transaction.types";
 
 /**
  * Menu Item Service
@@ -39,7 +40,7 @@ import {
  * - Item lifecycle management
  */
 export class ItemService implements ItemServiceInterface {
-  constructor(private itemRepository: ItemRepositoryInterface) {}
+  constructor(private itemRepository: ItemRepositoryInterface) { }
 
   /**
    * Private helper method to find a menu item by id and throw an error if not found.
@@ -114,7 +115,7 @@ export class ItemService implements ItemServiceInterface {
       itemIds.map((id) => this.itemRepository.findById(id)),
     );
 
-    const notFound = itemIds.filter((id, idx) => !existingItems[idx]);
+    const notFound = itemIds.filter((_id, idx) => !existingItems[idx]);
     if (notFound.length > 0) {
       throw new CustomError(
         `Items not found: ${notFound.join(", ")}`,
@@ -230,12 +231,14 @@ export class ItemService implements ItemServiceInterface {
    * @param itemId - Menu item identifier
    * @param quantity - Number of units ordered
    * @param orderId - Order identifier for audit trail
+   * @param tx - Optional transaction client for atomic operations
    * @throws CustomError if insufficient stock available
    */
   async deductStockForOrder(
     itemId: number,
     quantity: number,
     orderId: string,
+    tx?: PrismaTransaction,
   ): Promise<void> {
     const item = await this.itemRepository.findById(itemId);
 
@@ -259,6 +262,7 @@ export class ItemService implements ItemServiceInterface {
       `Order ${orderId}`,
       undefined,
       orderId,
+      tx,
     );
   }
 
@@ -272,11 +276,13 @@ export class ItemService implements ItemServiceInterface {
    * @param itemId - Menu item identifier
    * @param quantity - Number of units to restore
    * @param orderId - Order identifier for audit trail
+   * @param tx - Optional transaction client for atomic operations
    */
   async revertStockForOrder(
     itemId: number,
     quantity: number,
     orderId: string,
+    tx?: PrismaTransaction,
   ): Promise<void> {
     const item = await this.itemRepository.findById(itemId);
 
@@ -291,6 +297,7 @@ export class ItemService implements ItemServiceInterface {
       `Order ${orderId} cancelled`,
       undefined,
       orderId,
+      tx,
     );
   }
 

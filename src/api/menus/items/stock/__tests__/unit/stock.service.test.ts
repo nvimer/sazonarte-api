@@ -27,7 +27,7 @@ describe("StockService - Unit Tests", () => {
   beforeEach(() => {
     mockPrisma = createMockPrismaClient();
     mockStockRepository = createMockStockRepository();
-    stockService = new StockService(mockPrisma, mockStockRepository);
+    stockService = new StockService(mockStockRepository);
 
     // Setup transaction mock
     mockTransaction = jest.fn((callback) => {

@@ -15,6 +15,7 @@ import {
   InventoryType,
   StockAdjustmentType,
 } from "../../../types/prisma.types";
+import { PrismaTransaction } from "../../../types/prisma-transaction.types";
 
 class ItemRepository implements ItemRepositoryInterface {
   /**
@@ -111,6 +112,7 @@ class ItemRepository implements ItemRepositoryInterface {
    * @param reason - Optional explanation for the adjustment
    * @param userId - Optional user who performed the adjustment
    * @param orderId - Optional order associated with adjustment
+   * @param tx - Optional transaction client for atomic operations
    * @returns Updated menu item with new stock quantity
    * @throws Error if menu item not found
    *
@@ -132,14 +134,46 @@ class ItemRepository implements ItemRepositoryInterface {
     reason?: string,
     userId?: string,
     orderId?: string,
+    tx?: PrismaTransaction,
   ): Promise<MenuItem> {
-    const item = await prisma.menuItem.findUnique({ where: { id } });
+    const client = tx || prisma;
+    const item = await client.menuItem.findUnique({ where: { id } });
 
     if (!item) {
       throw new Error(`MenuItem with id ${id} not found`);
     }
     const previousStock = item.stockQuantity ?? 0;
     const newStock = previousStock + quantity;
+
+    // If transaction is provided, use it directly; otherwise create a new transaction
+    if (tx) {
+      const [updatedItem] = await Promise.all([
+        tx.menuItem.update({
+          where: { id },
+          data: {
+            stockQuantity: newStock,
+            // Auto-block item if stock depleted and auto-blocking enabled
+            isAvailable:
+              item.autoMarkUnavailable && newStock <= 0
+                ? false
+                : item.isAvailable,
+          },
+        }),
+        tx.stockAdjustment.create({
+          data: {
+            menuItemId: id,
+            adjustmentType,
+            previousStock,
+            newStock,
+            quantity,
+            reason,
+            userId,
+            orderId,
+          },
+        }),
+      ]);
+      return updatedItem;
+    }
 
     // Update item and create adjustment record in atomic transaction
     const [updatedItem] = await prisma.$transaction([
@@ -188,30 +222,33 @@ class ItemRepository implements ItemRepositoryInterface {
    * 5. Creates audit records for each adjustment
    */
   async dailyStockReset(menuItems: DailyStockResetInput): Promise<void> {
-    await prisma.$transaction(
-      menuItems.items.map((item) =>
-        prisma.menuItem.update({
-          where: { id: item.itemId },
-          data: {
-            stockQuantity: item.quantity,
-            initialStock: item.quantity,
-            lowStockAlert: item.lowStockAlert,
-            isAvailable: true,
-          },
-        }),
-      ),
-    );
+    await prisma.$transaction(async (tx) => {
+      // Update stock quantities for all items in batch
+      await Promise.all(
+        menuItems.items.map((item) =>
+          tx.menuItem.update({
+            where: { id: item.itemId },
+            data: {
+              stockQuantity: item.quantity,
+              initialStock: item.quantity,
+              lowStockAlert: item.lowStockAlert,
+              isAvailable: true,
+            },
+          }),
+        ),
+      );
 
-    // Create adjustment records for audit trail
-    await prisma.stockAdjustment.createMany({
-      data: menuItems.items.map((item) => ({
-        menuItemId: item.itemId,
-        adjustmentType: StockAdjustmentType.DAILY_RESET,
-        previousStock: 0,
-        newStock: item.quantity,
-        quantity: item.quantity,
-        reason: "Begin of the day",
-      })),
+      // Create adjustment records for audit trail
+      await tx.stockAdjustment.createMany({
+        data: menuItems.items.map((item) => ({
+          menuItemId: item.itemId,
+          adjustmentType: StockAdjustmentType.DAILY_RESET,
+          previousStock: 0,
+          newStock: item.quantity,
+          quantity: item.quantity,
+          reason: "Begin of the day",
+        })),
+      });
     });
   }
 

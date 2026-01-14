@@ -38,11 +38,13 @@ export interface ItemServiceInterface {
     itemId: number,
     quantity: number,
     orderId: string,
+    tx?: import("../../../../types/prisma-transaction.types").PrismaTransaction,
   ): Promise<void>;
   revertStockForOrder(
     itemId: number,
     quantity: number,
     orderId: string,
+    tx?: import("../../../../types/prisma-transaction.types").PrismaTransaction,
   ): Promise<void>;
   getLowStock(): Promise<MenuItem[]>;
   getOutStock(): Promise<MenuItem[]>;

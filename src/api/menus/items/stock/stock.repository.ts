@@ -1,9 +1,5 @@
 import { PrismaClient, MenuItem, StockAdjustment } from "@prisma/client";
-
-type PrismaTransaction = Omit<
-  PrismaClient,
-  "$connect" | "$disconnect" | "$on" | "$transaction" | "$extends"
->;
+import { PrismaTransaction } from "../../../../types/prisma-transaction.types";
 
 export class StockRepository {
   constructor(private prisma: PrismaClient) {}

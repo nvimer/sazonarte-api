@@ -38,34 +38,54 @@ export interface OrderRepositoryInterface {
   /**
    * Creates a new order with items in a transaction
    *
+   * @param waiterId - Waiter identifier
    * @param data - Order creation data including items
+   * @param tx - Optional transaction client for atomic operations
    * @returns Created order with items
    */
-  create(waiterId: string, data: CreateOrderBodyInput): Promise<OrderWithItems>;
+  create(
+    waiterId: string,
+    data: CreateOrderBodyInput,
+    tx?: import("../../../types/prisma-transaction.types").PrismaTransaction,
+  ): Promise<OrderWithItems>;
 
   /**
    * Updates order status
    *
    * @param id - Order identifier
    * @param status - New order status
+   * @param tx - Optional transaction client for atomic operations
    * @returns Updated order
    */
-  updateStatus(id: string, status: string): Promise<Order>;
+  updateStatus(
+    id: string,
+    status: string,
+    tx?: import("../../../types/prisma-transaction.types").PrismaTransaction,
+  ): Promise<Order>;
 
   /**
    * Cancels an order (soft delete by changing status)
    *
    * @param id - Order identifier
+   * @param tx - Optional transaction client for atomic operations
    * @returns Cancelled order
    */
-  cancel(id: string): Promise<Order>;
+  cancel(
+    id: string,
+    tx?: import("../../../types/prisma-transaction.types").PrismaTransaction,
+  ): Promise<Order>;
 
   /**
    * Updates order total amount
    *
    * @param id - Order identifier
    * @param totalAmount - New total amount
+   * @param tx - Optional transaction client for atomic operations
    * @returns Updated order
    */
-  updateTotal(id: string, totalAmount: number): Promise<Order>;
+  updateTotal(
+    id: string,
+    totalAmount: number,
+    tx?: import("../../../types/prisma-transaction.types").PrismaTransaction,
+  ): Promise<Order>;
 }

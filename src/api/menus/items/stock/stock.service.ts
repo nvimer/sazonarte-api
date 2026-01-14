@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+import { MenuItem } from "@prisma/client";
 import {
   DailyStockResetRequest,
   AddStockRequest,
@@ -7,18 +7,17 @@ import {
 } from "./stock.types";
 import { stockValidators } from "./stock.validators";
 import { StockRepository } from "./stock.repository";
+import prisma from "../../../../database/prisma";
+import { PrismaTransaction } from "../../../../types/prisma-transaction.types";
 
 export class StockService {
-  constructor(
-    private prisma: PrismaClient,
-    private stockRepository: StockRepository,
-  ) {}
+  constructor(private stockRepository: StockRepository) {}
 
   async dailyStockReset(data: DailyStockResetRequest, userId: string) {
     // Validation
     stockValidators.validateDailyReset(data);
 
-    return await this.prisma.$transaction(async (tx) => {
+    return await prisma.$transaction(async (tx: PrismaTransaction) => {
       const results = [];
 
       for (const item of data.items) {
@@ -71,7 +70,7 @@ export class StockService {
   async addStock(itemId: number, data: AddStockRequest, userId: string) {
     stockValidators.validateAddStock(data);
 
-    return await this.prisma.$transaction(async (tx) => {
+    return await prisma.$transaction(async (tx: PrismaTransaction) => {
       const menuItem = await this.stockRepository.findByIdForUpdate(tx, itemId);
 
       if (!menuItem) {
@@ -109,7 +108,7 @@ export class StockService {
   async removeStock(itemId: number, data: RemoveStockRequest, userId: string) {
     stockValidators.validateRemoveStock(data);
 
-    return await this.prisma.$transaction(async (tx) => {
+    return await prisma.$transaction(async (tx: PrismaTransaction) => {
       const menuItem = await this.stockRepository.findByIdForUpdate(tx, itemId);
 
       if (!menuItem) {
@@ -167,7 +166,7 @@ export class StockService {
   async updateInventoryType(itemId: number, data: InventoryTypeRequest) {
     stockValidators.validateInventoryType(data);
 
-    return await this.prisma.$transaction(async (tx) => {
+    return await prisma.$transaction(async (tx: PrismaTransaction) => {
       const menuItem = await this.stockRepository.findByIdForUpdate(tx, itemId);
 
       if (!menuItem) {
@@ -177,7 +176,7 @@ export class StockService {
       const previousType = menuItem.inventoryType;
       const newType = data.inventoryType;
 
-      let updateData: any = {
+      let updateData: Partial<MenuItem> = {
         inventoryType: newType,
       };
 

@@ -7,6 +7,7 @@ import {
   PaginatedResponse,
 } from "../../interfaces/pagination.interfaces";
 import { createPaginatedResponse } from "../../utils/pagination.helper";
+import { PrismaTransaction } from "../../types/prisma-transaction.types";
 
 /**
  * Role Repository
@@ -133,34 +134,39 @@ class RoleRepository implements RoleRepositoryInterface {
    * Updates an existing role's information in the database.
    * This method supports partial updates and can handle permission
    * reassignment when permission IDs are provided.
+   *
+   * All operations are performed in a single transaction to ensure
+   * atomicity and data consistency.
    */
   async updateRole(id: number, data: UpdateRoleInput): Promise<Role> {
     const { permissionIds, ...roleData } = data;
 
-    // If permissionIds are provided, replace all existing permissions
-    if (permissionIds !== undefined) {
-      await prisma.rolePermission.deleteMany({
-        where: { roleId: id },
-      });
-    }
+    return await prisma.$transaction(async (tx: PrismaTransaction) => {
+      // If permissionIds are provided, replace all existing permissions
+      if (permissionIds !== undefined) {
+        await tx.rolePermission.deleteMany({
+          where: { roleId: id },
+        });
+      }
 
-    return await prisma.role.update({
-      where: { id },
-      data: {
-        ...roleData,
-        ...(permissionIds && {
-          permissions: {
-            create: permissionIds.map((permissionId) => ({
-              permission: { connect: { id: permissionId } },
-            })),
-          },
-        }),
-      },
-      include: {
-        permissions: {
-          include: { permission: true },
+      return await tx.role.update({
+        where: { id },
+        data: {
+          ...roleData,
+          ...(permissionIds && {
+            permissions: {
+              create: permissionIds.map((permissionId) => ({
+                permission: { connect: { id: permissionId } },
+              })),
+            },
+          }),
         },
-      },
+        include: {
+          permissions: {
+            include: { permission: true },
+          },
+        },
+      });
     });
   }
 
@@ -230,6 +236,9 @@ class RoleRepository implements RoleRepositoryInterface {
    * This method provides complete control over role permissions
    * by removing all existing assignments and creating new ones.
    *
+   * All operations are performed in a single transaction to ensure
+   * atomicity. If any operation fails, all changes are rolled back.
+   *
    * Database Operations:
    * - Removes all existing role-permission relationships
    * - Creates new role-permission relationships for provided IDs
@@ -239,34 +248,39 @@ class RoleRepository implements RoleRepositoryInterface {
     roleId: number,
     permissionIds: number[],
   ): Promise<Role> {
-    // First, remove existing permissions for this role
-    await prisma.rolePermission.deleteMany({
-      where: { roleId },
-    });
+    return await prisma.$transaction(async (tx: PrismaTransaction) => {
+      // First, remove existing permissions for this role
+      await tx.rolePermission.deleteMany({
+        where: { roleId },
+      });
 
-    // Then assign the new permissions
-    await prisma.rolePermission.createMany({
-      data: permissionIds.map((permissionId) => ({
-        roleId,
-        permissionId,
-      })),
-    });
+      // Then assign the new permissions
+      await tx.rolePermission.createMany({
+        data: permissionIds.map((permissionId) => ({
+          roleId,
+          permissionId,
+        })),
+      });
 
-    // Return the role with its permissions
-    return prisma.role.findUnique({
-      where: { id: roleId },
-      include: {
-        permissions: {
-          include: { permission: true },
+      // Return the role with its permissions
+      return (await tx.role.findUnique({
+        where: { id: roleId },
+        include: {
+          permissions: {
+            include: { permission: true },
+          },
         },
-      },
-    }) as Promise<Role>;
+      })) as Role;
+    });
   }
 
   /**
    * Removes specific permissions from a role.
    * This method allows selective permission removal without
    * affecting other assigned permissions.
+   *
+   * All operations are performed in a single transaction to ensure
+   * atomicity and data consistency.
    *
    * Database Operations:
    * - Removes specific role-permission relationships
@@ -277,23 +291,25 @@ class RoleRepository implements RoleRepositoryInterface {
     roleId: number,
     permissionIds: number[],
   ): Promise<Role> {
-    await prisma.rolePermission.deleteMany({
-      where: {
-        roleId,
-        permissionId: { in: permissionIds },
-      },
-    });
+    return await prisma.$transaction(async (tx: PrismaTransaction) => {
+      await tx.rolePermission.deleteMany({
+        where: {
+          roleId,
+          permissionId: { in: permissionIds },
+        },
+      });
 
-    return prisma.role.findUnique({
-      where: { id: roleId },
-      include: {
-        permissions: {
-          include: {
-            permission: true,
+      return (await tx.role.findUnique({
+        where: { id: roleId },
+        include: {
+          permissions: {
+            include: {
+              permission: true,
+            },
           },
         },
-      },
-    }) as Promise<Role>;
+      })) as Role;
+    });
   }
 
   async getRolesWithPermissions(

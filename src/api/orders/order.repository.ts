@@ -12,6 +12,7 @@ import {
 } from "../../types/prisma.types";
 import prisma from "../../database/prisma";
 import { createPaginatedResponse } from "../../utils/pagination.helper";
+import { PrismaTransaction } from "../../types/prisma-transaction.types";
 
 export class OrderRepository implements OrderRepositoryInterface {
   /**
@@ -105,22 +106,26 @@ export class OrderRepository implements OrderRepositoryInterface {
   /**
    * Creates New Order with Items in Atomic Transaction
    *
-   * Crates and order and its items in a single database transaction
-   * to ensure data cosistency. If any part fails, entire operation
+   * Creates an order and its items in a single database transaction
+   * to ensure data consistency. If any part fails, entire operation
    * is rolled back.
    *
+   * @param waiterId - Waiter identifier
    * @param data - Order creation data with items
+   * @param tx - Optional transaction client for atomic operations
    * @returns Created order with items
    */
   async create(
     waiterId: string,
     data: CreateOrderBodyInput,
+    tx?: PrismaTransaction,
   ): Promise<OrderWithItems> {
+    const client = tx || prisma;
     // Extract items from order data
     const { items, ...orderData } = data;
 
-    //  Create order with items in transaction
-    const order = await prisma.order.create({
+    // Create order with items
+    const order = await client.order.create({
       data: {
         ...orderData,
         waiterId,
@@ -154,10 +159,16 @@ export class OrderRepository implements OrderRepositoryInterface {
    *
    * @param id - Order identifier
    * @param status - New order status
+   * @param tx - Optional transaction client for atomic operations
    * @returns Updated order
    */
-  async updateStatus(id: string, status: OrderStatus): Promise<Order> {
-    return prisma.order.update({
+  async updateStatus(
+    id: string,
+    status: OrderStatus,
+    tx?: PrismaTransaction,
+  ): Promise<Order> {
+    const client = tx || prisma;
+    return client.order.update({
       where: { id },
       data: { status },
     });
@@ -170,10 +181,11 @@ export class OrderRepository implements OrderRepositoryInterface {
    * cleanup operations are handled in the service layer.
    *
    * @param id - Order identifier
+   * @param tx - Optional transaction client for atomic operations
    * @returns Cancelled order
    */
-  async cancel(id: string): Promise<Order> {
-    return this.updateStatus(id, OrderStatus.CANCELLED);
+  async cancel(id: string, tx?: PrismaTransaction): Promise<Order> {
+    return this.updateStatus(id, OrderStatus.CANCELLED, tx);
   }
 
   /**
@@ -184,10 +196,16 @@ export class OrderRepository implements OrderRepositoryInterface {
    *
    * @param id - Order identifier
    * @param totalAmount - Calculated total amount
+   * @param tx - Optional transaction client for atomic operations
    * @returns Updated Order
    */
-  async updateTotal(id: string, totalAmount: number): Promise<Order> {
-    return prisma.order.update({
+  async updateTotal(
+    id: string,
+    totalAmount: number,
+    tx?: PrismaTransaction,
+  ): Promise<Order> {
+    const client = tx || prisma;
+    return client.order.update({
       where: { id },
       data: { totalAmount },
     });

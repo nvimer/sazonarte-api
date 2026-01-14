@@ -31,6 +31,7 @@ export interface ItemRepositoryInterface {
     reason?: string,
     userId?: string,
     orderId?: string,
+    tx?: import("../../../../types/prisma-transaction.types").PrismaTransaction,
   ): Promise<MenuItem>;
   dailyStockReset(items: DailyStockResetInput): Promise<void>;
   getLowStock(): Promise<MenuItem[]>;

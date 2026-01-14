@@ -29,7 +29,7 @@ describe("Stock Management Integration Tests", () => {
 
     // Initialize services
     stockRepository = new StockRepository(testPrisma);
-    stockService = new StockService(testPrisma, stockRepository);
+    stockService = new StockService(stockRepository);
   });
 
   afterAll(async () => {
