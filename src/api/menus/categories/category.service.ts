@@ -20,7 +20,7 @@ import { HttpStatus } from "../../../utils/httpStatus.enum";
  * Acts as an intermediary between the controller and repository layers,
  * handling validation, error management, and business rules.
  */
-class CategoryService implements CategoryServiceInterface {
+export class CategoryService implements CategoryServiceInterface {
   constructor(private categoryRepository: CategoryRepositoryInterface) {}
 
   /**
