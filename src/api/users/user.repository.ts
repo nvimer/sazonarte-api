@@ -35,7 +35,10 @@ class BasicUserRepository implements UserRepositoryInterface {
     const [users, total] = await Promise.all([
       prisma.user.findMany({
         where: { deleted: false },
-        orderBy: { firstName: "asc", lastName: "asc" },
+        orderBy: [
+          { firstName: "asc" },
+          { lastName: "asc" },
+        ],
         skip,
         take: limit,
       }),
