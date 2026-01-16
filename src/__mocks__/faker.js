@@ -1,11 +1,16 @@
-module.exports = {
+// Mock completo de faker para tests
+const faker = {
   person: {
     firstName: () => "John",
     lastName: () => "Doe",
+    fullName: () => "John Doe",
   },
   internet: {
     email: () => "test@example.com",
-    password: (options) => "password".repeat(options?.length || 8),
+    password: (options) => {
+      const length = typeof options === "object" ? options?.length || 8 : options || 8;
+      return "password".repeat(Math.ceil(length / 8)).substring(0, length);
+    },
     url: () => "https://example.com",
     domainName: () => "example.com",
   },
@@ -27,3 +32,6 @@ module.exports = {
     streetAddress: () => "123 Main St",
   },
 };
+
+module.exports = { faker };
+module.exports.default = { faker };
