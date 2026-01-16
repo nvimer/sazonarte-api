@@ -109,7 +109,10 @@ describe("UserRepository", () => {
       // Assert
       expect(mockFindMany).toHaveBeenCalledWith(
         expect.objectContaining({
-          orderBy: { firstName: "asc", lastName: "asc" },
+          orderBy: [
+            { firstName: "asc" },
+            { lastName: "asc" },
+          ],
         }),
       );
     });

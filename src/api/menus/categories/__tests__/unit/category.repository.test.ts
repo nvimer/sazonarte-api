@@ -108,7 +108,10 @@ describe("CategoryRepository", () => {
       // Assert
       expect(mockFindMany).toHaveBeenCalledWith(
         expect.objectContaining({
-          orderBy: { order: "asc", name: "asc" },
+          orderBy: [
+            { order: "asc" },
+            { name: "asc" },
+          ],
         }),
       );
     });
