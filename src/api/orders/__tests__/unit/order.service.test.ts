@@ -1,3 +1,12 @@
+// Mock Prisma transaction BEFORE imports
+const mockTransaction = jest.fn();
+jest.mock("../../../../database/prisma", () => ({
+  __esModule: true,
+  default: {
+    $transaction: mockTransaction,
+  },
+}));
+
 import { Prisma } from "@prisma/client";
 import { OrderStatus, OrderType } from "../../../../types/prisma.types";
 import { OrderRepositoryInterface } from "../../interfaces/order.repository.interface";
@@ -14,18 +23,23 @@ import { createMenuItemFixture } from "../../../menus/items/__tests__/helpers";
 describe("OrderService - Basic Tests", () => {
   let orderService: OrderService; // ✅ Instancia REAL del servicio
   let mockOrderRepository: jest.Mocked<OrderRepositoryInterface>;
-  let mockItemService: jest.Mocked<
-    Pick<
-      ItemServiceInterface,
-      "findMenuItemById" | "deductStockForOrder" | "revertStockForOrder"
-    >
-  >;
+  let mockItemService: {
+    findMenuItemById: jest.Mock;
+    deductStockForOrder: jest.Mock;
+    revertStockForOrder: jest.Mock;
+  };
 
   beforeEach(() => {
     mockOrderRepository = createMockOrderRepository();
     mockItemService = createMockItemService();
 
     orderService = new OrderService(mockOrderRepository, mockItemService);
+
+    // Setup transaction mock
+    mockTransaction.mockImplementation(async (callback) => {
+      const mockTx = {} as Parameters<typeof callback>[0];
+      return await callback(mockTx);
+    });
 
     jest.clearAllMocks();
   });
@@ -92,6 +106,7 @@ describe("OrderService - Basic Tests", () => {
         1,
         2,
         "order-123",
+        expect.anything(), // tx parameter
       );
       expect(mockOrderRepository.create).toHaveBeenCalledWith(
         waiterId,
@@ -106,10 +121,12 @@ describe("OrderService - Basic Tests", () => {
             }),
           ]),
         }),
+        expect.anything(), // tx parameter
       );
       expect(mockOrderRepository.updateTotal).toHaveBeenCalledWith(
         "order-123",
         28000,
+        expect.anything(), // tx parameter
       );
       expect(mockOrderRepository.findById).toHaveBeenCalledWith("order-123");
       expect(result).toEqual(orderWithItems);
@@ -246,8 +263,12 @@ describe("OrderService - Basic Tests", () => {
         1, // menuItemId
         2, // quantity
         orderId,
+        expect.anything(), // tx parameter
       );
-      expect(mockOrderRepository.cancel).toHaveBeenCalledWith(orderId);
+      expect(mockOrderRepository.cancel).toHaveBeenCalledWith(
+        orderId,
+        expect.anything(), // tx parameter
+      );
       expect(result).toEqual(cancelledOrder);
     });
 

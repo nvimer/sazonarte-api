@@ -9,6 +9,7 @@ const mockUpdateMany = jest.fn();
 const mockCount = jest.fn();
 const mockRolePermissionDeleteMany = jest.fn();
 const mockRolePermissionCreateMany = jest.fn();
+const mockTransaction = jest.fn();
 
 // Mock Prisma
 jest.mock("../../../../database/prisma", () => ({
@@ -26,6 +27,7 @@ jest.mock("../../../../database/prisma", () => ({
       deleteMany: mockRolePermissionDeleteMany,
       createMany: mockRolePermissionCreateMany,
     },
+    $transaction: mockTransaction,
   },
 }));
 
@@ -50,6 +52,21 @@ import { createRoleFixture } from "../helpers";
 describe("RoleRepository", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    
+    // Setup default transaction mock
+    mockTransaction.mockImplementation(async (callback) => {
+      const mockTx = {
+        role: {
+          update: mockUpdate,
+          findUnique: mockFindUnique,
+        },
+        rolePermission: {
+          deleteMany: mockRolePermissionDeleteMany,
+          createMany: mockRolePermissionCreateMany,
+        },
+      };
+      return await callback(mockTx);
+    });
   });
 
   describe("findAll", () => {

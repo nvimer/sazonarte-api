@@ -33,12 +33,11 @@ export function createMockOrderService(): jest.Mocked<OrderServiceInterface> {
 /**
  * Creates a mocked ItemService (dependency of OrderService)
  */
-export function createMockItemService(): jest.Mocked<
-  Pick<
-    ItemServiceInterface,
-    "findMenuItemById" | "deductStockForOrder" | "revertStockForOrder"
-  >
-> {
+export function createMockItemService(): {
+  findMenuItemById: jest.Mock;
+  deductStockForOrder: jest.Mock;
+  revertStockForOrder: jest.Mock;
+} {
   return {
     findMenuItemById: jest.fn(),
     deductStockForOrder: jest.fn(),
