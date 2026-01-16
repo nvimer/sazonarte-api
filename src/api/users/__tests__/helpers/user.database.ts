@@ -17,7 +17,7 @@ export async function createTestUser(
       lastName: faker.person.lastName(),
       email: faker.internet.email().toLowerCase(),
       password: faker.internet.password({ length: 12 }),
-      phone: faker.phone.number({ style: "national" }),
+      phone: faker.phone.number(),
       deleted: false,
       deletedAt: null,
       ...overrides,
@@ -99,7 +99,7 @@ export async function createTestUserWithProfile(
       lastName: faker.person.lastName(),
       email: faker.internet.email().toLowerCase(),
       password: faker.internet.password({ length: 12 }),
-      phone: faker.phone.number({ style: "national" }),
+      phone: faker.phone.number(),
       ...overrides,
       profile: {
         create: {
