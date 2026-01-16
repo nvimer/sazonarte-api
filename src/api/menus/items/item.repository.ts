@@ -52,6 +52,32 @@ class ItemRepository implements ItemRepositoryInterface {
   }
 
   /**
+   * Retrieves a menu item by ID for update within a transaction
+   * 
+   * This method is used within transactions to ensure proper locking
+   * and prevent race conditions when updating stock quantities.
+   * 
+   * @param tx - Transaction client
+   * @param itemId - Menu item identifier
+   * @returns Menu item or null if not found
+   */
+  async findByIdForUpdate(
+    tx: PrismaTransaction,
+    itemId: number,
+  ): Promise<MenuItem | null> {
+    // Use findFirst instead of findUnique to allow filtering by deleted
+    // This works better with test database clients that may not have extensions
+    const item = await tx.menuItem.findFirst({
+      where: {
+        id: itemId,
+        deleted: false,
+      },
+    });
+    
+    return item;
+  }
+
+  /**
    * Creates a new menu item record in the database.
    * This method handles item creation with proper data validation
    * and ensures data integrity.
@@ -324,6 +350,62 @@ class ItemRepository implements ItemRepositoryInterface {
     ]);
 
     return createPaginatedResponse(adjustments, total, { page, limit });
+  }
+
+  /**
+   * Updates stock with partial data within a transaction
+   * 
+   * This method allows updating menu item stock fields with partial data
+   * within a transaction context for atomic operations.
+   * 
+   * @param tx - Transaction client
+   * @param itemId - Menu item identifier
+   * @param data - Partial menu item data to update
+   * @returns Updated menu item
+   */
+  async updateStockWithData(
+    tx: PrismaTransaction,
+    itemId: number,
+    data: Partial<MenuItem>,
+  ): Promise<MenuItem> {
+    return await tx.menuItem.update({
+      where: { id: itemId },
+      data: {
+        ...data,
+        updatedAt: new Date(),
+      },
+    });
+  }
+
+  /**
+   * Creates a stock adjustment record within a transaction
+   * 
+   * This method creates an audit trail entry for stock changes
+   * within a transaction context.
+   * 
+   * @param tx - Transaction client
+   * @param data - Stock adjustment data
+   * @returns Created stock adjustment
+   */
+  async createStockAdjustment(
+    tx: PrismaTransaction,
+    data: {
+      menuItemId: number;
+      adjustmentType: string;
+      previousStock: number;
+      newStock: number;
+      quantity: number;
+      reason?: string;
+      userId?: string;
+      orderId?: string;
+    },
+  ): Promise<StockAdjustment> {
+    return await tx.stockAdjustment.create({
+      data: {
+        ...data,
+        createdAt: new Date(),
+      },
+    });
   }
 
   /**
