@@ -21,6 +21,19 @@ import {
   StockAdjustmentType,
 } from "../../../types/prisma.types";
 import { PrismaTransaction } from "../../../types/prisma-transaction.types";
+import prisma from "../../../database/prisma";
+
+// Get the appropriate Prisma client based on environment
+// In test environment with TEST_TYPE set, use test database
+const getPrismaClient = () => {
+  if (process.env.NODE_ENV === "test" && process.env.TEST_TYPE) {
+    // For integration/E2E tests, use test database client
+    // Dynamic import to avoid circular dependencies
+    const { getTestDatabaseClient } = require("../../../tests/shared/test-database");
+    return getTestDatabaseClient();
+  }
+  return prisma;
+};
 
 /**
  * Menu Item Service
@@ -145,7 +158,7 @@ export class ItemService implements ItemServiceInterface {
    *
    * Business logic for manual stock additions. Used when additional
    * portions are prepared mid-day or for inventory corrections.
-   * Validates item type and delegates to repository.
+   * Uses explicit transaction with findByIdForUpdate for proper concurrency handling.
    *
    * @param id - Menu item identifier
    * @param data - Stock addition data (quantity and reason)
@@ -158,22 +171,48 @@ export class ItemService implements ItemServiceInterface {
     data: AddStockBodyInput,
     userId?: string,
   ): Promise<MenuItem> {
-    const item = await this.findMenuItemByIdOrFail(id);
+    const client = getPrismaClient();
+    return await client.$transaction(async (tx: PrismaTransaction) => {
+      const menuItem = await this.itemRepository.findByIdForUpdate(tx, id);
 
-    if (item.inventoryType !== InventoryType.TRACKED)
-      throw new CustomError(
-        "Cannot add stock to UNLIMITED items",
-        HttpStatus.BAD_REQUEST,
-        "INVALID_INVENTORY_TYPE",
-      );
+      if (!menuItem) {
+        throw new CustomError(
+          `Menu Item ID ${id} not found`,
+          HttpStatus.NOT_FOUND,
+          "ID_NOT_FOUND",
+        );
+      }
 
-    return this.itemRepository.updateStock(
-      id,
-      data.quantity,
-      StockAdjustmentType.MANUAL_ADD,
-      data.reason,
-      userId,
-    );
+      if (menuItem.inventoryType !== InventoryType.TRACKED) {
+        throw new CustomError(
+          "Cannot add stock to UNLIMITED items",
+          HttpStatus.BAD_REQUEST,
+          "INVALID_INVENTORY_TYPE",
+        );
+      }
+
+      const previousStock = menuItem.stockQuantity ?? 0;
+      const newStock = previousStock + data.quantity;
+
+      // Update menu item
+      const updatedItem = await this.itemRepository.updateStockWithData(tx, id, {
+        stockQuantity: newStock,
+        isAvailable: true,
+      });
+
+      // Create stock adjustment record
+      await this.itemRepository.createStockAdjustment(tx, {
+        menuItemId: id,
+        adjustmentType: StockAdjustmentType.MANUAL_ADD,
+        previousStock,
+        newStock,
+        quantity: data.quantity,
+        reason: data.reason,
+        userId,
+      });
+
+      return updatedItem;
+    });
   }
 
   /**
@@ -181,7 +220,7 @@ export class ItemService implements ItemServiceInterface {
    *
    * Business logic for manual stock removal. Used for waste, spoilage,
    * damage, or other reductions outside normal order fulfillment.
-   * Validates item type, stock availability, and delegates to repository.
+   * Uses explicit transaction with findByIdForUpdate for proper concurrency handling.
    *
    * @param id - Menu item identifier
    * @param data - Stock removal data (quantity and optional reason)
@@ -194,31 +233,58 @@ export class ItemService implements ItemServiceInterface {
     data: RemoveStockBodyInput,
     userId?: string,
   ): Promise<MenuItem> {
-    const item = await this.findMenuItemByIdOrFail(id);
+    const client = getPrismaClient();
+    return await client.$transaction(async (tx: PrismaTransaction) => {
+      const menuItem = await this.itemRepository.findByIdForUpdate(tx, id);
 
-    if (item?.inventoryType !== InventoryType.TRACKED) {
-      throw new CustomError(
-        "Cannot remove stock from UNLIMITED items",
-        HttpStatus.BAD_REQUEST,
-        "INVALID_INVENTORY_TYPE",
-      );
-    }
+      if (!menuItem) {
+        throw new CustomError(
+          `Menu Item ID ${id} not found`,
+          HttpStatus.NOT_FOUND,
+          "ID_NOT_FOUND",
+        );
+      }
 
-    if ((item.stockQuantity ?? 0) < data.quantity) {
-      throw new CustomError(
-        "Insufficient stock to remove",
-        HttpStatus.BAD_REQUEST,
-        "INSUFFICIENT_STOCK",
-      );
-    }
+      if (menuItem.inventoryType !== InventoryType.TRACKED) {
+        throw new CustomError(
+          "Cannot remove stock from UNLIMITED items",
+          HttpStatus.BAD_REQUEST,
+          "INVALID_INVENTORY_TYPE",
+        );
+      }
 
-    return this.itemRepository.updateStock(
-      id,
-      -data.quantity, // Negative value for stock reduction
-      StockAdjustmentType.MANUAL_REMOVE,
-      data?.reason,
-      userId,
-    );
+      const currentStock = menuItem.stockQuantity ?? 0;
+
+      if (currentStock < data.quantity) {
+        throw new CustomError(
+          "Insufficient stock to remove",
+          HttpStatus.BAD_REQUEST,
+          "INSUFFICIENT_STOCK",
+        );
+      }
+
+      const previousStock = currentStock;
+      const newStock = currentStock - data.quantity;
+
+      // Update menu item
+      const updatedItem = await this.itemRepository.updateStockWithData(tx, id, {
+        stockQuantity: newStock,
+        isAvailable: newStock > 0 ? menuItem.isAvailable : false,
+      });
+
+      // Create stock adjustment record
+      await this.itemRepository.createStockAdjustment(tx, {
+        menuItemId: id,
+        adjustmentType: StockAdjustmentType.MANUAL_REMOVE,
+        previousStock,
+        newStock,
+        quantity: data.quantity,
+        reason: data.reason,
+        userId,
+      });
+
+      return updatedItem;
+    });
   }
 
   /**
@@ -348,7 +414,8 @@ export class ItemService implements ItemServiceInterface {
    * Configures Inventory Type for a Menu Item
    *
    * Service layer method for changing inventory tracking mode.
-   * Validates item existence before applying configuration.
+   * Uses explicit transaction with findByIdForUpdate for proper concurrency handling.
+   * Handles type conversion logic (TRACKED <-> UNLIMITED).
    *
    * @param id - Menu item identifier
    * @param data - Inventory type configuration
@@ -359,12 +426,43 @@ export class ItemService implements ItemServiceInterface {
     id: number,
     data: InventoryTypeInput,
   ): Promise<MenuItem> {
-    await this.findMenuItemByIdOrFail(id);
-    return this.itemRepository.setInventoryType(
-      id,
-      data.inventoryType,
-      data.lowStockAlert,
-    );
+    const client = getPrismaClient();
+    return await client.$transaction(async (tx: PrismaTransaction) => {
+      const menuItem = await this.itemRepository.findByIdForUpdate(tx, id);
+
+      if (!menuItem) {
+        throw new CustomError(
+          `Menu Item ID ${id} not found`,
+          HttpStatus.NOT_FOUND,
+          "ID_NOT_FOUND",
+        );
+      }
+
+      const previousType = menuItem.inventoryType;
+      const newType = data.inventoryType;
+
+      let updateData: Partial<MenuItem> = {
+        inventoryType: newType,
+      };
+
+      // Handle type conversion
+      if (previousType === InventoryType.TRACKED && newType === InventoryType.UNLIMITED) {
+        // Clear stock data when converting to UNLIMITED
+        updateData.stockQuantity = null;
+        updateData.initialStock = null;
+        updateData.lowStockAlert = null;
+      } else if (previousType === InventoryType.UNLIMITED && newType === InventoryType.TRACKED) {
+        // Set defaults for new TRACKED items
+        updateData.stockQuantity = 0;
+        updateData.initialStock = 0;
+        updateData.lowStockAlert = data.lowStockAlert || 5;
+        updateData.autoMarkUnavailable = true;
+      } else if (newType === InventoryType.TRACKED) {
+        updateData.lowStockAlert = data.lowStockAlert || menuItem.lowStockAlert;
+      }
+
+      return await this.itemRepository.updateStockWithData(tx, id, updateData);
+    });
   }
 }
 
