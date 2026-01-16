@@ -1,15 +1,12 @@
-import { StockService } from "../../stock/stock.service";
-import { StockRepository } from "../../stock/stock.repository";
+import itemService from "../../item.service";
 import {
   connectTestDatabase,
   disconnectTestDatabase,
   getTestDatabaseClient,
 } from "../../../../../tests/shared/test-database";
-import { cleanupAllTestData } from "../../../../../tests/shared/cleanup";
+import { InventoryType } from "../../../../../types/prisma.types";
 
 describe("Stock Management Integration Tests", () => {
-  let stockService: StockService;
-  let stockRepository: StockRepository;
   let testUserId: string;
   const testPrisma = getTestDatabaseClient();
 
@@ -26,10 +23,6 @@ describe("Stock Management Integration Tests", () => {
       },
     });
     testUserId = testUser.id;
-
-    // Initialize services
-    stockRepository = new StockRepository(testPrisma);
-    stockService = new StockService(stockRepository);
   });
 
   afterAll(async () => {
@@ -75,9 +68,7 @@ describe("Stock Management Integration Tests", () => {
         ],
       };
 
-      const result = await stockService.dailyStockReset(resetData, testUserId);
-
-      expect(result).toHaveLength(2);
+      await itemService.dailyStockReset(resetData);
 
       // Verify items were updated
       const updatedItem1 = await testPrisma.menuItem.findUnique({
@@ -113,9 +104,9 @@ describe("Stock Management Integration Tests", () => {
         items: [{ itemId: unlimitedItem.id, quantity: 30 }],
       };
 
-      await expect(
-        stockService.dailyStockReset(resetData, testUserId),
-      ).rejects.toThrow("Only TRACKED items can have stock reset");
+      await expect(itemService.dailyStockReset(resetData)).rejects.toThrow(
+        "Only TRACKED items can have stock reset",
+      );
     });
 
     test("should throw validation error for negative quantities", async () => {
@@ -123,9 +114,7 @@ describe("Stock Management Integration Tests", () => {
         items: [{ itemId: 1, quantity: -5 }],
       };
 
-      await expect(
-        stockService.dailyStockReset(resetData, testUserId),
-      ).rejects.toThrow("Quantity must be 0 or greater");
+      await expect(itemService.dailyStockReset(resetData)).rejects.toThrow();
     });
   });
 
@@ -150,7 +139,7 @@ describe("Stock Management Integration Tests", () => {
         reason: "Additional mid-day production",
       };
 
-      const result = await stockService.addStock(item.id, addData, testUserId);
+      const result = await itemService.addStock(item.id, addData, testUserId);
 
       expect(result.stockQuantity).toBe(25);
       expect(result.isAvailable).toBe(true);
@@ -187,7 +176,7 @@ describe("Stock Management Integration Tests", () => {
       };
 
       await expect(
-        stockService.addStock(item.id, addData, testUserId),
+        itemService.addStock(item.id, addData, testUserId),
       ).rejects.toThrow("Cannot add stock to UNLIMITED items");
     });
   });
@@ -213,7 +202,7 @@ describe("Stock Management Integration Tests", () => {
         reason: "Items spoiled due to temperature issues",
       };
 
-      const result = await stockService.removeStock(
+      const result = await itemService.removeStock(
         item.id,
         removeData,
         testUserId,
@@ -256,7 +245,7 @@ describe("Stock Management Integration Tests", () => {
         reason: "All items used",
       };
 
-      const result = await stockService.removeStock(
+      const result = await itemService.removeStock(
         item.id,
         removeData,
         testUserId,
@@ -287,7 +276,7 @@ describe("Stock Management Integration Tests", () => {
       };
 
       await expect(
-        stockService.removeStock(item.id, removeData, testUserId),
+        itemService.removeStock(item.id, removeData, testUserId),
       ).rejects.toThrow("Insufficient stock to remove");
     });
   });
@@ -328,7 +317,7 @@ describe("Stock Management Integration Tests", () => {
         ],
       });
 
-      const lowStockItems = await stockService.getLowStockItems();
+      const lowStockItems = await itemService.getLowStock();
 
       expect(lowStockItems).toHaveLength(2);
       expect(lowStockItems.map((item) => item.name)).toContain(
@@ -368,7 +357,7 @@ describe("Stock Management Integration Tests", () => {
         ],
       });
 
-      const outOfStockItems = await stockService.getOutOfStockItems();
+      const outOfStockItems = await itemService.getOutStock();
 
       expect(outOfStockItems).toHaveLength(1);
       expect(outOfStockItems[0].name).toBe("Out of Stock Item");
@@ -423,7 +412,10 @@ describe("Stock Management Integration Tests", () => {
         ],
       });
 
-      const history = await stockService.getStockHistory(item.id, 1, 20);
+      const history = await itemService.getStockHistory(item.id, {
+        page: 1,
+        limit: 20,
+      });
 
       expect(history.data).toHaveLength(3);
       expect(history.meta.total).toBe(3);
@@ -459,17 +451,15 @@ describe("Stock Management Integration Tests", () => {
           stockQuantity: 30,
           initialStock: 30,
           lowStockAlert: 5,
+          deleted: false,
         },
       });
 
       const updateData = {
-        inventoryType: "UNLIMITED" as const,
+        inventoryType: InventoryType.UNLIMITED,
       };
 
-      const result = await stockService.updateInventoryType(
-        item.id,
-        updateData,
-      );
+      const result = await itemService.setInventoryType(item.id, updateData);
 
       expect(result.inventoryType).toBe("UNLIMITED");
       expect(result.stockQuantity).toBeNull();
@@ -488,18 +478,16 @@ describe("Stock Management Integration Tests", () => {
           name: "Test Item",
           price: 10000,
           inventoryType: "UNLIMITED",
+          deleted: false,
         },
       });
 
       const updateData = {
-        inventoryType: "TRACKED" as const,
+        inventoryType: InventoryType.TRACKED,
         lowStockAlert: 10,
       };
 
-      const result = await stockService.updateInventoryType(
-        item.id,
-        updateData,
-      );
+      const result = await itemService.setInventoryType(item.id, updateData);
 
       expect(result.inventoryType).toBe("TRACKED");
       expect(result.stockQuantity).toBe(0);

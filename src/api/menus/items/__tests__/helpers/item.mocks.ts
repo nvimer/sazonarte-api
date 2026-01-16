@@ -6,9 +6,12 @@ export function createMockItemRepository(): jest.Mocked<ItemRepositoryInterface>
   return {
     findAll: jest.fn(),
     findById: jest.fn(),
+    findByIdForUpdate: jest.fn(),
     create: jest.fn(),
     search: jest.fn(),
     updateStock: jest.fn(),
+    updateStockWithData: jest.fn(),
+    createStockAdjustment: jest.fn(),
     dailyStockReset: jest.fn(),
     getLowStock: jest.fn(),
     getOutOfStock: jest.fn(),

@@ -320,14 +320,27 @@ describe("ItemRepository", () => {
           { itemId: 2, quantity: 50, lowStockAlert: 5 },
         ],
       };
-      mockTransaction.mockResolvedValue([{}, {}]);
+      
+      const mockTx = {
+        menuItem: {
+          update: jest.fn().mockResolvedValue({}),
+        },
+        stockAdjustment: {
+          createMany: mockStockAdjustmentCreateMany,
+        },
+      };
+      
       mockStockAdjustmentCreateMany.mockResolvedValue({ count: 2 });
+      mockTransaction.mockImplementation((callback) => {
+        return callback(mockTx);
+      });
 
       // Act
       await itemRepository.dailyStockReset(resetInput);
 
       // Assert
       expect(mockTransaction).toHaveBeenCalled();
+      expect(mockTx.menuItem.update).toHaveBeenCalledTimes(2);
       expect(mockStockAdjustmentCreateMany).toHaveBeenCalledWith({
         data: expect.arrayContaining([
           expect.objectContaining({
