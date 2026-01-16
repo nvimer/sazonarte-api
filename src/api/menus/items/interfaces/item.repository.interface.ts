@@ -19,6 +19,10 @@ import {
 export interface ItemRepositoryInterface {
   findAll(params: PaginationParams): Promise<PaginatedResponse<MenuItem>>;
   findById(id: number): Promise<MenuItem | null>;
+  findByIdForUpdate(
+    tx: import("../../../../types/prisma-transaction.types").PrismaTransaction,
+    itemId: number,
+  ): Promise<MenuItem | null>;
   create(data: CreateItemInput): Promise<MenuItem>;
 
   search(
@@ -33,6 +37,24 @@ export interface ItemRepositoryInterface {
     orderId?: string,
     tx?: import("../../../../types/prisma-transaction.types").PrismaTransaction,
   ): Promise<MenuItem>;
+  updateStockWithData(
+    tx: import("../../../../types/prisma-transaction.types").PrismaTransaction,
+    itemId: number,
+    data: Partial<MenuItem>,
+  ): Promise<MenuItem>;
+  createStockAdjustment(
+    tx: import("../../../../types/prisma-transaction.types").PrismaTransaction,
+    data: {
+      menuItemId: number;
+      adjustmentType: string;
+      previousStock: number;
+      newStock: number;
+      quantity: number;
+      reason?: string;
+      userId?: string;
+      orderId?: string;
+    },
+  ): Promise<StockAdjustment>;
   dailyStockReset(items: DailyStockResetInput): Promise<void>;
   getLowStock(): Promise<MenuItem[]>;
   getOutOfStock(): Promise<MenuItem[]>;
