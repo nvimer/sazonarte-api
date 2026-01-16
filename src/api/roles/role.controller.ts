@@ -25,8 +25,8 @@ class RoleController {
    * - 400: Invalid pagination parameters
    */
   getRoles = asyncHandler(async (req: Request, res: Response) => {
-    const page = parseInt(req.query.page as string);
-    const limit = parseInt(req.query.limit as string);
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
 
     const params: PaginationParams = { page, limit };
 
@@ -56,8 +56,8 @@ class RoleController {
    * - 400: Invalid search parameters
    */
   searchRoles = asyncHandler(async (req: Request, res: Response) => {
-    const page = parseInt(req.query.page as string);
-    const limit = parseInt(req.query.limit as string);
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
     const search = req.query.search as string;
     const active =
       req.query.active === "true"

@@ -24,8 +24,8 @@ class UserController {
    * - 400: Invalid pagination parameters
    */
   getUsers = asyncHandler(async (req: Request, res: Response) => {
-    const page = parseInt(req.query.page as string);
-    const limit = parseInt(req.query.limit as string);
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
 
     const params: PaginationParams = { page, limit };
 
