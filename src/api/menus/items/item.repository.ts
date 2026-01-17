@@ -65,8 +65,9 @@ class ItemRepository implements ItemRepositoryInterface {
     tx: PrismaTransaction,
     itemId: number,
   ): Promise<MenuItem | null> {
-    // Use findFirst instead of findUnique to allow filtering by deleted
-    // This works better with test database clients that may not have extensions
+    // Use findFirst with explicit deleted filter
+    // This works better with test database clients that may not have soft delete extensions
+    // findFirst allows filtering by non-unique fields like 'deleted'
     const item = await tx.menuItem.findFirst({
       where: {
         id: itemId,
