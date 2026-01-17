@@ -6,9 +6,10 @@ import {
 import { UpdateUserInput } from "../user.validator";
 import { RegisterInput } from "../../auth/auth.validator";
 import { AuthenticatedUser } from "../../../types/express";
+import { UserWithRoles } from "../user.repository";
 
 export interface UserServiceInterface {
-  findAll(params: PaginationParams): Promise<PaginatedResponse<User>>;
+  findAll(params: PaginationParams): Promise<PaginatedResponse<UserWithRoles>>;
   findById(id: string): Promise<User>;
   findByEmail(email: string): Promise<User>;
   register(data: RegisterInput): Promise<User>;

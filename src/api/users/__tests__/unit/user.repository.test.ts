@@ -1,7 +1,9 @@
 import {
   createUserFixture,
   createUserFixtures,
+  createUserWithRolesFixture,
 } from "../helpers/user.fixtures";
+import { UserWithRoles } from "../../user.repository";
 
 // Create mock functions
 const mockFindMany = jest.fn();
@@ -49,7 +51,9 @@ describe("UserRepository", () => {
   describe("findAll", () => {
     it("should return paginated users", async () => {
       // Arrange
-      const mockUsers = createUserFixtures(2);
+      const mockUsers: UserWithRoles[] = createUserFixtures(2).map((user) =>
+        createUserWithRolesFixture(user),
+      );
       mockFindMany.mockResolvedValue(mockUsers);
       mockCount.mockResolvedValue(2);
 
@@ -91,6 +95,13 @@ describe("UserRepository", () => {
       expect(mockFindMany).toHaveBeenCalledWith(
         expect.objectContaining({
           where: { deleted: false },
+          include: {
+            roles: {
+              include: {
+                role: true,
+              },
+            },
+          },
         }),
       );
       expect(mockCount).toHaveBeenCalledWith({
@@ -113,6 +124,13 @@ describe("UserRepository", () => {
             { firstName: "asc" },
             { lastName: "asc" },
           ],
+          include: {
+            roles: {
+              include: {
+                role: true,
+              },
+            },
+          },
         }),
       );
     });

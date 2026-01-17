@@ -1,4 +1,4 @@
-import { User } from "@prisma/client";
+import { User, Prisma } from "@prisma/client";
 import prisma from "../../database/prisma";
 import { UserRepositoryInterface } from "./interfaces/user.repository.interface";
 import { UpdateUserInput } from "./user.validator";
@@ -9,6 +9,17 @@ import {
   PaginatedResponse,
 } from "../../interfaces/pagination.interfaces";
 import { createPaginatedResponse } from "../../utils/pagination.helper";
+
+// Type for User with roles included
+export type UserWithRoles = Prisma.UserGetPayload<{
+  include: {
+    roles: {
+      include: {
+        role: true;
+      };
+    };
+  };
+}>;
 
 /**
  * User Repository
@@ -28,7 +39,7 @@ class BasicUserRepository implements UserRepositoryInterface {
    * - Excludes soft-deleted users (deleted: false)
    * - Counts total users for pagination metadata
    */
-  async findAll(params: PaginationParams): Promise<PaginatedResponse<User>> {
+  async findAll(params: PaginationParams): Promise<PaginatedResponse<UserWithRoles>> {
     const { page, limit } = params;
     const skip = (page - 1) * limit;
 
@@ -39,6 +50,13 @@ class BasicUserRepository implements UserRepositoryInterface {
           { firstName: "asc" },
           { lastName: "asc" },
         ],
+        include: {
+          roles: {
+            include: {
+              role: true,
+            },
+          },
+        },
         skip,
         take: limit,
       }),

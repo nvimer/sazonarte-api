@@ -1,4 +1,5 @@
-import { User } from "@prisma/client";
+import { User, Role, UserRole } from "@prisma/client";
+import { UserWithRoles } from "../../user.repository";
 
 /**
  * Base user fixture with default values
@@ -95,4 +96,25 @@ export function createUserWithoutPasswordFixture(
 ): Omit<User, "password"> {
   const { password: _, ...userWithoutPassword } = createUserFixture(overrides);
   return userWithoutPassword;
+}
+
+/**
+ * Creates a UserWithRoles fixture for testing endpoints that return users with roles
+ */
+export function createUserWithRolesFixture(
+  userOverrides: Partial<User> = {},
+  roles: Role[] = [],
+): UserWithRoles {
+  const user = createUserFixture(userOverrides);
+  return {
+    ...user,
+    roles: roles.map((role) => ({
+      roleId: role.id,
+      userId: user.id,
+      role,
+      assignedAt: new Date(),
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    })),
+  };
 }

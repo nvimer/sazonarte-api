@@ -2,7 +2,7 @@ import { UserRepositoryInterface } from "../../interfaces/user.repository.interf
 import { RoleServiceInterface } from "../../../roles/interfaces/role.service.interface";
 import { CustomError } from "../../../../types/custom-errors";
 import { HttpStatus } from "../../../../utils/httpStatus.enum";
-import { User } from "@prisma/client";
+import { User, Role } from "@prisma/client";
 import {
   PaginationParams,
   PaginatedResponse,
@@ -11,6 +11,7 @@ import { RegisterInput } from "../../../auth/auth.validator";
 import { UpdateUserInput } from "../../user.validator";
 import { AuthenticatedUser } from "../../../../types/express";
 import { UserServices } from "../../user.service";
+import { UserWithRoles } from "../../user.repository";
 import hasherUtils from "../../../../utils/hasher.utils";
 
 // Mock hasher utils
@@ -92,10 +93,19 @@ describe("UserServices", () => {
   describe("findAll", () => {
     it("should return paginated users", async () => {
       // Arrange
-      const mockUsers = [
-        createMockUser({ id: "id-1", email: "user1@example.com" }),
-        createMockUser({ id: "id-2", email: "user2@example.com" }),
-        createMockUser({ id: "id-3", email: "user3@example.com" }),
+      const mockUsers: UserWithRoles[] = [
+        {
+          ...createMockUser({ id: "id-1", email: "user1@example.com" }),
+          roles: [],
+        },
+        {
+          ...createMockUser({ id: "id-2", email: "user2@example.com" }),
+          roles: [],
+        },
+        {
+          ...createMockUser({ id: "id-3", email: "user3@example.com" }),
+          roles: [],
+        },
       ];
       const params: PaginationParams = { page: 1, limit: 10 };
       const expectedResponse = createPaginatedResponse(mockUsers);
@@ -115,7 +125,7 @@ describe("UserServices", () => {
     it("should handle empty results", async () => {
       // Arrange
       const params: PaginationParams = { page: 1, limit: 10 };
-      const expectedResponse = createPaginatedResponse<User>([], {
+      const expectedResponse = createPaginatedResponse<UserWithRoles>([], {
         total: 0,
         totalPages: 0,
       });
@@ -479,7 +489,7 @@ describe("UserServices", () => {
     it("should handle pagination edge cases", async () => {
       // Arrange
       const extremeParams: PaginationParams = { page: 999, limit: 1 };
-      const emptyResponse: PaginatedResponse<User> = {
+      const emptyResponse: PaginatedResponse<UserWithRoles> = {
         data: [],
         meta: {
           total: 0,

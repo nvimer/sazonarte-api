@@ -1,5 +1,5 @@
 import { User } from "@prisma/client";
-import userRepository from "./user.repository";
+import userRepository, { UserWithRoles } from "./user.repository";
 import { CustomError } from "../../types/custom-errors";
 import { HttpStatus } from "../../utils/httpStatus.enum";
 import { UserServiceInterface } from "./interfaces/user.service.interface";
@@ -112,7 +112,9 @@ export class UserServices implements UserServiceInterface {
    * @param params - Pagination parameters (page, limit)
    * @returns Promise<PaginatedResponse<User>> - Paginated user data
    */
-  async findAll(params: PaginationParams): Promise<PaginatedResponse<User>> {
+  async findAll(
+    params: PaginationParams,
+  ): Promise<PaginatedResponse<UserWithRoles>> {
     return this.userRepository.findAll(params);
   }
 
