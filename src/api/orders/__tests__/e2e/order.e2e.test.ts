@@ -9,7 +9,7 @@ import { cleanupAllTestData } from "../../../../tests/shared/cleanup";
 import {
   createTestUser,
   deleteAllTestUsers,
-} from "../../../users/__tests__/helpers";
+} from "../../../users/__tests__/helpers/user.database";
 import {
   createTestMenuCategory,
   createTestMenuItem,

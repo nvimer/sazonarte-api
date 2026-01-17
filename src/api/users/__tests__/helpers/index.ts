@@ -6,6 +6,7 @@ export {
   createWaiterUserFixture,
   createCashierUserFixture,
   createUserWithoutPasswordFixture,
+  createUserWithRolesFixture,
 } from "./user.fixtures";
 
 export {
@@ -16,20 +17,6 @@ export {
   userMockScenarios,
 } from "./user.mocks";
 
-export {
-  createTestUser,
-  createTestUsers,
-  createTestUserWithEmail,
-  createTestUserWithId,
-  createTestUserWithRole,
-  createTestUserWithProfile,
-  createDeletedTestUser,
-  findTestUserByEmail,
-  findTestUserById,
-  getTestUserWithRolesAndPermissions,
-  updateTestUser,
-  softDeleteTestUser,
-  deleteTestUser,
-  deleteAllTestUsers,
-  countTestUsers,
-} from "./user.database";
+// Database helpers are not exported from the main barrel file
+// to avoid loading faker (ES module) in unit tests.
+// Import directly from "./user.database" when needed in integration/E2E tests.
