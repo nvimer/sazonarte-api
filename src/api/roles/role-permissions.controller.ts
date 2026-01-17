@@ -112,7 +112,8 @@ class RolePermissionController {
       res.status(HttpStatus.OK).json({
         success: true,
         message: "Roles with permissions fetched successfully",
-        data: roles,
+        data: roles.data,
+        meta: roles.meta,
       });
     },
   );

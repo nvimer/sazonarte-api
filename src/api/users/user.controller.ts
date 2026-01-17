@@ -33,7 +33,8 @@ class UserController {
     res.status(HttpStatus.OK).json({
       success: true,
       message: "Users fetched successfully",
-      data: users,
+      data: users.data,
+      meta: users.meta,
     });
   });
 

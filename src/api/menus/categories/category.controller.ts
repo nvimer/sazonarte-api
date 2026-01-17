@@ -104,7 +104,8 @@ class CategoryController {
     res.status(HttpStatus.OK).json({
       success: true,
       message: "Menu Categories search completed successfully",
-      data: categories,
+      data: categories.data,
+      meta: categories.meta,
     });
   });
 

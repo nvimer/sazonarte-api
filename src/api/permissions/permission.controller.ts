@@ -47,7 +47,8 @@ class PermissionController {
     res.status(HttpStatus.OK).json({
       success: true,
       message: "Permissions fetched successfully",
-      data: permissions,
+      data: permissions.data,
+      meta: permissions.meta,
     });
   });
 
@@ -85,7 +86,8 @@ class PermissionController {
     res.status(HttpStatus.OK).json({
       success: true,
       message: "Permissions search completed successfully",
-      data: permissions,
+      data: permissions.data,
+      meta: permissions.meta,
     });
   });
 

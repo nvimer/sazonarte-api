@@ -36,7 +36,8 @@ class ProfileController {
     res.status(HttpStatus.OK).json({
       success: true,
       message: "Profiles fetched successfully",
-      data: profiles,
+      data: profiles.data,
+      meta: profiles.meta,
     });
   });
 

@@ -34,7 +34,8 @@ class RoleController {
     res.status(HttpStatus.OK).json({
       success: true,
       message: "Roles fetched successfully",
-      data: roles,
+      data: roles.data,
+      meta: roles.meta,
     });
   });
 
@@ -72,7 +73,8 @@ class RoleController {
     res.status(HttpStatus.OK).json({
       success: true,
       message: "Roles searched successfully",
-      data: roles,
+      data: roles.data,
+      meta: roles.meta,
     });
   });
 

@@ -97,7 +97,8 @@ class ItemController {
     res.status(HttpStatus.OK).json({
       success: true,
       message: "Menu Items search completed successfully",
-      data: menuItems,
+      data: menuItems.data,
+      meta: menuItems.meta,
     });
   });
 
@@ -378,7 +379,8 @@ class ItemController {
     res.status(HttpStatus.OK).json({
       success: true,
       message: "Stock History fetched successfully",
-      data: history,
+      data: history.data,
+      meta: history.meta,
     });
   });
 
