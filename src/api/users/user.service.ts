@@ -4,7 +4,7 @@ import { CustomError } from "../../types/custom-errors";
 import { HttpStatus } from "../../utils/httpStatus.enum";
 import { UserServiceInterface } from "./interfaces/user.service.interface";
 import { UserRepositoryInterface } from "./interfaces/user.repository.interface";
-import { UpdateUserInput } from "./user.validator";
+import { UpdateUserInput, UserSearchParams } from "./user.validator";
 import { RegisterInput } from "../auth/auth.validator";
 import { RoleServiceInterface } from "../roles/interfaces/role.service.interface";
 import roleService from "../roles/role.service";
@@ -131,6 +131,24 @@ export class UserServices implements UserServiceInterface {
    */
   async findById(id: string): Promise<User> {
     return this.findByIdOrFail(id);
+  }
+
+  /**
+   * Searches users with filtering and pagination.
+   * Supports searching by firstName, lastName, or email.
+   *
+   * @param params - Pagination and search parameters
+   * @returns Promise<PaginatedResponse<UserWithRoles>> - Paginated search results
+   *
+   * Search Capabilities:
+   * - Case-insensitive search in firstName, lastName, and email
+   * - Returns users with their roles included
+   * - Supports pagination
+   */
+  async searchUsers(
+    params: PaginationParams & UserSearchParams,
+  ): Promise<PaginatedResponse<UserWithRoles>> {
+    return this.userRepository.search(params);
   }
 
   /**

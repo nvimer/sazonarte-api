@@ -8,7 +8,7 @@ import {
   PaginatedResponse,
 } from "../../../../interfaces/pagination.interfaces";
 import { RegisterInput } from "../../../auth/auth.validator";
-import { UpdateUserInput } from "../../user.validator";
+import { UpdateUserInput, UserSearchParams } from "../../user.validator";
 import { AuthenticatedUser } from "../../../../types/express";
 import { UserServices } from "../../user.service";
 import { UserWithRoles } from "../../user.repository";
@@ -62,6 +62,7 @@ describe("UserServices", () => {
     // Create fresh moks for each test
     mockUserRepository = {
       findAll: jest.fn(),
+      search: jest.fn(),
       findByEmail: jest.fn(),
       findById: jest.fn(),
       create: jest.fn(),
@@ -509,6 +510,83 @@ describe("UserServices", () => {
       // Assert
       expect(result.data).toEqual([]);
       expect(result.meta.page).toBe(999);
+    });
+  });
+
+  describe("searchUsers", () => {
+    it("should return paginated search results when valid params provided", async () => {
+      // Arrange
+      const mockUsers: UserWithRoles[] = [
+        {
+          ...createMockUser({ id: "id-1", email: "user1@example.com", firstName: "John" }),
+          roles: [],
+        },
+        {
+          ...createMockUser({ id: "id-2", email: "user2@example.com", firstName: "Jane" }),
+          roles: [],
+        },
+      ];
+      const params: PaginationParams & UserSearchParams = {
+        page: 1,
+        limit: 10,
+        search: "john",
+      };
+      const expectedResponse = createPaginatedResponse(mockUsers);
+
+      mockUserRepository.search.mockResolvedValue(expectedResponse);
+
+      // Act
+      const result = await userService.searchUsers(params);
+
+      // Assert
+      expect(result).toEqual(expectedResponse);
+      expect(result.data).toHaveLength(2);
+      expect(mockUserRepository.search).toHaveBeenCalledWith(params);
+      expect(mockUserRepository.search).toHaveBeenCalledTimes(1);
+    });
+
+    it("should handle empty search results", async () => {
+      // Arrange
+      const params: PaginationParams & UserSearchParams = {
+        page: 1,
+        limit: 10,
+        search: "nonexistent",
+      };
+      const expectedResponse = createPaginatedResponse<UserWithRoles>([], {
+        total: 0,
+        totalPages: 0,
+      });
+
+      mockUserRepository.search.mockResolvedValue(expectedResponse);
+
+      // Act
+      const result = await userService.searchUsers(params);
+
+      // Assert
+      expect(result.data).toEqual([]);
+      expect(result.meta.total).toBe(0);
+      expect(mockUserRepository.search).toHaveBeenCalledWith(params);
+    });
+
+    it("should search without search term when not provided", async () => {
+      // Arrange
+      const params: PaginationParams & UserSearchParams = {
+        page: 1,
+        limit: 10,
+      };
+      const expectedResponse = createPaginatedResponse<UserWithRoles>([], {
+        total: 0,
+        totalPages: 0,
+      });
+
+      mockUserRepository.search.mockResolvedValue(expectedResponse);
+
+      // Act
+      const result = await userService.searchUsers(params);
+
+      // Assert
+      expect(result.data).toEqual([]);
+      expect(mockUserRepository.search).toHaveBeenCalledWith(params);
     });
   });
 });

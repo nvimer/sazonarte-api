@@ -2,9 +2,13 @@ import { Request, Response } from "express";
 import { asyncHandler } from "../../utils/asyncHandler";
 import userService from "./user.service";
 import { HttpStatus } from "../../utils/httpStatus.enum";
-import { UpdateUserInput } from "./user.validator";
+import { UpdateUserInput, UserSearchParams } from "./user.validator";
 import { RegisterInput } from "../auth/auth.validator";
-import { PaginationParams } from "../../interfaces/pagination.interfaces";
+import {
+  PaginationParams,
+  DEFAULT_PAGE,
+  DEFAULT_LIMIT,
+} from "../../interfaces/pagination.interfaces";
 
 class UserController {
   /**
@@ -24,8 +28,8 @@ class UserController {
    * - 400: Invalid pagination parameters
    */
   getUsers = asyncHandler(async (req: Request, res: Response) => {
-    const page = parseInt(req.query.page as string) || 1;
-    const limit = parseInt(req.query.limit as string) || 10;
+    const page = parseInt(req.query.page as string) || DEFAULT_PAGE;
+    const limit = parseInt(req.query.limit as string) || DEFAULT_LIMIT;
 
     const params: PaginationParams = { page, limit };
 
@@ -33,6 +37,47 @@ class UserController {
     res.status(HttpStatus.OK).json({
       success: true,
       message: "Users fetched successfully",
+      data: users.data,
+      meta: users.meta,
+    });
+  });
+
+  /**
+   * GET /users/search
+   *
+   * Searches users with filtering and pagination capabilities.
+   * This endpoint allows searching by firstName, lastName, or email
+   * for efficient user management.
+   *
+   * @param req - Express request object with query parameters
+   * @param res - Express response object
+   *
+   * Query Parameters:
+   * - page: Page number (optional, default: 1)
+   * - limit: Records per page (optional, default: 10)
+   * - search: Search term for firstName, lastName, or email (optional)
+   *
+   * Response:
+   * - 200: Filtered users retrieved successfully
+   * - 400: Invalid search parameters
+   * - 500: Server error during search
+   */
+  searchUsers = asyncHandler(async (req: Request, res: Response) => {
+    const page = parseInt(req.query.page as string) || DEFAULT_PAGE;
+    const limit = parseInt(req.query.limit as string) || DEFAULT_LIMIT;
+    const search = req.query.search as string;
+
+    // Create combined parameters object
+    const params: PaginationParams & UserSearchParams = {
+      page,
+      limit,
+      search,
+    };
+
+    const users = await userService.searchUsers(params);
+    res.status(HttpStatus.OK).json({
+      success: true,
+      message: "Users search completed successfully",
       data: users.data,
       meta: users.meta,
     });

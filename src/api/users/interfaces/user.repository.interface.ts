@@ -3,13 +3,16 @@ import {
   PaginationParams,
   PaginatedResponse,
 } from "../../../interfaces/pagination.interfaces";
-import { UpdateUserInput } from "../user.validator";
+import { UpdateUserInput, UserSearchParams } from "../user.validator";
 import { RegisterInput } from "../../auth/auth.validator";
 import { AuthenticatedUser } from "../../../types/express";
 import { UserWithRoles } from "../user.repository";
 
 export interface UserRepositoryInterface {
   findAll(params: PaginationParams): Promise<PaginatedResponse<UserWithRoles>>;
+  search(
+    params: PaginationParams & UserSearchParams,
+  ): Promise<PaginatedResponse<UserWithRoles>>;
   findByEmail(email: string): Promise<User | null>;
   findById(id: string): Promise<User | null>;
   create(data: RegisterInput): Promise<User>;

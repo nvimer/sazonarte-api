@@ -25,5 +25,21 @@ export const updateUserSchema = z.object({
     .partial(),
 });
 
+/**
+ * Validation schema for searching users.
+ * Validates search parameters for user search functionality.
+ */
+export const userSearchSchema = z.object({
+  query: z.object({
+    search: z
+      .string()
+      .min(1, "Search term must be at least 1 character")
+      .max(100, "Search term must not exceed 100 characters")
+      .trim()
+      .optional(),
+  }),
+});
+
 export type UserIdParams = z.infer<typeof userIdSchema>["params"];
 export type UpdateUserInput = z.infer<typeof updateUserSchema>["body"];
+export type UserSearchParams = z.infer<typeof userSearchSchema>["query"];

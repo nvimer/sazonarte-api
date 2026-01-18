@@ -4,6 +4,7 @@ import {
   createUserWithRolesFixture,
 } from "../helpers/user.fixtures";
 import { UserWithRoles } from "../../user.repository";
+import { UserSearchParams } from "../../user.validator";
 
 // Create mock functions
 const mockFindMany = jest.fn();
@@ -385,6 +386,123 @@ describe("UserRepository", () => {
 
       // Assert
       expect(result).toBeNull();
+    });
+  });
+
+  describe("search", () => {
+    it("should search users by firstName, lastName, or email", async () => {
+      // Arrange
+      const mockUsers: UserWithRoles[] = [
+        createUserWithRolesFixture({ firstName: "John", lastName: "Doe", email: "john@example.com" }),
+        createUserWithRolesFixture({ firstName: "Jane", lastName: "Smith", email: "jane@example.com" }),
+      ];
+      mockFindMany.mockResolvedValue(mockUsers);
+      mockCount.mockResolvedValue(2);
+
+      // Act
+      const result = await userRepository.search({ page: 1, limit: 10, search: "john" });
+
+      // Assert
+      expect(result.data).toHaveLength(2);
+      expect(result.meta.total).toBe(2);
+      expect(mockFindMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: {
+            deleted: false,
+            OR: [
+              { firstName: { contains: "john", mode: "insensitive" } },
+              { lastName: { contains: "john", mode: "insensitive" } },
+              { email: { contains: "john", mode: "insensitive" } },
+            ],
+          },
+          include: {
+            roles: {
+              include: {
+                role: true,
+              },
+            },
+          },
+        }),
+      );
+    });
+
+    it("should return all users when search term is not provided", async () => {
+      // Arrange
+      const mockUsers: UserWithRoles[] = createUserFixtures(2).map((user) =>
+        createUserWithRolesFixture(user),
+      );
+      mockFindMany.mockResolvedValue(mockUsers);
+      mockCount.mockResolvedValue(2);
+
+      // Act
+      const result = await userRepository.search({ page: 1, limit: 10 });
+
+      // Assert
+      expect(result.data).toHaveLength(2);
+      expect(mockFindMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { deleted: false },
+        }),
+      );
+    });
+
+    it("should always exclude deleted users in search", async () => {
+      // Arrange
+      mockFindMany.mockResolvedValue([]);
+      mockCount.mockResolvedValue(0);
+
+      // Act
+      await userRepository.search({ page: 1, limit: 10, search: "test" });
+
+      // Assert
+      expect(mockFindMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            deleted: false,
+          }),
+        }),
+      );
+    });
+
+    it("should order results by firstName and lastName ascending", async () => {
+      // Arrange
+      mockFindMany.mockResolvedValue([]);
+      mockCount.mockResolvedValue(0);
+
+      // Act
+      await userRepository.search({ page: 1, limit: 10, search: "test" });
+
+      // Assert
+      expect(mockFindMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          orderBy: [
+            { firstName: "asc" },
+            { lastName: "asc" },
+          ],
+        }),
+      );
+    });
+
+    it("should include roles in search results", async () => {
+      // Arrange
+      mockFindMany.mockResolvedValue([]);
+      mockCount.mockResolvedValue(0);
+
+      // Act
+      await userRepository.search({ page: 1, limit: 10, search: "test" });
+
+      // Assert
+      expect(mockFindMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          include: {
+            roles: {
+              include: {
+                role: true,
+              },
+            },
+          },
+        }),
+      );
     });
   });
 });

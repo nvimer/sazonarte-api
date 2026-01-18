@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { validate } from "../../middlewares/validation.middleware";
-import { userIdSchema } from "./user.validator";
+import { userIdSchema, userSearchSchema } from "./user.validator";
 import { paginationQuerySchema } from "../../utils/pagination.schema";
 import userController from "./user.controller";
 
@@ -11,6 +11,17 @@ const router = Router();
  * Retrieves a paginated list of all non-deleted users.
  */
 router.get("/", validate(paginationQuerySchema), userController.getUsers);
+
+/**
+ * GET /users/search
+ * Searches for users with optional filtering and pagination.
+ */
+router.get(
+  "/search",
+  validate(userSearchSchema),
+  validate(paginationQuerySchema),
+  userController.searchUsers,
+);
 
 /**
  * GET /users/:id

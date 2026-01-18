@@ -1,7 +1,7 @@
 import { User, Prisma } from "@prisma/client";
 import { getPrismaClient } from "../../database/prisma";
 import { UserRepositoryInterface } from "./interfaces/user.repository.interface";
-import { UpdateUserInput } from "./user.validator";
+import { UpdateUserInput, UserSearchParams } from "./user.validator";
 import { RegisterInput } from "../auth/auth.validator";
 import { AuthenticatedUser } from "../../types/express";
 import {
@@ -64,6 +64,62 @@ class BasicUserRepository implements UserRepositoryInterface {
         client.user.count({
         where: { deleted: false },
       }),
+    ]);
+
+    return createPaginatedResponse(users, total, params);
+  }
+
+  /**
+   * Searches users with filtering and pagination.
+   * Supports searching by firstName, lastName, or email.
+   *
+   * @param params - Pagination and search parameters
+   * @returns Promise<PaginatedResponse<UserWithRoles>> - Paginated search results
+   *
+   * Database Operations:
+   * - Performs case-insensitive text search in firstName, lastName, and email
+   * - Excludes soft-deleted users
+   * - Supports pagination with search results
+   * - Orders results by firstName and lastName ascending
+   */
+  async search(
+    params: PaginationParams & UserSearchParams,
+  ): Promise<PaginatedResponse<UserWithRoles>> {
+    const { page, limit, search } = params;
+    const skip = (page - 1) * limit;
+
+    const client = getPrismaClient();
+
+    // Build where clause
+    const where: Prisma.UserWhereInput = { deleted: false };
+
+    // Add search filter if provided
+    if (search) {
+      where.OR = [
+        { firstName: { contains: search, mode: "insensitive" } },
+        { lastName: { contains: search, mode: "insensitive" } },
+        { email: { contains: search, mode: "insensitive" } },
+      ];
+    }
+
+    const [users, total] = await Promise.all([
+      client.user.findMany({
+        where,
+        orderBy: [
+          { firstName: "asc" },
+          { lastName: "asc" },
+        ],
+        include: {
+          roles: {
+            include: {
+              role: true,
+            },
+          },
+        },
+        skip,
+        take: limit,
+      }),
+      client.user.count({ where }),
     ]);
 
     return createPaginatedResponse(users, total, params);
