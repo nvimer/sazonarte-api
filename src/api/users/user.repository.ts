@@ -1,5 +1,5 @@
 import { User, Prisma } from "@prisma/client";
-import prisma from "../../database/prisma";
+import { getPrismaClient } from "../../database/prisma";
 import { UserRepositoryInterface } from "./interfaces/user.repository.interface";
 import { UpdateUserInput } from "./user.validator";
 import { RegisterInput } from "../auth/auth.validator";
@@ -43,8 +43,9 @@ class BasicUserRepository implements UserRepositoryInterface {
     const { page, limit } = params;
     const skip = (page - 1) * limit;
 
+    const client = getPrismaClient();
     const [users, total] = await Promise.all([
-      prisma.user.findMany({
+      client.user.findMany({
         where: { deleted: false },
         orderBy: [
           { firstName: "asc" },
@@ -60,7 +61,7 @@ class BasicUserRepository implements UserRepositoryInterface {
         skip,
         take: limit,
       }),
-      prisma.user.count({
+        client.user.count({
         where: { deleted: false },
       }),
     ]);
@@ -81,7 +82,8 @@ class BasicUserRepository implements UserRepositoryInterface {
    * - Returns null if no user found
    */
   async findByEmail(email: string): Promise<User | null> {
-    return prisma.user.findUnique({ where: { email } });
+    const client = getPrismaClient();
+    return client.user.findUnique({ where: { email } });
   }
 
   /**
@@ -97,7 +99,8 @@ class BasicUserRepository implements UserRepositoryInterface {
    * - Returns null if no user found
    */
   async findById(id: string): Promise<User | null> {
-    return prisma.user.findUnique({ where: { id } });
+    const client = getPrismaClient();
+    return client.user.findUnique({ where: { id } });
   }
 
   /**
@@ -119,7 +122,8 @@ class BasicUserRepository implements UserRepositoryInterface {
   async create(data: RegisterInput): Promise<User> {
     const { roleIds, ...userData } = data;
 
-    return await prisma.user.create({
+    const client = getPrismaClient();
+    return await client.user.create({
       data: {
         ...userData,
         roles: {
@@ -155,7 +159,8 @@ class BasicUserRepository implements UserRepositoryInterface {
    * - Returns updated user data
    */
   async update(id: string, data: UpdateUserInput): Promise<User> {
-    return prisma.user.update({
+    const client = getPrismaClient();
+    return client.user.update({
       where: { id },
       data,
     });
@@ -175,7 +180,8 @@ class BasicUserRepository implements UserRepositoryInterface {
    * - Uses complex join operations for efficiency
    */
   async findUserWithPermissions(id: string): Promise<AuthenticatedUser | null> {
-    return prisma.user.findUnique({
+    const client = getPrismaClient();
+    return client.user.findUnique({
       where: { id },
       include: {
         roles: {

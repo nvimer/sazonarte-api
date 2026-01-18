@@ -18,6 +18,7 @@ import {
 } from "../helpers";
 import { createOrderPayload } from "../helpers/order.fixtures";
 import { OrderType, OrderStatus } from "../../../../types/prisma.types";
+import hasherUtils from "../../../../utils/hasher.utils";
 
 // Skip if not running E2E tests
 const runE2ETests = process.env.TEST_TYPE === "e2e";
@@ -35,9 +36,11 @@ const runE2ETests = process.env.TEST_TYPE === "e2e";
     await cleanupAllTestData();
 
     // Create test data
+    // Hash password before creating user (as it would be in production)
+    const hashedPassword = hasherUtils.hash("password123");
     testWaiter = await createTestUser({
       email: "waiter@e2e.test",
-      password: "password123", // Ensure we know the password for login
+      password: hashedPassword, // Hashed password for login
     });
     testCategory = await createTestMenuCategory({ name: "E2E Category" });
     testMenuItem = await createTestMenuItem(testCategory.id, {
@@ -52,7 +55,16 @@ const runE2ETests = process.env.TEST_TYPE === "e2e";
       password: "password123",
     });
 
-    authToken = loginResponse.body.data?.tokens?.access?.token;
+    // Verify login was successful
+    expect(loginResponse.status).toBe(200);
+    expect(loginResponse.body.success).toBe(true);
+    expect(loginResponse.body.data).toBeDefined();
+    
+    // Token structure: { access: { token: string, expires: string }, refresh: { token: string, expires: string } }
+    expect(loginResponse.body.data.access).toBeDefined();
+    expect(loginResponse.body.data.access.token).toBeDefined();
+
+    authToken = loginResponse.body.data.access.token;
   });
 
   beforeEach(async () => {

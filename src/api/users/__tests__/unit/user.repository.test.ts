@@ -12,18 +12,21 @@ const mockCreate = jest.fn();
 const mockUpdate = jest.fn();
 const mockCount = jest.fn();
 
-// Mock Prisma
+// Mock Prisma and getPrismaClient
+const mockPrismaClient = {
+  user: {
+    findMany: mockFindMany,
+    findUnique: mockFindUnique,
+    create: mockCreate,
+    update: mockUpdate,
+    count: mockCount,
+  },
+};
+
 jest.mock("../../../../database/prisma", () => ({
   __esModule: true,
-  default: {
-    user: {
-      findMany: mockFindMany,
-      findUnique: mockFindUnique,
-      create: mockCreate,
-      update: mockUpdate,
-      count: mockCount,
-    },
-  },
+  default: mockPrismaClient,
+  getPrismaClient: jest.fn(() => mockPrismaClient),
 }));
 
 // Mock pagination helper
@@ -49,7 +52,7 @@ describe("UserRepository", () => {
   });
 
   describe("findAll", () => {
-    it("should return paginated users", async () => {
+    it("should return paginated users with roles", async () => {
       // Arrange
       const mockUsers: UserWithRoles[] = createUserFixtures(2).map((user) =>
         createUserWithRolesFixture(user),
@@ -64,6 +67,11 @@ describe("UserRepository", () => {
       expect(result.data).toHaveLength(2);
       expect(result.meta.total).toBe(2);
       expect(result.meta.page).toBe(1);
+      // Verify that users include roles structure
+      result.data.forEach((user) => {
+        expect(user).toHaveProperty("roles");
+        expect(Array.isArray(user.roles)).toBe(true);
+      });
     });
 
     it("should calculate skip correctly for pagination", async () => {
