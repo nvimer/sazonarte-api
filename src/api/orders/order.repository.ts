@@ -10,7 +10,7 @@ import {
   OrderWithItems,
   OrderWithRelations,
 } from "../../types/prisma.types";
-import prisma from "../../database/prisma";
+import { getPrismaClient } from "../../database/prisma";
 import { createPaginatedResponse } from "../../utils/pagination.helper";
 import { PrismaTransaction } from "../../types/prisma-transaction.types";
 
@@ -51,8 +51,9 @@ export class OrderRepository implements OrderRepositoryInterface {
     }
 
     // Execute query and count and parallel for perfomance
+    const client = getPrismaClient();
     const [orders, total] = await Promise.all([
-      prisma.order.findMany({
+      client.order.findMany({
         where,
         include: {
           items: {
@@ -65,7 +66,7 @@ export class OrderRepository implements OrderRepositoryInterface {
         skip,
         take: limit,
       }),
-      prisma.order.count({ where }),
+      client.order.count({ where }),
     ]);
     return createPaginatedResponse(orders, total, { page, limit });
   }
@@ -80,7 +81,8 @@ export class OrderRepository implements OrderRepositoryInterface {
    * @returns Complete order with all relations, or null if not found
    */
   async findById(id: string): Promise<OrderWithRelations | null> {
-    return prisma.order.findUnique({
+    const client = getPrismaClient();
+    return client.order.findUnique({
       where: { id },
       include: {
         items: {
@@ -120,7 +122,7 @@ export class OrderRepository implements OrderRepositoryInterface {
     data: CreateOrderBodyInput,
     tx?: PrismaTransaction,
   ): Promise<OrderWithItems> {
-    const client = tx || prisma;
+    const client = tx || getPrismaClient();
     // Extract items from order data
     const { items, ...orderData } = data;
 
@@ -167,7 +169,7 @@ export class OrderRepository implements OrderRepositoryInterface {
     status: OrderStatus,
     tx?: PrismaTransaction,
   ): Promise<Order> {
-    const client = tx || prisma;
+    const client = tx || getPrismaClient();
     return client.order.update({
       where: { id },
       data: { status },
@@ -204,7 +206,7 @@ export class OrderRepository implements OrderRepositoryInterface {
     totalAmount: number,
     tx?: PrismaTransaction,
   ): Promise<Order> {
-    const client = tx || prisma;
+    const client = tx || getPrismaClient();
     return client.order.update({
       where: { id },
       data: { totalAmount },

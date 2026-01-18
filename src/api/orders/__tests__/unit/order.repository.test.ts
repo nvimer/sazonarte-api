@@ -12,18 +12,21 @@ const mockCreate = jest.fn();
 const mockUpdate = jest.fn();
 const mockCount = jest.fn();
 
-// Mock Prisma
+// Mock Prisma and getPrismaClient
+const mockPrismaClient = {
+  order: {
+    findMany: mockFindMany,
+    findUnique: mockFindUnique,
+    create: mockCreate,
+    update: mockUpdate,
+    count: mockCount,
+  },
+};
+
 jest.mock("../../../../database/prisma", () => ({
   __esModule: true,
-  default: {
-    order: {
-      findMany: mockFindMany,
-      findUnique: mockFindUnique,
-      create: mockCreate,
-      update: mockUpdate,
-      count: mockCount,
-    },
-  },
+  default: mockPrismaClient,
+  getPrismaClient: jest.fn(() => mockPrismaClient),
 }));
 
 // Mock pagination helper
