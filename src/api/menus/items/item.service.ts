@@ -21,19 +21,7 @@ import {
   StockAdjustmentType,
 } from "../../../types/prisma.types";
 import { PrismaTransaction } from "../../../types/prisma-transaction.types";
-import prisma from "../../../database/prisma";
-
-// Get the appropriate Prisma client based on environment
-// In test environment with TEST_TYPE set, use test database
-const getPrismaClient = () => {
-  if (process.env.NODE_ENV === "test" && process.env.TEST_TYPE) {
-    // For integration/E2E tests, use test database client
-    // Dynamic import to avoid circular dependencies
-    const { getTestDatabaseClient } = require("../../../tests/shared/test-database");
-    return getTestDatabaseClient();
-  }
-  return prisma;
-};
+import prisma, { getPrismaClient } from "../../../database/prisma";
 
 /**
  * Menu Item Service
@@ -56,23 +44,35 @@ export class ItemService implements ItemServiceInterface {
   constructor(private itemRepository: ItemRepositoryInterface) { }
 
   /**
-   * Private helper method to find a menu item by id and throw an error if not found.
-   * This method centralizes the "find or fail" logic to avoid code duplication
+   * Private Helper: Find Menu Item by ID or Fail
    *
-   * This method is used internally by other service method that need
-   * to ensure a menu item exists before performing operations on it.
+   * Attempts to find a menu item by its ID. Uses the appropriate Prisma client
+   * based on the environment (test database client for integration/E2E tests,
+   * main client for production).
+   *
+   * @param id - Menu item identifier
+   * @returns Menu item if found
+   * @throws CustomError with 404 status if menu item not found
    */
-  private async findMenuItemByIdOrFail(id: number) {
-    // Attempt to find the menu item in the repository
-    const menuItem = await this.itemRepository.findById(id);
+  private async findMenuItemByIdOrFail(id: number): Promise<MenuItem> {
+    // Use the appropriate Prisma client based on environment
+    // This ensures integration/E2E tests can find items created in test database
+    const client = getPrismaClient();
 
-    // If menu item doesn't exist, throw a custom error with appropiate details.
-    if (!menuItem)
+    // Attempt to find the menu item using the appropriate client
+    const menuItem = await client.menuItem.findUnique({
+      where: { id },
+    });
+
+    // If menu item doesn't exist, throw a custom error with appropriate details
+    if (!menuItem) {
       throw new CustomError(
         `Menu Item ID ${id} not found`,
         HttpStatus.NOT_FOUND,
         "ID_NOT_FOUND",
       );
+    }
+
     return menuItem;
   }
 
@@ -195,10 +195,14 @@ export class ItemService implements ItemServiceInterface {
       const newStock = previousStock + data.quantity;
 
       // Update menu item
-      const updatedItem = await this.itemRepository.updateStockWithData(tx, id, {
-        stockQuantity: newStock,
-        isAvailable: true,
-      });
+      const updatedItem = await this.itemRepository.updateStockWithData(
+        tx,
+        id,
+        {
+          stockQuantity: newStock,
+          isAvailable: true,
+        },
+      );
 
       // Create stock adjustment record
       await this.itemRepository.createStockAdjustment(tx, {
@@ -267,10 +271,14 @@ export class ItemService implements ItemServiceInterface {
       const newStock = currentStock - data.quantity;
 
       // Update menu item
-      const updatedItem = await this.itemRepository.updateStockWithData(tx, id, {
-        stockQuantity: newStock,
-        isAvailable: newStock > 0 ? menuItem.isAvailable : false,
-      });
+      const updatedItem = await this.itemRepository.updateStockWithData(
+        tx,
+        id,
+        {
+          stockQuantity: newStock,
+          isAvailable: newStock > 0 ? menuItem.isAvailable : false,
+        },
+      );
 
       // Create stock adjustment record
       await this.itemRepository.createStockAdjustment(tx, {
@@ -300,13 +308,32 @@ export class ItemService implements ItemServiceInterface {
    * @param tx - Optional transaction client for atomic operations
    * @throws CustomError if insufficient stock available
    */
+  /**
+   * Deducts Stock When Order is Confirmed
+   *
+   * Automatically reduces stock quantity when an order is created.
+   * This is a critical integration point with the order management
+   * system to maintain real-time inventory accuracy.
+   *
+   * @param itemId - Menu item identifier
+   * @param quantity - Number of units ordered
+   * @param orderId - Order identifier for audit trail
+   * @param tx - Optional transaction client for atomic operations
+   * @throws CustomError if insufficient stock available
+   */
   async deductStockForOrder(
     itemId: number,
     quantity: number,
     orderId: string,
     tx?: PrismaTransaction,
   ): Promise<void> {
-    const item = await this.itemRepository.findById(itemId);
+    // If transaction is provided, use it; otherwise use appropriate client
+    const client = tx || getPrismaClient();
+
+    // Find item using the appropriate client
+    const item = await client.menuItem.findUnique({
+      where: { id: itemId },
+    });
 
     // Skip stock deduction for non-existent or UNLIMITED items
     if (!item || item.inventoryType !== InventoryType.TRACKED) return;
@@ -344,13 +371,31 @@ export class ItemService implements ItemServiceInterface {
    * @param orderId - Order identifier for audit trail
    * @param tx - Optional transaction client for atomic operations
    */
+  /**
+   * Reverts Stock When Order is Cancelled
+   *
+   * Automatically restores stock quantity when an order is cancelled.
+   * This maintains inventory accuracy and makes items available for
+   * other customers again.
+   *
+   * @param itemId - Menu item identifier
+   * @param quantity - Number of units to restore
+   * @param orderId - Order identifier for audit trail
+   * @param tx - Optional transaction client for atomic operations
+   */
   async revertStockForOrder(
     itemId: number,
     quantity: number,
     orderId: string,
     tx?: PrismaTransaction,
   ): Promise<void> {
-    const item = await this.itemRepository.findById(itemId);
+    // If transaction is provided, use it; otherwise use appropriate client
+    const client = tx || getPrismaClient();
+
+    // Find item using the appropriate client
+    const item = await client.menuItem.findUnique({
+      where: { id: itemId },
+    });
 
     // Skip stock revert for non-existent or UNLIMITED items
     if (!item || item.inventoryType !== InventoryType.TRACKED) return;
@@ -446,12 +491,18 @@ export class ItemService implements ItemServiceInterface {
       };
 
       // Handle type conversion
-      if (previousType === InventoryType.TRACKED && newType === InventoryType.UNLIMITED) {
+      if (
+        previousType === InventoryType.TRACKED &&
+        newType === InventoryType.UNLIMITED
+      ) {
         // Clear stock data when converting to UNLIMITED
         updateData.stockQuantity = null;
         updateData.initialStock = null;
         updateData.lowStockAlert = null;
-      } else if (previousType === InventoryType.UNLIMITED && newType === InventoryType.TRACKED) {
+      } else if (
+        previousType === InventoryType.UNLIMITED &&
+        newType === InventoryType.TRACKED
+      ) {
         // Set defaults for new TRACKED items
         updateData.stockQuantity = 0;
         updateData.initialStock = 0;

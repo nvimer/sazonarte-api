@@ -1,4 +1,4 @@
-import { Order } from "@prisma/client";
+import { Order, Prisma } from "@prisma/client";
 import {
   PaginationParams,
   PaginatedResponse,
@@ -21,8 +21,9 @@ import {
 } from "./order.validator";
 import orderRepository from "./order.repository";
 import itemService from "../menus/items/item.service";
-import prisma from "../../database/prisma";
+import { getPrismaClient } from "../../database/prisma";
 import { PrismaTransaction } from "../../types/prisma-transaction.types";
+import { createPaginatedResponse } from "../../utils/pagination.helper";
 
 export class OrderService implements OrderServiceInterface {
   constructor(
@@ -44,8 +45,43 @@ export class OrderService implements OrderServiceInterface {
    * @returns Order with all relations
    * @throws CustomError with 404 status if order not found
    */
+  /**
+   * Private Helper: Find Order by ID or Fail
+   *
+   * Attempts to find an order by its ID. Uses the appropriate Prisma client
+   * based on the environment (test database client for integration/E2E tests,
+   * main client for production).
+   *
+   * @param id - Order identifier
+   * @returns Order with all relations if found
+   * @throws CustomError with 404 status if order not found
+   */
   private async findOrderByIdOrFail(id: string): Promise<OrderWithRelations> {
-    const order = await this.orderRepository.findById(id);
+    // Use the appropriate Prisma client based on environment
+    // This ensures integration/E2E tests can find orders created in test database
+    const client = getPrismaClient();
+
+    const order = await client.order.findUnique({
+      where: { id },
+      include: {
+        items: {
+          include: {
+            menuItem: true,
+          },
+        },
+        table: true,
+        waiter: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+          },
+        },
+        customer: true,
+        payments: true,
+      },
+    });
 
     if (!order) {
       throw new CustomError(
@@ -67,10 +103,63 @@ export class OrderService implements OrderServiceInterface {
    * @param params
    * @retuns Paginated list of orders with items
    */
+  /**
+   * Retrieves Paginated List of Orders
+   *
+   * Service layer method for fetching orders with pagination and filtering.
+   * Uses the appropriate Prisma client based on environment to ensure
+   * integration/E2E tests can access orders in the test database.
+   *
+   * @param params - Pagination and filter parameters
+   * @returns Paginated list of orders with items
+   */
   async findAllOrders(
     params: PaginationParams & OrderSearchParams,
   ): Promise<PaginatedResponse<OrderWithItems>> {
-    return await this.orderRepository.findAll(params);
+    // Use the appropriate Prisma client based on environment
+    const client = getPrismaClient();
+    const { page, limit, status, type, waiterId, tableId, date } = params;
+    const skip = (page - 1) * limit;
+
+    // Build dynamic where conditions
+    const where: Prisma.OrderWhereInput = {};
+
+    if (status) where.status = status;
+    if (type) where.type = type;
+    if (waiterId) where.waiterId = waiterId;
+    if (tableId) where.tableId = tableId;
+    if (date) {
+      // Filter by date (start of day to end of day)
+      const startOfDay = new Date(date);
+      startOfDay.setHours(0, 0, 0, 0);
+      const endOfDay = new Date(date);
+      endOfDay.setHours(23, 59, 59, 999);
+
+      where.createdAt = {
+        gte: startOfDay,
+        lte: endOfDay,
+      };
+    }
+
+    // Execute query and count in parallel for performance
+    const [orders, total] = await Promise.all([
+      client.order.findMany({
+        where,
+        include: {
+          items: {
+            include: {
+              menuItem: true,
+            },
+          },
+        },
+        orderBy: { createdAt: "desc" },
+        skip,
+        take: limit,
+      }),
+      client.order.count({ where }),
+    ]);
+
+    return createPaginatedResponse(orders, total, { page, limit });
   }
 
   /**
@@ -152,7 +241,9 @@ export class OrderService implements OrderServiceInterface {
     );
 
     // Step 6-8: Create order, update total, and deduct stock in atomic transaction
-    return await prisma.$transaction(async (tx: PrismaTransaction) => {
+    // Use the appropriate Prisma client based on environment
+    const client = getPrismaClient();
+    return await client.$transaction(async (tx: PrismaTransaction) => {
       // Create order with items
       const order = await this.orderRepository.create(
         id,
@@ -179,8 +270,28 @@ export class OrderService implements OrderServiceInterface {
 
       await Promise.all(stockDeductionPromises);
 
-      // Fetch and return complete order with items
-      return (await this.orderRepository.findById(order.id)) as OrderWithItems;
+      // Fetch the updated order with correct totalAmount
+      // Use the transaction client to ensure we get the updated data
+      const updatedOrder = await tx.order.findUnique({
+        where: { id: order.id },
+        include: {
+          items: {
+            include: {
+              menuItem: true,
+            },
+          },
+        },
+      });
+
+      if (!updatedOrder) {
+        throw new CustomError(
+          `Order with ID ${order.id} not found after creation`,
+          HttpStatus.INTERNAL_SERVER_ERROR,
+          "ORDER_NOT_FOUND",
+        );
+      }
+
+      return updatedOrder as OrderWithItems;
     });
   }
 
@@ -219,8 +330,12 @@ export class OrderService implements OrderServiceInterface {
       );
     }
 
-    // Update status
-    return this.orderRepository.updateStatus(id, data.status);
+    // Update status using the appropriate Prisma client
+    const client = getPrismaClient();
+    return client.order.update({
+      where: { id },
+      data: { status: data.status },
+    });
   }
 
   /**
@@ -256,7 +371,9 @@ export class OrderService implements OrderServiceInterface {
     }
 
     // Step 3-4: Revert stock and cancel order in atomic transaction
-    return await prisma.$transaction(async (tx: PrismaTransaction) => {
+    // Use the appropriate Prisma client based on environment
+    const client = getPrismaClient();
+    return await client.$transaction(async (tx: PrismaTransaction) => {
       // Revert stock for all TRACKED items
       const stockReversionPromises = order.items.map((orderItem) => {
         if (
@@ -274,8 +391,11 @@ export class OrderService implements OrderServiceInterface {
       });
       await Promise.all(stockReversionPromises);
 
-      // Update order status to CANCELLED
-      return this.orderRepository.cancel(id, tx);
+      // Update order status to CANCELLED using transaction client
+      return tx.order.update({
+        where: { id },
+        data: { status: OrderStatus.CANCELLED },
+      });
     });
   }
 }

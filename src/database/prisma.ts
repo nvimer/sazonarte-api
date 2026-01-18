@@ -136,4 +136,26 @@ process.on("beforeExit", async () => {
   await prisma.$disconnect();
 });
 
+/**
+ * Gets the appropriate Prisma client based on the environment.
+ *
+ * In test environment with TEST_TYPE set (integration/E2E tests),
+ * returns the test database client. Otherwise, returns the main
+ * production client with soft delete extensions.
+ *
+ * This function is used by services to ensure they access the
+ * correct database when running integration/E2E tests.
+ *
+ * @returns Prisma client instance (test or production)
+ */
+export function getPrismaClient(): typeof prisma {
+  if (process.env.NODE_ENV === "test" && process.env.TEST_TYPE) {
+    // For integration/E2E tests, use test database client
+    // Dynamic import to avoid circular dependencies
+    const { getTestDatabaseClient } = require("../tests/shared/test-database");
+    return getTestDatabaseClient();
+  }
+  return prisma;
+}
+
 export default prisma;

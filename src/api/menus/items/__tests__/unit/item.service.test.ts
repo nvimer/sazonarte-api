@@ -1,3 +1,16 @@
+// Mock getPrismaClient BEFORE imports
+const mockPrismaClient = {
+  menuItem: {
+    findUnique: jest.fn(),
+  },
+};
+
+jest.mock("../../../../../database/prisma", () => ({
+  __esModule: true,
+  default: {},
+  getPrismaClient: jest.fn(() => mockPrismaClient),
+}));
+
 import { MenuItem } from "@prisma/client";
 import { ItemService } from "../../item.service";
 import { ItemRepositoryInterface } from "../../interfaces/item.repository.interface";
@@ -84,19 +97,21 @@ describe("ItemService - Basic Test", () => {
     it("should return when found", async () => {
       // Arrange
       const mockItem = createMenuItemFixture({ id: 5 });
-      mockItemRepository.findById.mockResolvedValue(mockItem);
+      mockPrismaClient.menuItem.findUnique.mockResolvedValue(mockItem);
 
       // Act
       const result = await itemService.findMenuItemById(5);
 
       // Assert
       expect(result).toEqual(mockItem);
-      expect(mockItemRepository.findById).toHaveBeenCalledWith(mockItem.id);
+      expect(mockPrismaClient.menuItem.findUnique).toHaveBeenCalledWith({
+        where: { id: 5 },
+      });
     });
 
     it("should throw NotFound when item does not exist", async () => {
       // Arrange
-      mockItemRepository.findById.mockResolvedValue(null);
+      mockPrismaClient.menuItem.findUnique.mockResolvedValue(null);
 
       // Act & Assert
       await expect(itemService.findMenuItemById(999)).rejects.toThrow(

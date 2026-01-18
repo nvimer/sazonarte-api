@@ -1,10 +1,20 @@
-// Mock Prisma transaction BEFORE imports
-const mockTransaction = jest.fn();
+// Mock Prisma client and getPrismaClient BEFORE imports
+const mockPrismaClient = {
+  order: {
+    findUnique: jest.fn(),
+    findMany: jest.fn(),
+    update: jest.fn(),
+    count: jest.fn(),
+  },
+  $transaction: jest.fn(),
+};
+
 jest.mock("../../../../database/prisma", () => ({
   __esModule: true,
   default: {
-    $transaction: mockTransaction,
+    $transaction: mockPrismaClient.$transaction,
   },
+  getPrismaClient: jest.fn(() => mockPrismaClient),
 }));
 
 import { Prisma } from "@prisma/client";
@@ -35,9 +45,21 @@ describe("OrderService - Basic Tests", () => {
 
     orderService = new OrderService(mockOrderRepository, mockItemService);
 
+    // Reset Prisma client mocks
+    mockPrismaClient.order.findUnique.mockReset();
+    mockPrismaClient.order.findMany.mockReset();
+    mockPrismaClient.order.update.mockReset();
+    mockPrismaClient.order.count.mockReset();
+
     // Setup transaction mock
-    mockTransaction.mockImplementation(async (callback) => {
-      const mockTx = {} as Parameters<typeof callback>[0];
+    mockPrismaClient.$transaction.mockImplementation(async (callback) => {
+      const mockTx = {
+        order: {
+          create: jest.fn(),
+          update: jest.fn(),
+          findUnique: jest.fn(),
+        },
+      };
       return await callback(mockTx);
     });
 
@@ -90,12 +112,21 @@ describe("OrderService - Basic Tests", () => {
       mockItemService.findMenuItemById.mockResolvedValue(mockMenuItem);
       mockItemService.deductStockForOrder.mockResolvedValue(undefined);
 
-      mockOrderRepository.create.mockResolvedValue(createdOrder as any);
-      mockOrderRepository.updateTotal.mockResolvedValue({
-        ...createdOrder,
-        totalAmount: new Prisma.Decimal("28000"),
-      } as any);
-      mockOrderRepository.findById.mockResolvedValue(orderWithItems as any);
+      // Mock the transaction to return the order with items
+      const mockTx = {
+        order: {
+          create: jest.fn().mockResolvedValue(orderWithItems),
+          findUnique: jest.fn().mockResolvedValue(orderWithItems),
+          update: jest.fn(),
+        },
+      };
+      mockPrismaClient.$transaction.mockImplementation(async (callback) => {
+        return await callback(mockTx);
+      });
+      
+      // Mock repository methods used within transaction
+      mockOrderRepository.create.mockResolvedValue(orderWithItems as any);
+      mockOrderRepository.updateTotal.mockResolvedValue(undefined as any);
 
       // Act
       const result = await orderService.createOrder(waiterId, orderData);
@@ -128,7 +159,10 @@ describe("OrderService - Basic Tests", () => {
         28000,
         expect.anything(), // tx parameter
       );
-      expect(mockOrderRepository.findById).toHaveBeenCalledWith("order-123");
+      expect(mockTx.order.findUnique).toHaveBeenCalledWith({
+        where: { id: "order-123" },
+        include: expect.any(Object),
+      });
       expect(result).toEqual(orderWithItems);
     });
   });
@@ -142,26 +176,49 @@ describe("OrderService - Basic Tests", () => {
         status: OrderStatus.PENDING,
         waiterId: "waiter-123",
       });
-      mockOrderRepository.findById.mockResolvedValue(expectedOrder as any);
+      mockPrismaClient.order.findUnique.mockResolvedValue(expectedOrder);
 
       // Act
       const result = await orderService.findOrderById(orderId);
 
       // Assert
-      expect(mockOrderRepository.findById).toHaveBeenCalledWith(orderId);
+      expect(mockPrismaClient.order.findUnique).toHaveBeenCalledWith({
+        where: { id: orderId },
+        include: {
+          items: {
+            include: {
+              menuItem: true,
+            },
+          },
+          table: true,
+          waiter: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+            },
+          },
+          customer: true,
+          payments: true,
+        },
+      });
       expect(result).toEqual(expectedOrder);
     });
 
     test("should throw error when order not found", async () => {
       // Arrange
       const orderId = "non-existent";
-      mockOrderRepository.findById.mockResolvedValue(null);
+      mockPrismaClient.order.findUnique.mockResolvedValue(null);
 
       // Act & Assert
       await expect(orderService.findOrderById(orderId)).rejects.toThrow(
         "Order with ID non-existent not found",
       );
-      expect(mockOrderRepository.findById).toHaveBeenCalledWith(orderId);
+      expect(mockPrismaClient.order.findUnique).toHaveBeenCalledWith({
+        where: { id: orderId },
+        include: expect.any(Object),
+      });
     });
   });
 
@@ -181,8 +238,8 @@ describe("OrderService - Basic Tests", () => {
         waiterId: "waiter-123",
       });
 
-      mockOrderRepository.findById.mockResolvedValue(existingOrder as any);
-      mockOrderRepository.updateStatus.mockResolvedValue(updatedOrder as any);
+      mockPrismaClient.order.findUnique.mockResolvedValue(existingOrder);
+      mockPrismaClient.order.update.mockResolvedValue(updatedOrder);
 
       // Act
       const result = await orderService.updateOrderStatus(orderId, {
@@ -190,11 +247,14 @@ describe("OrderService - Basic Tests", () => {
       });
 
       // Assert
-      expect(mockOrderRepository.findById).toHaveBeenCalledWith(orderId);
-      expect(mockOrderRepository.updateStatus).toHaveBeenCalledWith(
-        orderId,
-        status,
-      );
+      expect(mockPrismaClient.order.findUnique).toHaveBeenCalledWith({
+        where: { id: orderId },
+        include: expect.any(Object),
+      });
+      expect(mockPrismaClient.order.update).toHaveBeenCalledWith({
+        where: { id: orderId },
+        data: { status },
+      });
       expect(result).toEqual(updatedOrder);
     });
 
@@ -206,7 +266,7 @@ describe("OrderService - Basic Tests", () => {
         status: OrderStatus.DELIVERED,
       });
 
-      mockOrderRepository.findById.mockResolvedValue(deliveredOrder as any);
+      mockPrismaClient.order.findUnique.mockResolvedValue(deliveredOrder);
 
       // Act & Assert
       await expect(
@@ -214,6 +274,7 @@ describe("OrderService - Basic Tests", () => {
           status: OrderStatus.PENDING,
         }),
       ).rejects.toThrow("Cannot change status of delivered order");
+      expect(mockPrismaClient.order.update).not.toHaveBeenCalled();
     });
 
     test("should throw error when trying to update cancelled order", async () => {
@@ -224,7 +285,7 @@ describe("OrderService - Basic Tests", () => {
         status: OrderStatus.CANCELLED,
       });
 
-      mockOrderRepository.findById.mockResolvedValue(cancelledOrder as any);
+      mockPrismaClient.order.findUnique.mockResolvedValue(cancelledOrder);
 
       // Act & Assert
       await expect(
@@ -232,6 +293,7 @@ describe("OrderService - Basic Tests", () => {
           status: OrderStatus.PENDING,
         }),
       ).rejects.toThrow("Cannot change status of cancelled order");
+      expect(mockPrismaClient.order.update).not.toHaveBeenCalled();
     });
   });
 
@@ -250,25 +312,40 @@ describe("OrderService - Basic Tests", () => {
         waiterId: "waiter-123",
       });
 
-      mockOrderRepository.findById.mockResolvedValue(existingOrder as any);
-      mockOrderRepository.cancel.mockResolvedValue(cancelledOrder as any);
+      mockPrismaClient.order.findUnique.mockResolvedValue(existingOrder);
       mockItemService.revertStockForOrder.mockResolvedValue(undefined);
+      
+      // Mock the transaction to return the cancelled order
+      // Create a mockTx that will be used in the transaction callback
+      const mockTx = {
+        order: {
+          update: jest.fn().mockResolvedValue(cancelledOrder),
+        },
+      };
+      
+      // Override the beforeEach mock for this specific test
+      mockPrismaClient.$transaction.mockImplementation(async (callback) => {
+        return await callback(mockTx);
+      });
 
       // Act
       const result = await orderService.cancelOrder(orderId);
 
       // Assert
-      expect(mockOrderRepository.findById).toHaveBeenCalledWith(orderId);
+      expect(mockPrismaClient.order.findUnique).toHaveBeenCalledWith({
+        where: { id: orderId },
+        include: expect.any(Object),
+      });
       expect(mockItemService.revertStockForOrder).toHaveBeenCalledWith(
         1, // menuItemId
         2, // quantity
         orderId,
-        expect.anything(), // tx parameter
+        mockTx, // tx parameter should be the mockTx we created
       );
-      expect(mockOrderRepository.cancel).toHaveBeenCalledWith(
-        orderId,
-        expect.anything(), // tx parameter
-      );
+      expect(mockTx.order.update).toHaveBeenCalledWith({
+        where: { id: orderId },
+        data: { status: OrderStatus.CANCELLED },
+      });
       expect(result).toEqual(cancelledOrder);
     });
 
@@ -280,13 +357,13 @@ describe("OrderService - Basic Tests", () => {
         status: OrderStatus.DELIVERED,
       });
 
-      mockOrderRepository.findById.mockResolvedValue(deliveredOrder as any);
+      mockPrismaClient.order.findUnique.mockResolvedValue(deliveredOrder);
 
       // Act & Assert
       await expect(orderService.cancelOrder(orderId)).rejects.toThrow(
         "Cannot cancel delivered order",
       );
-      expect(mockOrderRepository.cancel).not.toHaveBeenCalled();
+      expect(mockPrismaClient.$transaction).not.toHaveBeenCalled();
     });
 
     test("should throw error when trying to cancel already cancelled order", async () => {
@@ -297,13 +374,13 @@ describe("OrderService - Basic Tests", () => {
         status: OrderStatus.CANCELLED,
       });
 
-      mockOrderRepository.findById.mockResolvedValue(cancelledOrder as any);
+      mockPrismaClient.order.findUnique.mockResolvedValue(cancelledOrder);
 
       // Act & Assert
       await expect(orderService.cancelOrder(orderId)).rejects.toThrow(
         "Cannot cancel cancelled order",
       );
-      expect(mockOrderRepository.cancel).not.toHaveBeenCalled();
+      expect(mockPrismaClient.$transaction).not.toHaveBeenCalled();
     });
   });
 
@@ -322,31 +399,24 @@ describe("OrderService - Basic Tests", () => {
           hasPreviousPage: false,
         },
       };
-      mockOrderRepository.findAll.mockResolvedValue(expectedResponse);
+      mockPrismaClient.order.findMany.mockResolvedValue([]);
+      mockPrismaClient.order.count.mockResolvedValue(0);
 
       // Act
       const result = await orderService.findAllOrders(params);
 
       // Assert
-      expect(mockOrderRepository.findAll).toHaveBeenCalledWith(params);
-      expect(result).toEqual(expectedResponse);
+      expect(mockPrismaClient.order.findMany).toHaveBeenCalled();
+      expect(mockPrismaClient.order.count).toHaveBeenCalled();
+      expect(result.data).toEqual([]);
+      expect(result.meta.total).toBe(0);
     });
 
     test("should return empty list when no orders exist", async () => {
       // Arrange
       const params = { page: 1, limit: 10 };
-      const expectedResponse = {
-        data: [],
-        meta: {
-          page: 1,
-          limit: 10,
-          total: 0,
-          totalPages: 0,
-          hasNextPage: false,
-          hasPreviousPage: false,
-        },
-      };
-      mockOrderRepository.findAll.mockResolvedValue(expectedResponse);
+      mockPrismaClient.order.findMany.mockResolvedValue([]);
+      mockPrismaClient.order.count.mockResolvedValue(0);
 
       // Act
       const result = await orderService.findAllOrders(params);
